@@ -12,11 +12,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  // If Supabase isn't configured yet, allow all requests through
+  if (!supabaseUrl || !supabaseUrl.startsWith('http') || !supabaseKey) {
+    return NextResponse.next()
+  }
+
   const response = NextResponse.next({ request })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
