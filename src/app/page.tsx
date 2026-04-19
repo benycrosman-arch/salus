@@ -357,7 +357,7 @@ export default function LandingPage() {
                 <p className="text-sm text-muted-foreground font-body">Tudo que você precisa</p>
               </div>
               <div className="mb-8">
-                <span className="font-sans font-bold text-5xl text-primary">R$ 19</span>
+                <span className="font-sans font-bold text-5xl text-primary">R$ 59</span>
                 <span className="text-muted-foreground ml-1 font-body">/mês</span>
               </div>
               <ul className="space-y-3 mb-8">

@@ -61,7 +61,7 @@ export default function SettingsPage() {
           </p>
           <Button className="w-full bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-all h-11">
             <Crown className="w-4 h-4 mr-2 text-accent" />
-            Assinar Pro — R$ 19/mês
+            Assinar Pro — R$ 59/mês
           </Button>
         </div>
         <div className="p-5 space-y-3">
