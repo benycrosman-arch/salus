@@ -13,51 +13,51 @@
     /* Salus — Precision Nutrition */
 
     /* Backgrounds */
-    --background: #faf7f2;
+    --background: #faf8f4;
     --card: #ffffff;
-    --card-foreground: #2a2a28;
+    --card-foreground: #1a3a2a;
     --popover: #ffffff;
-    --popover-foreground: #2a2a28;
-    --muted: #f1ece4;
+    --popover-foreground: #1a3a2a;
+    --muted: #f0ebe3;
 
     /* Brand */
-    --primary: #4a6b4a;
-    --primary-foreground: #faf7f2;
-    --primary-hover: #3d5a3d;
-    --accent: #d97742;
+    --primary: #1a3a2a;
+    --primary-foreground: #faf8f4;
+    --primary-hover: #15302200;
+    --accent: #c4614a;
     --accent-foreground: #ffffff;
-    --accent-soft: #f4d9c4;
+    --accent-soft: #f5e0da;
 
     /* Semantic */
-    --success: #6b8e4e;
-    --warning: #e8a33d;
+    --success: #4a7c4a;
+    --warning: #c8a538;
     --destructive: #c0544d;
     --info: #5c7a94;
 
     /* Text */
-    --foreground: #2a2a28;
-    --secondary: #f1ece4;
-    --secondary-foreground: #4a6b4a;
-    --muted-foreground: #5c5c58;
-    --text-muted: #8a8a85;
-    --text-inverse: #faf7f2;
+    --foreground: #1a3a2a;
+    --secondary: #f0ebe3;
+    --secondary-foreground: #1a3a2a;
+    --muted-foreground: #6b7c73;
+    --text-muted: #9aaa9f;
+    --text-inverse: #faf8f4;
 
     /* Borders & shadows */
-    --border: #e6e0d4;
-    --input: #e6e0d4;
-    --ring: #4a6b4a;
+    --border: #e4ddd4;
+    --input: #e4ddd4;
+    --ring: #1a3a2a;
 
     /* Score band colors */
-    --score-excellent: #4a6b4a;
-    --score-great: #6b8e4e;
+    --score-excellent: #1a3a2a;
+    --score-great: #4a7c4a;
     --score-good: #c8a538;
-    --score-warning: #d97742;
+    --score-warning: #c4614a;
     --score-danger: #c0544d;
 
     /* Charts */
-    --chart-1: #4a6b4a;
-    --chart-2: #d97742;
-    --chart-3: #6b8e4e;
+    --chart-1: #1a3a2a;
+    --chart-2: #c4614a;
+    --chart-3: #4a7c4a;
     --chart-4: #c8a538;
     --chart-5: #5c7a94;
 
@@ -69,14 +69,14 @@
     --radius-full: 999px;
 
     /* Sidebar */
-    --sidebar: #faf7f2;
-    --sidebar-foreground: #2a2a28;
-    --sidebar-primary: #4a6b4a;
-    --sidebar-primary-foreground: #faf7f2;
-    --sidebar-accent: #f1ece4;
-    --sidebar-accent-foreground: #4a6b4a;
-    --sidebar-border: #e6e0d4;
-    --sidebar-ring: #4a6b4a;
+    --sidebar: #faf8f4;
+    --sidebar-foreground: #1a3a2a;
+    --sidebar-primary: #1a3a2a;
+    --sidebar-primary-foreground: #faf8f4;
+    --sidebar-accent: #f0ebe3;
+    --sidebar-accent-foreground: #1a3a2a;
+    --sidebar-border: #e4ddd4;
+    --sidebar-ring: #1a3a2a;
   }
 
   * {

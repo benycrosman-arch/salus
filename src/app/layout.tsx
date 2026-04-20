@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { DM_Sans, Inter } from "next/font/google"
+import { DM_Sans, DM_Serif_Display } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -11,10 +11,11 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 })
 
-const inter = Inter({
+const dmSerifDisplay = DM_Serif_Display({
   subsets: ["latin"],
-  variable: "--font-body",
-  weight: ["400", "500"],
+  variable: "--font-display",
+  weight: ["400"],
+  style: ["normal", "italic"],
 })
 
 export const metadata: Metadata = {
@@ -28,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" className={`${dmSans.variable} ${inter.variable}`}>
+    <html lang="pt-BR" className={`${dmSans.variable} ${dmSerifDisplay.variable}`}>
       <body className="font-body antialiased min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
         <Providers>
           <TooltipProvider>
