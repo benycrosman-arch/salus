@@ -1,12 +1,18 @@
 import { createBrowserClient } from '@supabase/ssr'
 
+const PLACEHOLDER_URL = 'https://placeholder.supabase.co'
+
 export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
-  if (!url.startsWith('http')) {
-    throw new Error('Supabase não configurado. Defina NEXT_PUBLIC_SUPABASE_URL nas variáveis de ambiente.')
-  }
+  return createBrowserClient(
+    url.startsWith('http') ? url : PLACEHOLDER_URL,
+    key || 'placeholder-key'
+  )
+}
 
-  return createBrowserClient(url, key)
+export function isSupabaseConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+  return url.startsWith('http') && url !== PLACEHOLDER_URL
 }
