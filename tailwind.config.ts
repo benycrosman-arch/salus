@@ -102,8 +102,8 @@ const config: Config = {
         sm: "0 1px 2px rgba(42,42,40,0.04)",
         md: "0 4px 12px rgba(42,42,40,0.06)",
         lg: "0 12px 32px rgba(42,42,40,0.08)",
-        "primary-glow": "0 0 0 1px rgba(74,107,74,0.08), 0 4px 16px rgba(74,107,74,0.08)",
-        "accent-glow": "0 0 0 1px rgba(217,119,66,0.08), 0 4px 16px rgba(217,119,66,0.1)",
+        "primary-glow": "0 0 0 1px rgba(26,58,42,0.08), 0 4px 16px rgba(26,58,42,0.08)",
+        "accent-glow": "0 0 0 1px rgba(196,97,74,0.08), 0 4px 16px rgba(196,97,74,0.1)",
       },
       keyframes: {
         "accordion-down": {
@@ -146,7 +146,7 @@ const config: Config = {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-mesh":
-          "radial-gradient(at 40% 20%, rgba(74,107,74,0.04) 0px, transparent 50%), radial-gradient(at 80% 0%, rgba(217,119,66,0.03) 0px, transparent 50%), radial-gradient(at 0% 50%, rgba(107,142,78,0.03) 0px, transparent 50%)",
+          "radial-gradient(at 40% 20%, rgba(26,58,42,0.04) 0px, transparent 50%), radial-gradient(at 80% 0%, rgba(196,97,74,0.03) 0px, transparent 50%), radial-gradient(at 0% 50%, rgba(74,124,74,0.03) 0px, transparent 50%)",
       },
     },
   },

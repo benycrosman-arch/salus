@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { ContainerScroll } from "@/components/ui/container-scroll-animation"
 import { Check, ChevronDown, ArrowRight, Star } from "lucide-react"
 
 // ─── FAQ DATA ───────────────────────────────────────────────────────────────
@@ -115,143 +116,143 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ── HERO ────────────────────────────────────────── */}
-      <section className="relative pt-36 pb-24 sm:pt-44 sm:pb-32 overflow-hidden">
-        {/* Soft background blobs */}
+      {/* ── HERO WITH CONTAINER SCROLL ─────────────────── */}
+      <section className="relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#c4614a]/[0.05] blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#1a3a2a]/[0.04] blur-3xl pointer-events-none" />
 
-        <div className="relative mx-auto max-w-6xl px-5 sm:px-8">
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#c4614a]/20 bg-[#c4614a]/5 px-4 py-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#c4614a] animate-pulse" />
-              <span className="text-xs font-semibold tracking-widest uppercase text-[#c4614a]">IA Nutricional</span>
-            </div>
-
-            <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.92] tracking-tight text-[#1a3a2a] max-w-5xl">
-              Coma com inteligência.{" "}
-              <em className="italic text-[#c4614a]">Sinta a diferença</em>
-              {" "}em dias.
-            </h1>
-
-            <p className="mt-8 max-w-xl text-lg sm:text-xl text-[#1a3a2a]/60 leading-relaxed">
-              Fotografe o prato. A IA analisa, pontua e sugere. O ciclo mais curto entre saber e comer bem.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 mt-10">
-              <Link href="/auth/signup">
-                <Button className="h-14 gap-2 rounded-full bg-[#1a3a2a] px-10 text-base font-semibold text-white shadow-lg hover:bg-[#1a3a2a]/90 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                  Começar grátis
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <a href="#como-funciona">
-                <Button variant="outline" className="h-14 rounded-full border-[#1a3a2a]/20 px-10 text-base font-semibold text-[#1a3a2a] hover:bg-[#1a3a2a]/5 transition-all">
-                  Ver como funciona
-                </Button>
-              </a>
-            </div>
-
-            <div className="mt-10 flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {["#1a3a2a", "#c4614a", "#4a7c4a", "#c8a538", "#5c7a94"].map((bg, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full ring-2 ring-[#faf8f4] flex items-center justify-center text-[10px] font-bold text-white" style={{ backgroundColor: bg }}>
-                    {["MK", "AR", "LP", "SR", "TC"][i]}
-                  </div>
-                ))}
+        <ContainerScroll
+          titleComponent={
+            <div className="flex flex-col items-center pt-20">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#c4614a]/20 bg-[#c4614a]/5 px-4 py-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#c4614a] animate-pulse" />
+                <span className="text-xs font-semibold tracking-widest uppercase text-[#c4614a]">IA Nutricional</span>
               </div>
-              <div className="flex items-center gap-1 text-sm text-[#1a3a2a]/50">
-                <div className="flex gap-0.5">{[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-[#c4614a] text-[#c4614a]" />)}</div>
-                <span className="font-medium text-[#1a3a2a]">2.400+</span> pessoas comendo melhor
+
+              <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.92] tracking-tight text-[#1a3a2a] max-w-5xl">
+                Coma com inteligência.{" "}
+                <em className="italic text-[#c4614a]">Sinta a diferença</em>
+                {" "}em dias.
+              </h1>
+
+              <p className="mt-8 max-w-xl text-lg sm:text-xl text-[#1a3a2a]/60 leading-relaxed">
+                Fotografe o prato. A IA analisa, pontua e sugere. O ciclo mais curto entre saber e comer bem.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-10">
+                <Link href="/auth/signup">
+                  <Button className="h-14 gap-2 rounded-full bg-[#1a3a2a] px-10 text-base font-semibold text-white shadow-lg hover:bg-[#1a3a2a]/90 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    Começar grátis
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <a href="#como-funciona">
+                  <Button variant="outline" className="h-14 rounded-full border-[#1a3a2a]/20 px-10 text-base font-semibold text-[#1a3a2a] hover:bg-[#1a3a2a]/5 transition-all">
+                    Ver como funciona
+                  </Button>
+                </a>
               </div>
-            </div>
-          </div>
 
-          {/* Phone Mockup */}
-          <div className="mt-20 flex justify-center">
-            <div className="relative w-full max-w-[340px]">
-              {/* Phone frame */}
-              <div className="rounded-[3rem] bg-[#1a3a2a] p-3 shadow-2xl ring-1 ring-[#1a3a2a]">
-                <div className="rounded-[2.4rem] bg-[#faf8f4] overflow-hidden">
-                  {/* Status bar */}
-                  <div className="h-10 bg-[#1a3a2a] flex items-center justify-center">
-                    <div className="w-24 h-5 rounded-full bg-black" />
-                  </div>
-
-                  {/* App content */}
-                  <div className="p-5 space-y-4">
-                    <div className="text-center">
-                      <p className="text-[9px] font-semibold tracking-widest uppercase text-[#1a3a2a]/40">Seu dia em três números</p>
+              <div className="mt-10 flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {["#1a3a2a", "#c4614a", "#4a7c4a", "#c8a538", "#5c7a94"].map((bg, i) => (
+                    <div key={i} className="w-8 h-8 rounded-full ring-2 ring-[#faf8f4] flex items-center justify-center text-[10px] font-bold text-white" style={{ backgroundColor: bg }}>
+                      {["MK", "AR", "LP", "SR", "TC"][i]}
                     </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1 text-sm text-[#1a3a2a]/50">
+                  <div className="flex gap-0.5">{[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-[#c4614a] text-[#c4614a]" />)}</div>
+                  <span className="font-medium text-[#1a3a2a]">2.400+</span> pessoas comendo melhor
+                </div>
+              </div>
+            </div>
+          }
+        >
+          {/* Dashboard mockup inside the 3D scroll card */}
+          <div className="h-full w-full p-6 md:p-8 overflow-hidden">
+            <div className="space-y-5">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#1a3a2a] flex items-center justify-center">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2 2 4.5c.5 2.5 0 4.5-1 6" />
+                        <path d="M15.8 17a7 7 0 0 1-12.6-3" />
+                      </svg>
+                    </div>
+                    <span className="font-serif text-lg italic text-[#1a3a2a]">Salus</span>
+                  </div>
+                  <p className="text-xs text-[#1a3a2a]/40">Seu dia em três números</p>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl bg-[#c4614a]/8 px-3 py-1.5">
+                  <span className="text-sm">🔥</span>
+                  <span className="text-xs font-semibold text-[#c4614a]">5 dias</span>
+                </div>
+              </div>
 
-                    {/* Three macro circles */}
-                    <div className="flex justify-around items-center">
-                      {[
-                        { label: "Proteína", val: 78, color: "#1a3a2a", max: 100 },
-                        { label: "Fibras", val: 92, color: "#c4614a", max: 100 },
-                        { label: "Gordura", val: 61, color: "#4a7c4a", max: 100 },
-                      ].map(({ label, val, color, max }) => {
-                        const r = 26
-                        const circ = 2 * Math.PI * r
-                        const offset = circ - (val / max) * circ
-                        return (
-                          <div key={label} className="flex flex-col items-center gap-1.5">
-                            <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
-                              <circle cx="32" cy="32" r={r} fill="none" stroke="#e4ddd4" strokeWidth="5" />
-                              <circle cx="32" cy="32" r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} />
-                            </svg>
-                            <div className="absolute flex flex-col items-center" style={{ marginTop: "6px" }}>
-                            </div>
-                            <span className="text-[9px] font-semibold text-[#1a3a2a]/50 uppercase tracking-wider">{label}</span>
-                            <span className="text-sm font-bold text-[#1a3a2a] -mt-1">{val}%</span>
+              {/* Three donut circles */}
+              <div className="rounded-2xl bg-white p-6 ring-1 ring-black/[0.04]">
+                <div className="flex justify-around items-center">
+                  {[
+                    { label: "Proteína", val: 78, color: "#1a3a2a" },
+                    { label: "Fibras", val: 92, color: "#c4614a" },
+                    { label: "Gordura", val: 61, color: "#4a7c4a" },
+                  ].map(({ label, val, color }) => {
+                    const r = 32
+                    const circ = 2 * Math.PI * r
+                    const offset = circ - (val / 100) * circ
+                    return (
+                      <div key={label} className="flex flex-col items-center gap-2">
+                        <div className="relative">
+                          <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
+                            <circle cx="40" cy="40" r={r} fill="none" stroke="#e4ddd4" strokeWidth="6" />
+                            <circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="6" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-sm font-bold text-[#1a3a2a]">{val}%</span>
                           </div>
-                        )
-                      })}
-                    </div>
-
-                    {/* Meal card */}
-                    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#1a3a2a]/40">Última Refeição</span>
-                        <div className="w-7 h-7 rounded-full bg-[#1a3a2a] flex items-center justify-center">
-                          <span className="text-[9px] font-bold text-white">96</span>
                         </div>
+                        <span className="text-[10px] font-semibold text-[#1a3a2a]/50 uppercase tracking-wider">{label}</span>
                       </div>
-                      <p className="text-sm font-semibold text-[#1a3a2a]">Salmão + Greens</p>
-                      <div className="flex gap-1.5 mt-2">
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#1a3a2a]/5 text-[#1a3a2a] font-medium">580 kcal</span>
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#c4614a]/10 text-[#c4614a] font-medium">48g prot</span>
-                      </div>
-                    </div>
-
-                    {/* Next bite suggestion */}
-                    <div className="rounded-xl bg-[#c4614a]/8 border border-[#c4614a]/15 p-3 flex items-start gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-[#c4614a] flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[8px] text-white font-bold">IA</span>
-                      </div>
-                      <p className="text-[10px] text-[#1a3a2a]/70 leading-relaxed">
-                        Adicione <strong className="text-[#1a3a2a]">mirtilos</strong> no próximo snack — você está com baixo índice de antioxidantes hoje.
-                      </p>
-                    </div>
-                  </div>
+                    )
+                  })}
                 </div>
               </div>
 
-              {/* Floating badge */}
-              <div className="absolute -right-6 top-28 rounded-2xl bg-white px-4 py-3 shadow-xl ring-1 ring-black/[0.06] animate-float">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-[#c4614a]/10 flex items-center justify-center">
-                    <span className="text-sm">🎯</span>
+              {/* Meal + AI suggestion row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-white p-5 ring-1 ring-black/[0.04]">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[#1a3a2a]/40">Última Refeição</span>
+                    <div className="w-8 h-8 rounded-full bg-[#1a3a2a] flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-white">96</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[9px] font-medium text-[#1a3a2a]/40">Score de hoje</p>
-                    <p className="text-sm font-bold text-[#1a3a2a]">96 · Excelente</p>
+                  <p className="text-base font-semibold text-[#1a3a2a]">Salmão + Greens</p>
+                  <div className="flex gap-2 mt-2">
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#1a3a2a]/5 text-[#1a3a2a] font-medium">580 kcal</span>
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#c4614a]/8 text-[#c4614a] font-medium">48g proteína</span>
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#4a7c4a]/8 text-[#4a7c4a] font-medium">GI baixo</span>
                   </div>
+                </div>
+
+                <div className="rounded-2xl bg-[#1a3a2a] p-5 text-white">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center">
+                      <span className="text-[8px] font-bold">IA</span>
+                    </div>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Próximo bite</span>
+                  </div>
+                  <p className="text-sm text-white/80 leading-relaxed">
+                    Adicione <strong className="text-white">mirtilos</strong> no próximo snack — baixo índice de antioxidantes hoje.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </ContainerScroll>
       </section>
 
       {/* ── STATS ───────────────────────────────────────── */}
