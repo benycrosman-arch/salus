@@ -149,7 +149,7 @@ export default function PlanPage() {
             <h1 className="font-display text-4xl text-[#1a3a2a]">
               Your Meal Plan
             </h1>
-            <p className="mt-1 text-[#1a3a2a]/40">
+            <p className="mt-1 text-[#1a3a2a]/60">
               AI-generated based on your profile and goals
             </p>
           </div>
@@ -165,7 +165,7 @@ export default function PlanPage() {
 
         {/* Day Selector */}
         <Card className="rounded-2xl border-0 bg-white p-5 shadow-md ring-1 ring-black/[0.04]">
-          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#1a3a2a]/40">
+          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#1a3a2a]/60">
             <Calendar className="h-4 w-4" />
             Select Day
           </div>
@@ -204,7 +204,7 @@ export default function PlanPage() {
                     </div>
                     <div className="flex-1 space-y-2">
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#1a3a2a]/35">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#1a3a2a]/60">
                           {meal.type}
                         </p>
                         <h3 className="font-display text-lg text-[#1a3a2a]">
@@ -256,19 +256,19 @@ export default function PlanPage() {
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 relative">
             <div>
               <p className="font-display text-4xl">{dailyTotals.calories}</p>
-              <p className="text-sm text-white/40 mt-1">Calories</p>
+              <p className="text-sm text-white/60 mt-1">Calories</p>
             </div>
             <div>
               <p className="font-display text-4xl">{dailyTotals.protein}g</p>
-              <p className="text-sm text-white/40 mt-1">Protein</p>
+              <p className="text-sm text-white/60 mt-1">Protein</p>
             </div>
             <div>
               <p className="font-display text-4xl">{dailyTotals.carbs}g</p>
-              <p className="text-sm text-white/40 mt-1">Carbs</p>
+              <p className="text-sm text-white/60 mt-1">Carbs</p>
             </div>
             <div>
               <p className="font-display text-4xl">{dailyTotals.fat}g</p>
-              <p className="text-sm text-white/40 mt-1">Fat</p>
+              <p className="text-sm text-white/60 mt-1">Fat</p>
             </div>
           </div>
         </Card>

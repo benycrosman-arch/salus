@@ -1,5 +1,34 @@
 // Core types for NutriGen
 
+export type CalorieBias = 'conservative' | 'balanced' | 'generous'
+
+export interface ParsedFoodItem {
+  id: string
+  raw_phrase: string
+  name_resolved: string
+  qty: number
+  unit: string
+  kcal: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+  fiber_g: number
+  confidence: number
+  reasoning: string
+  source: 'usda' | 'branded' | 'estimate'
+}
+
+export interface TextLogResult {
+  items: ParsedFoodItem[]
+  totals: {
+    kcal: number
+    protein: number
+    carbs: number
+    fat: number
+    fiber: number
+  }
+}
+
 export interface FoodItem {
   name: string
   quantity: string
@@ -10,7 +39,10 @@ export interface FoodItem {
   fat_g: number
   fiber_g: number
   isProcessed: boolean
-  confidence?: number
+  confidence?: 'high' | 'medium' | 'low'
+  cookingMethod?: string
+  visualReasoning?: string
+  alternative?: string | null
 }
 
 export interface MealMacros {
@@ -31,6 +63,8 @@ export interface MealAnalysis {
   mealScore: number
   feedback: string
   swapSuggestions?: string[]
+  photoQualityIssue?: boolean
+  correctionPrompt?: string | null
 }
 
 export interface DailyScoreData {

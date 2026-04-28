@@ -1,0 +1,602 @@
+{
+  "common": {
+    "appName": "Salus",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "continue": "Continue",
+    "finish": "Finish",
+    "retry": "Try again",
+    "networkError": "Network error. Check your connection and try again.",
+    "orSeparator": "or"
+  },
+  "language": {
+    "label": "Language",
+    "pt": "Português",
+    "en": "English",
+    "switchTo": "Change language"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account",
+      "email": "Email",
+      "password": "Password",
+      "forgot": "Forgot your password?",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signupCta": "Create account",
+      "magicCta": "Get magic link by email",
+      "magicSent": "Link sent. Check your email.",
+      "invalid": "Invalid email or password."
+    },
+    "signup": {
+      "title": "Create your account",
+      "subtitle": "Start your nutrition journey",
+      "heading": "Start your journey",
+      "tagline": "Create your account and discover what your food does for your body",
+      "name": "Your name",
+      "nameLabel": "Full name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordHint": "Minimum 8 characters",
+      "submit": "Create account",
+      "submitting": "Creating account...",
+      "haveAccount": "Already have an account?",
+      "loginCta": "Sign in",
+      "termsAcceptance": "By continuing you agree to the {terms} and {privacy}.",
+      "terms": "Terms",
+      "privacy": "Privacy Policy",
+      "ageGateBefore": "I am 18 or older and I have read the ",
+      "ageGateAnd": " and the ",
+      "ageGateAfter": ".",
+      "verifyTitle": "Check your email",
+      "verifyBody": "We sent a confirmation link to {email}. Click it to activate your account and get started.",
+      "verifyHint": "Didn't get it? Check your spam folder, or resend.",
+      "resend": "Resend email",
+      "resendCooldown": "Resend in {seconds}s",
+      "backToLogin": "Back to sign in",
+      "ageRequired": "You must be 18 or older to create an account.",
+      "passwordMin": "Password must be at least 8 characters",
+      "errorGeneric": "Couldn't create your account",
+      "errorAlreadyRegistered": "This email is already registered. Try signing in instead.",
+      "errorRateLimit": "Email send limit reached (4/hour on Supabase's free plan). Wait 1 hour or configure a custom SMTP.",
+      "errorSmtp": "Couldn't send the verification email (Supabase SMTP unavailable). Configure a custom SMTP (Resend/SendGrid) or disable email verification in your dashboard.",
+      "errorSignupsDisabled": "Email signups are disabled in Supabase. Enable them in Authentication → Providers → Email.",
+      "resendError": "Couldn't resend the email.",
+      "resendSuccess": "Email resent. Check your inbox."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "subtitle": "We'll send you a link to set a new password",
+      "tagline": "We'll email you a link to reset your password",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send link",
+      "submitFull": "Send reset link",
+      "submitting": "Sending...",
+      "sent": "Link sent. Check your email.",
+      "back": "Back to sign in",
+      "backToLogin": "Back to sign in",
+      "verifyTitle": "Check your email",
+      "verifyBody": "We sent a reset link to {email}.",
+      "errorGeneric": "Couldn't send the email"
+    },
+    "oauth": {
+      "appleCta": "Continue with Apple",
+      "googleCta": "Continue with Google",
+      "googleError": "Couldn't sign in with Google",
+      "appleError": "Couldn't sign in with Apple"
+    },
+    "errors": {
+      "notConfigured": "Authentication isn't set up yet. Configure your Supabase environment variables.",
+      "notConfiguredShort": "Authentication isn't set up yet.",
+      "networkError": "Network error."
+    }
+  },
+  "nav": {
+    "dashboard": "Home",
+    "log": "Log meal",
+    "insights": "Health data",
+    "plan": "Meal plan",
+    "grocery": "Grocery",
+    "progress": "Progress",
+    "profile": "Profile",
+    "settings": "Settings",
+    "learn": "Learn",
+    "shop": "Shop",
+    "tagline": "Precision Nutrition",
+    "upgradeTitle": "Upgrade to Pro",
+    "upgradeBody": "Unlock meal plans, grocery lists and advanced insights.",
+    "viewPlans": "See plans →"
+  },
+  "landing": {
+    "nav": {
+      "howItWorks": "How it works",
+      "protocols": "Protocols",
+      "plans": "Pricing",
+      "signIn": "Sign in",
+      "cta": "Sign up"
+    },
+    "hero": {
+      "badge": "Nutrition AI",
+      "titleLine1": "Eat smarter.",
+      "titleLine2": "Feel the difference",
+      "titleLine3": "in days.",
+      "subtitle": "Snap your plate. The AI analyzes, scores, and suggests. The shortest loop between knowing and eating well.",
+      "primaryCta": "Sign up",
+      "secondaryCta": "See how it works",
+      "social": "people eating better",
+      "socialCount": "2,400+"
+    },
+    "dashboardPreview": {
+      "tagline": "Your day in three numbers",
+      "streak": "5 days",
+      "macroProtein": "Protein",
+      "macroFiber": "Fiber",
+      "macroFat": "Fat",
+      "lastMeal": "Last meal",
+      "lastMealName": "Salmon + Greens",
+      "kcalBadge": "580 kcal",
+      "proteinBadge": "48g protein",
+      "sugarBadge": "Low sugar",
+      "nextBite": "Next bite",
+      "nextBiteText": "Add <b>blueberries</b> to your next snack — antioxidants are running low today."
+    },
+    "stats": {
+      "energy": "report more energy within 2 weeks",
+      "diversity": "more plant variety",
+      "accuracy": "accuracy detecting foods",
+      "speed": "average analysis time"
+    },
+    "howItWorks": {
+      "kicker": "How it works",
+      "title": "From photo to insight in four steps.",
+      "step1": {
+        "title": "Snap a photo",
+        "desc": "Take a picture of your plate. The AI identifies every food and estimates portions in seconds."
+      },
+      "step2": {
+        "title": "Get your score",
+        "desc": "Fiber, blood-sugar impact, and overall nutrition — scored from 0 to 100."
+      },
+      "step3": {
+        "title": "24/7 AI Nutritionist",
+        "desc": "Personalized nudges based on your goals, lab work, and habits."
+      },
+      "step4": {
+        "title": "Grocery list",
+        "desc": "Your plan turns into a shopping list — sent to Instacart or your delivery app in one tap."
+      }
+    },
+    "protocols": {
+      "kicker": "Protocols",
+      "title": "Personalized nutrition for every stage of life.",
+      "p1": {
+        "tag": "Perimenopause",
+        "title": "Smart hormonal nutrition",
+        "desc": "Support hormonal balance with phytoestrogen-rich plants, magnesium, and omegas."
+      },
+      "p2": {
+        "tag": "Fourth Trimester",
+        "title": "Postpartum recovery",
+        "desc": "Protein, iron, and nutrient-dense foods like eggs and liver for recovery and breastfeeding."
+      },
+      "p3": {
+        "tag": "Longevity 40+",
+        "title": "Eat to age well",
+        "desc": "Insulin sensitivity, gut microbiome, and strong bones — all tracked."
+      },
+      "p4": {
+        "tag": "Plant-Based Athlete",
+        "title": "Performance without meat",
+        "desc": "Complete protein, creatine, and B12 for athletes who train animal-free."
+      }
+    },
+    "marquee": {
+      "i1": "Real-time AI analysis",
+      "i2": "Smart nutrition score",
+      "i3": "Personalized weekly plan",
+      "i4": "Automatic grocery list",
+      "i5": "Specialized protocols",
+      "i6": "2,400+ happy users",
+      "i7": "94% accuracy"
+    },
+    "testimonials": {
+      "kicker": "Testimonials",
+      "title": "Quiet confidence. Every day.",
+      "t1": {
+        "quote": "I stopped counting calories by hand. I snap, see the score, adjust. That simple.",
+        "name": "Marina K.",
+        "role": "Designer, 34"
+      },
+      "t2": {
+        "quote": "I finally figured out what was wrecking my sleep. It was my afternoon coffee spiking my blood sugar.",
+        "name": "André S.",
+        "role": "Engineer, 41"
+      },
+      "t3": {
+        "quote": "I use it with my patients. Adherence is up 3x because they see the impact in real time.",
+        "name": "Dr. Laura P.",
+        "role": "Registered Dietitian"
+      }
+    },
+    "plans": {
+      "kicker": "Pricing",
+      "titleLine1": "Pay for a kitchen,",
+      "titleLine2": "not a tracker.",
+      "subtitle": "Sign up free. Pay only when the app earns it.",
+      "freeKicker": "Essential",
+      "freePrice": "Free",
+      "freeNote": "To get started",
+      "freeCta": "Sign up",
+      "free": {
+        "f1": "3 photos per day",
+        "f2": "Basic nutrition score",
+        "f3": "AI food detection",
+        "f4": "Personalized meal plans",
+        "f5": "Grocery list",
+        "f6": "Advanced insights"
+      },
+      "proBadge": "Most popular",
+      "proKicker": "Pro",
+      "proPrice": "R$59",
+      "proPeriod": "/month",
+      "proNote": "Everything you need",
+      "proCta": "Subscribe to Pro",
+      "pro": {
+        "f1": "Unlimited photos",
+        "f2": "Advanced nutrition score",
+        "f3": "AI food detection",
+        "f4": "Personalized meal plans",
+        "f5": "Automatic grocery list",
+        "f6": "Insights and trends"
+      }
+    },
+    "faqs": {
+      "kicker": "FAQ",
+      "title": "Frequently asked questions",
+      "q1": "How does the AI analyze my meal?",
+      "a1": "You snap a photo of your plate. Our AI identifies each food, estimates portions using visual references, and calculates macros, fiber, blood-sugar impact, and a nutrition score — all in under 3 seconds.",
+      "q2": "Do I need any special equipment?",
+      "a2": "No. Just your phone's camera. Salus works on any iOS or Android smartphone.",
+      "q3": "Is my data secure?",
+      "a3": "Yes. Your data is encrypted and never sold. You can export or delete everything at any time.",
+      "q4": "Can I cancel anytime?",
+      "a4": "Yes. Cancel online whenever you want — no hassle, no fees.",
+      "q5": "Does Salus work with specific diets?",
+      "a5": "Yes. During onboarding you set your goals and restrictions — gluten-free, vegan, low-carb, keto — and the AI adapts every analysis and recommendation."
+    },
+    "bottomCta": {
+      "title": "Start eating smarter today.",
+      "subtitle": "Create your account in 30 seconds. No credit card.",
+      "button": "Sign up",
+      "downloadKicker": "Download the app",
+      "appStoreSmall": "Download on the",
+      "appStoreLabel": "App Store",
+      "appStoreAria": "Download on the App Store",
+      "playStoreSmall": "Get it on",
+      "playStoreLabel": "Google Play",
+      "playStoreAria": "Get it on Google Play",
+      "billing": "Subscriptions billed through Apple ID and Google Play."
+    },
+    "footer": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "support": "Support",
+      "copyright": "© {year} Salus. All rights reserved.",
+      "disclaimer": "Salus uses AI for nutritional analysis. Estimates and recommendations are educational approximations and <b>do not replace medical, nutritional, or professional diagnostic advice</b>. Consult a healthcare professional before making significant changes to your diet."
+    }
+  },
+  "trial": {
+    "daysLeft": "{days} days left in your free Pro trial",
+    "lastDay": "Last day of your free Pro trial",
+    "expired": "Your free trial has ended. Subscribe to unlock Pro.",
+    "upgradeCta": "Subscribe"
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "noMealsToday": "No meals logged today",
+    "mealsTodayOne": "1 meal logged today",
+    "mealsTodayMany": "{count} meals logged today",
+    "streakDays": "days",
+    "streakLabel": "streak",
+    "scoreOfDay": "Today's score",
+    "scoreSubtitle": "Based on today's meals",
+    "noMeals": "No meals",
+    "macros": {
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat",
+      "goal": "Goal: {value}{unit}"
+    },
+    "scoreLabels": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "regular": "Fair",
+      "attention": "Needs work"
+    },
+    "lastMeal": "Last meal",
+    "noMealsYet": "No meals today yet",
+    "logFirstMeal": "Log your first meal below",
+    "viewDetails": "View details",
+    "logNow": "Log now",
+    "mealTypes": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack",
+      "meal": "Meal"
+    },
+    "todayGoals": "Today's goals",
+    "goalsSourceAdaptive": "Adapted from your questionnaire + wearable (exercise, calories and sleep)",
+    "goalsSourceAi": "AI-personalized from your questionnaire",
+    "goalsSourceProfile": "Based on your profile and goals",
+    "calories": "Calories: {kcal} kcal",
+    "consumedToday": "Eaten today: {value} kcal ({pct}% of goal)",
+    "consumedTodayG": "Eaten today: {value}g ({pct}% of goal)",
+    "proteinGoal": "Protein: {value}g",
+    "personalizedPlan": "Personalized plan",
+    "logNextMeal": "Log next meal"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Account preferences",
+    "language": "Language",
+    "languageHint": "Choose the interface language",
+    "languageUpdated": "Language updated",
+    "account": "Account",
+    "logout": "Sign out",
+    "deleteAccount": "Delete account",
+    "exportData": "Export data"
+  },
+  "log": {
+    "title": "Log a meal",
+    "subtitle": "Describe what you ate, snap a photo, or scan a menu",
+    "tabs": {
+      "text": "Text",
+      "photo": "Photo",
+      "menu": "Menu"
+    },
+    "bias": {
+      "label": "Calorie estimate",
+      "conservative": "Conservative",
+      "balanced": "Balanced",
+      "generous": "Generous",
+      "hintConservative": "Uses smaller portions when in doubt",
+      "hintBalanced": "Uses typical portions as a reference",
+      "hintGenerous": "Assumes larger restaurant-style portions"
+    },
+    "source": {
+      "usda": "USDA",
+      "branded": "Brand",
+      "estimate": "Estimate"
+    },
+    "macros": {
+      "calories": "Calories",
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "carbsLong": "Carbs",
+      "fat": "Fat",
+      "fiber": "Fiber"
+    },
+    "confidence": "Confidence",
+    "howSalusDecided": "How Salus decided",
+    "close": "Close",
+    "errors": {
+      "unknown": "Unknown error",
+      "saveFailed": "Couldn't save",
+      "saveMeal": "Couldn't save your meal",
+      "analysisFailed": "Analysis failed"
+    },
+    "saveMeal": "Save meal",
+    "savingMeal": "Saving...",
+    "mealSaved": "Meal saved!",
+    "text": {
+      "detectedPrefix": "Detected:",
+      "detectedSuffix": " — portions adjusted for restaurant",
+      "placeholder": "What did you eat? E.g., 2 scrambled eggs, slice of whole-wheat toast, coffee with milk...",
+      "shortcutHint": "⌘↵ to analyze",
+      "clear": "Clear",
+      "analyze": "Analyze",
+      "analyzing": "Analyzing...",
+      "identifyingTitle": "Identifying foods...",
+      "identifyingSubtitle": "Estimating portions and calculating nutrients",
+      "foodsCountOne": "{count} food identified",
+      "foodsCountMany": "{count} foods identified"
+    },
+    "photo": {
+      "title": "Snap your plate",
+      "subtitle": "AI identifies foods, estimates portions, and scores your meal in seconds",
+      "uploadCta": "Upload photo",
+      "imageAlt": "Meal photo",
+      "contextPlaceholder": "Optional: add context. E.g., 'brown rice with black beans, grilled chicken and salad'",
+      "contextHelp": "Helps the AI tell similar dishes apart.",
+      "retake": "Retake",
+      "analyze": "Analyze plate",
+      "analyzing": "Analyzing...",
+      "analyzingTitle": "Analyzing your plate...",
+      "analyzingSubtitle": "Identifying foods, estimating portions, and calculating score",
+      "scoreLabel": "Score",
+      "lowSugar": "Low sugar",
+      "mediumSugar": "Medium sugar",
+      "highSugar": "High sugar",
+      "plantTypes": "{count} plant types",
+      "processedPercent": "{pct}% processed",
+      "qualityWarning": "Photo quality is low — results may be less accurate. Try a brighter photo.",
+      "foodsDetected": "Foods detected",
+      "processedTag": "processed",
+      "mayBe": "Could be: {alt}",
+      "confirmIdTitle": "Confirm identification",
+      "aiAnalysis": "AI analysis",
+      "canImprove": "Could be better",
+      "registerAnother": "Log another meal"
+    },
+    "restaurant": {
+      "title": "Restaurants near you",
+      "description": "We need your location to list nearby spots and adjust portions in the calculation.",
+      "allow": "Allow location",
+      "locating": "Getting your location…",
+      "retry": "Try again",
+      "notSupported": "Your device doesn't support location.",
+      "fetchError": "Couldn't fetch restaurants",
+      "permissionDenied": "Location permission denied. Enable it in your browser settings to see nearby restaurants.",
+      "noneNearby": "No restaurants found nearby. You can still scan the menu and log your meal.",
+      "loadError": "Couldn't load places",
+      "whereYouAre": "Where are you? (optional)",
+      "notListed": "Not listed",
+      "scanTitle": "Scan menu",
+      "scanHint": "Tap to take a photo or upload a menu image",
+      "menuImageAlt": "Menu",
+      "anotherPhoto": "Another photo",
+      "scanning": "Reading menu…",
+      "readMenu": "Read menu",
+      "scanError": "Couldn't scan",
+      "chooseDishes": "Pick the dishes",
+      "all": "All",
+      "clear": "Clear",
+      "estimateNutrition": "Estimate nutrition",
+      "parsing": "Analyzing…",
+      "calculating": "Calculating nutrients…",
+      "selectAtLeast": "Pick at least one dish from the menu.",
+      "foodsCountOne": "{count} food",
+      "foodsCountMany": "{count} foods",
+      "savingMeal": "Saving…"
+    }
+  },
+  "plan": {
+    "title": "Your Meal Plan",
+    "subtitle": "AI-generated based on your profile and goals",
+    "generateNew": "Generate New Plan",
+    "selectDay": "Select Day",
+    "dailyTotalsFor": "Daily Totals for {day}",
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "generateGroceryList": "Generate Grocery List",
+    "calLabel": "cal",
+    "proteinShort": "{value}g protein",
+    "carbsShort": "{value}g carbs",
+    "fatShort": "{value}g fat",
+    "days": {
+      "Monday": "Monday",
+      "Tuesday": "Tuesday",
+      "Wednesday": "Wednesday",
+      "Thursday": "Thursday",
+      "Friday": "Friday",
+      "Saturday": "Saturday",
+      "Sunday": "Sunday"
+    },
+    "daysShort": {
+      "Monday": "Mon",
+      "Tuesday": "Tue",
+      "Wednesday": "Wed",
+      "Thursday": "Thu",
+      "Friday": "Fri",
+      "Saturday": "Sat",
+      "Sunday": "Sun"
+    },
+    "mealTypes": {
+      "Breakfast": "Breakfast",
+      "Morning Snack": "Morning Snack",
+      "Lunch": "Lunch",
+      "Afternoon Snack": "Afternoon Snack",
+      "Dinner": "Dinner"
+    }
+  },
+  "grocery": {
+    "title": "Grocery Cart",
+    "subtitle": "The feature ZOE never built",
+    "weekOf": "Week of Jan 13 – Jan 19",
+    "itemsCount": "{count} items",
+    "copyList": "Copy List",
+    "itemRemainingOne": "{count} item remaining",
+    "itemRemainingMany": "{count} items remaining",
+    "orderInstacart": "Order on Instacart",
+    "copySuccess": "Grocery list copied to clipboard!",
+    "noItems": "No items to order!",
+    "openingInstacart": "Opening Instacart for \"{name}\"",
+    "readyToOrder": "{count} items ready to order",
+    "copyHeader": "Grocery List - Week of Jan 13 - Jan 19",
+    "copyTotal": "Total: ${total} ({count} items)",
+    "categories": {
+      "produce": "Produce",
+      "protein": "Protein",
+      "pantry": "Pantry",
+      "dairy": "Dairy & Alternatives",
+      "snacks": "Snacks"
+    },
+    "items": {
+      "p1": "Mixed Berries",
+      "p2": "Apples",
+      "p3": "Bananas",
+      "p4": "Broccoli",
+      "p5": "Sweet Potatoes",
+      "p6": "Spinach",
+      "p7": "Mixed Salad Greens",
+      "p8": "Cherry Tomatoes",
+      "p9": "Cucumber",
+      "p10": "Bell Peppers",
+      "p11": "Avocados",
+      "p12": "Lemons",
+      "pr1": "Salmon Fillets",
+      "pr2": "Chicken Breast",
+      "pr3": "Eggs",
+      "pr4": "Chickpeas",
+      "pr5": "Greek Yogurt",
+      "pa1": "Quinoa",
+      "pa2": "Brown Rice",
+      "pa3": "Olive Oil",
+      "pa4": "Almond Butter",
+      "pa5": "Honey",
+      "pa6": "Tahini",
+      "pa7": "Granola",
+      "d1": "Feta Cheese",
+      "d2": "Hummus",
+      "d3": "Oat Milk",
+      "s1": "Mixed Nuts",
+      "s2": "Dark Chocolate"
+    },
+    "quantities": {
+      "p1": "2 cups",
+      "p2": "4",
+      "p3": "6",
+      "p4": "2 heads",
+      "p5": "4",
+      "p6": "1 bag",
+      "p7": "2 bags",
+      "p8": "1 pint",
+      "p9": "2",
+      "p10": "3",
+      "p11": "3",
+      "p12": "4",
+      "pr1": "4 x 170g",
+      "pr2": "1 kg",
+      "pr3": "1 dozen",
+      "pr4": "2 cans",
+      "pr5": "large",
+      "pa1": "1 bag",
+      "pa2": "1 bag",
+      "pa3": "bottle",
+      "pa4": "jar",
+      "pa5": "bottle",
+      "pa6": "jar",
+      "pa7": "bag",
+      "d1": "block",
+      "d2": "tub",
+      "d3": "carton",
+      "s1": "bag",
+      "s2": "85%"
+    }
+  }
+}
+

@@ -11,6 +11,7 @@ create extension if not exists "pgcrypto";
 -- ============================================================
 create table if not exists profiles (
   id uuid references auth.users on delete cascade primary key,
+  email text,
   name text not null default '',
   role text not null default 'user' check (role in ('user','nutricionista','admin')),
   birth_date date,
@@ -36,9 +37,10 @@ create or replace function handle_new_user()
 returns trigger language plpgsql security definer
 as $$
 begin
-  insert into public.profiles (id, name)
+  insert into public.profiles (id, email, name)
   values (
     new.id,
+    new.email,
     coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1))
   );
   return new;
@@ -49,6 +51,17 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure handle_new_user();
+
+-- Backfill profiles for any auth users that signed up before this trigger
+-- existed (the trigger only fires on new inserts).
+insert into public.profiles (id, email, name)
+select
+  u.id,
+  u.email,
+  coalesce(u.raw_user_meta_data->>'name', split_part(u.email, '@', 1))
+from auth.users u
+where not exists (select 1 from public.profiles p where p.id = u.id)
+on conflict (id) do nothing;
 
 -- ============================================================
 -- USER PREFERENCES
@@ -183,7 +196,7 @@ create table if not exists nutri_invites (
   id uuid default gen_random_uuid() primary key,
   nutri_id uuid references profiles(id) on delete cascade not null,
   patient_email text not null,
-  token text unique not null default encode(gen_random_bytes(32), 'hex'),
+  token text unique not null default encode(extensions.gen_random_bytes(32), 'hex'),
   status text default 'pending' check (status in ('pending','accepted','expired')),
   expires_at timestamptz default (now() + interval '7 days'),
   created_at timestamptz default now()
@@ -308,7 +321,7 @@ create policy "Nutri manages own invites" on nutri_invites for all using (auth.u
 create policy "Nutri and patient can read their chat" on nutri_chats for select
   using (auth.uid() = nutri_id or auth.uid() = patient_id);
 create policy "Nutri can insert chat messages" on nutri_chats for insert
-  using (auth.uid() = nutri_id);
+  with check (auth.uid() = nutri_id);
 
 -- NUTRI_SETTINGS
 create policy "Nutri manages own settings" on nutri_settings for all using (auth.uid() = nutri_id);

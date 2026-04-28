@@ -1,0 +1,968 @@
+{
+  "common": {
+    "appName": "Salus",
+    "loading": "Carregando...",
+    "saving": "Salvando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "back": "Voltar",
+    "continue": "Continuar",
+    "finish": "Concluir",
+    "retry": "Tentar novamente",
+    "networkError": "Erro de rede. Verifique sua conexão e tente novamente.",
+    "orSeparator": "ou"
+  },
+  "language": {
+    "label": "Idioma",
+    "pt": "Português",
+    "en": "English",
+    "switchTo": "Mudar idioma"
+  },
+  "auth": {
+    "login": {
+      "title": "Bem-vindo de volta",
+      "subtitle": "Entre na sua conta",
+      "email": "E-mail",
+      "password": "Senha",
+      "forgot": "Esqueceu a senha?",
+      "submit": "Entrar",
+      "submitting": "Entrando...",
+      "noAccount": "Ainda não tem conta?",
+      "signupCta": "Criar conta",
+      "magicCta": "Receber link mágico por e-mail",
+      "magicSent": "Link enviado. Cheque seu e-mail.",
+      "invalid": "E-mail ou senha incorretos."
+    },
+    "signup": {
+      "title": "Crie sua conta",
+      "subtitle": "Comece sua jornada nutricional",
+      "heading": "Comece sua jornada",
+      "tagline": "Crie sua conta e descubra o que seus alimentos fazem pelo seu corpo",
+      "name": "Seu nome",
+      "nameLabel": "Nome completo",
+      "email": "E-mail",
+      "emailPlaceholder": "voce@exemplo.com",
+      "password": "Senha",
+      "passwordHint": "Mínimo 8 caracteres",
+      "submit": "Criar conta",
+      "submitting": "Criando conta...",
+      "haveAccount": "Já tem uma conta?",
+      "loginCta": "Entrar",
+      "termsAcceptance": "Ao continuar, você concorda com os {terms} e a {privacy}.",
+      "terms": "Termos",
+      "privacy": "Política de Privacidade",
+      "ageGateBefore": "Tenho 18 anos ou mais e li os ",
+      "ageGateAnd": " e a ",
+      "ageGateAfter": ".",
+      "verifyTitle": "Verifique seu e-mail",
+      "verifyBody": "Enviamos um link de confirmação para {email}. Clique nele para ativar sua conta e começar.",
+      "verifyHint": "Não recebeu? Cheque a pasta de spam, ou reenvie.",
+      "resend": "Reenviar e-mail",
+      "resendCooldown": "Reenviar em {seconds}s",
+      "backToLogin": "Voltar ao login",
+      "ageRequired": "Você precisa ter 18 anos ou mais para criar uma conta.",
+      "passwordMin": "A senha deve ter pelo menos 8 caracteres",
+      "errorGeneric": "Erro ao criar conta",
+      "errorAlreadyRegistered": "Este e-mail já está cadastrado. Tente entrar.",
+      "errorRateLimit": "Limite de envio de e-mails atingido (4/hora no plano grátis do Supabase). Aguarde 1h ou configure um SMTP custom.",
+      "errorSmtp": "Falha no envio do e-mail de verificação (SMTP do Supabase indisponível). Configure um SMTP custom (Resend/SendGrid) ou desabilite verificação no painel.",
+      "errorSignupsDisabled": "Cadastro por e-mail está desativado no Supabase. Habilite em Authentication → Providers → Email.",
+      "resendError": "Não foi possível reenviar.",
+      "resendSuccess": "E-mail reenviado. Verifique sua caixa."
+    },
+    "forgot": {
+      "title": "Recuperar senha",
+      "subtitle": "Enviaremos um link para redefinir sua senha",
+      "tagline": "Enviaremos um link de recuperação para seu e-mail",
+      "email": "E-mail",
+      "emailPlaceholder": "voce@exemplo.com",
+      "submit": "Enviar link",
+      "submitFull": "Enviar link de recuperação",
+      "submitting": "Enviando...",
+      "sent": "Link enviado. Cheque seu e-mail.",
+      "back": "Voltar para login",
+      "backToLogin": "Voltar ao login",
+      "verifyTitle": "Verifique seu e-mail",
+      "verifyBody": "Enviamos um link de recuperação para {email}.",
+      "errorGeneric": "Erro ao enviar e-mail"
+    },
+    "oauth": {
+      "appleCta": "Continuar com Apple",
+      "googleCta": "Continuar com Google",
+      "googleError": "Erro ao entrar com Google",
+      "appleError": "Erro ao entrar com Apple"
+    },
+    "errors": {
+      "notConfigured": "Autenticação ainda não configurada. Configure as variáveis de ambiente do Supabase.",
+      "notConfiguredShort": "Autenticação ainda não configurada.",
+      "networkError": "Erro de rede."
+    }
+  },
+  "nav": {
+    "dashboard": "Início",
+    "log": "Registrar",
+    "insights": "Dados de Saúde",
+    "plan": "Plano",
+    "grocery": "Compras",
+    "progress": "Progresso",
+    "profile": "Perfil",
+    "settings": "Configurações",
+    "learn": "Aprender",
+    "shop": "Loja",
+    "tagline": "Nutrição de Precisão",
+    "upgradeTitle": "Upgrade para Pro",
+    "upgradeBody": "Desbloqueie planos, lista de compras e insights avançados.",
+    "viewPlans": "Ver planos →"
+  },
+  "landing": {
+    "nav": {
+      "howItWorks": "Como funciona",
+      "protocols": "Protocolos",
+      "plans": "Planos",
+      "signIn": "Entrar",
+      "cta": "Criar conta"
+    },
+    "hero": {
+      "primaryCta": "Criar conta"
+    },
+    "plans": {
+      "subtitle": "Comece grátis. Pague quando o app provar valor.",
+      "freeCta": "Criar conta",
+      "proCta": "Assinar Pro"
+    },
+    "bottomCta": {
+      "title": "Comece a comer com inteligência.",
+      "subtitle": "Crie sua conta em 30 segundos. Sem cartão de crédito.",
+      "button": "Criar conta"
+    }
+  },
+  "trial": {
+    "daysLeft": "Faltam {days} dias do seu período Pro grátis",
+    "lastDay": "Último dia do seu período Pro grátis",
+    "expired": "Seu período grátis acabou. Assine para liberar Pro.",
+    "upgradeCta": "Assinar"
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "Bom dia",
+      "afternoon": "Boa tarde",
+      "evening": "Boa noite"
+    },
+    "noMealsToday": "Nenhuma refeição registrada hoje",
+    "mealsTodayOne": "1 refeição registrada hoje",
+    "mealsTodayMany": "{count} refeições registradas hoje",
+    "streakDays": "dias",
+    "streakLabel": "sequência",
+    "scoreOfDay": "Score do dia",
+    "scoreSubtitle": "Baseado nas refeições de hoje",
+    "noMeals": "Sem refeições",
+    "macros": {
+      "protein": "Proteína",
+      "carbs": "Carboidratos",
+      "fat": "Gordura",
+      "goal": "Meta: {value}{unit}"
+    },
+    "scoreLabels": {
+      "excellent": "Excelente",
+      "good": "Bom",
+      "regular": "Regular",
+      "attention": "Atenção"
+    },
+    "lastMeal": "Última Refeição",
+    "noMealsYet": "Nenhuma refeição hoje",
+    "logFirstMeal": "Registre sua primeira refeição abaixo",
+    "viewDetails": "Ver detalhes",
+    "logNow": "Registrar agora",
+    "mealTypes": {
+      "breakfast": "Café da manhã",
+      "lunch": "Almoço",
+      "dinner": "Jantar",
+      "snack": "Lanche",
+      "meal": "Refeição"
+    },
+    "todayGoals": "Metas de hoje",
+    "goalsSourceAdaptive": "Adaptadas ao seu questionário + wearable (exercício, calorias e sono)",
+    "goalsSourceAi": "Personalizadas pela IA baseadas no seu questionário",
+    "goalsSourceProfile": "Baseadas no seu perfil e objetivos",
+    "calories": "Calorias: {kcal} kcal",
+    "consumedToday": "Consumido hoje: {value} kcal ({pct}% da meta)",
+    "consumedTodayG": "Consumido hoje: {value}g ({pct}% da meta)",
+    "proteinGoal": "Proteína: {value}g",
+    "personalizedPlan": "Plano personalizado",
+    "logNextMeal": "Registrar próxima refeição"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "subtitle": "Preferências da conta",
+    "language": "Idioma",
+    "languageHint": "Escolha o idioma da interface",
+    "languageUpdated": "Idioma atualizado",
+    "account": "Conta",
+    "logout": "Sair",
+    "deleteAccount": "Excluir conta",
+    "exportData": "Exportar dados",
+    "pageTitle": "Configurações",
+    "pageSubtitle": "Gerencie sua assinatura, notificações e privacidade",
+    "subscription": {
+      "freePlan": "Plano Gratuito",
+      "active": "Ativo",
+      "upgradeBody": "Faça upgrade para Pro e desbloqueie fotos ilimitadas, planos personalizados e insights avançados.",
+      "billingNote": "A assinatura é feita no nosso app iOS ou Android.",
+      "iosCta": "iOS",
+      "androidCta": "Android",
+      "perksTitle": "O que você ganha no Pro",
+      "perks": {
+        "unlimitedPhotos": "Fotos ilimitadas de refeições",
+        "personalizedPlans": "Planos alimentares personalizados",
+        "automaticGrocery": "Lista de compras automática",
+        "advancedInsights": "Insights avançados e tendências",
+        "wearables": "Dados de saúde e wearables"
+      }
+    },
+    "notifications": {
+      "title": "Notificações",
+      "emailLabel": "E-mail",
+      "emailHint": "Resumos semanais e lembretes",
+      "pushLabel": "Notificações push",
+      "pushHint": "Nudges diários de IA",
+      "weeklyLabel": "Relatório semanal",
+      "weeklyHint": "Resumo da sua semana toda segunda"
+    },
+    "privacy": {
+      "title": "Privacidade e Dados",
+      "preparingDownload": "Preparando download...",
+      "exportData": "Exportar meus dados",
+      "deleteAccount": "Excluir minha conta",
+      "exportError": "Não foi possível exportar seus dados.",
+      "exportSuccess": "Seus dados foram baixados.",
+      "exportFailure": "Erro ao exportar dados."
+    },
+    "deleteDialog": {
+      "title": "Excluir conta",
+      "description": "Esta ação é <b>permanente e imediata</b>. Todos os seus dados — refeições, perfil, exames, recomendações — serão removidos. Não conseguiremos recuperar.",
+      "confirmInstruction": "Para confirmar, digite <b>EXCLUIR</b> abaixo:",
+      "confirmPlaceholder": "EXCLUIR",
+      "confirmKeyword": "EXCLUIR",
+      "cancel": "Cancelar",
+      "deletePermanently": "Excluir permanentemente",
+      "errorGeneric": "Não foi possível excluir a conta.",
+      "successToast": "Conta excluída. Adeus.",
+      "errorToast": "Erro ao excluir a conta."
+    },
+    "logoutCta": "Sair da conta",
+    "footer": "Salus v1.0 · <privacy>Privacidade</privacy> · <terms>Termos</terms>"
+  },
+  "onboarding": {
+    "appName": "Salus",
+    "subtitleRolePicker": "Como você vai usar o Salus?",
+    "subtitleNutri": "Configure seu painel de atendimento",
+    "subtitleUser": "Vamos personalizar sua jornada nutricional",
+    "stepLabel": "Passo {current} de {total}",
+    "stepTitles": {
+      "profile": "Perfil",
+      "goals": "Objetivos",
+      "diet": "Alimentação",
+      "labs": "Exames",
+      "gut": "Saúde Intestinal",
+      "protocol": "Protocolo"
+    },
+    "buttons": {
+      "back": "Voltar",
+      "continue": "Continuar",
+      "finish": "Concluir",
+      "saving": "Salvando...",
+      "skipForNow": "Pular por enquanto",
+      "yes": "Sim",
+      "no": "Não"
+    },
+    "role": {
+      "title": "Conta de cliente ou nutricionista?",
+      "description": "Você pode mudar isso depois entrando em contato com o suporte.",
+      "userTitle": "Sou cliente",
+      "userDescription": "Quero acompanhar minha nutrição, receber análises por foto e planos personalizados.",
+      "nutriTitle": "Sou nutricionista",
+      "nutriDescription": "Atendo clientes e quero usar a Salus pra acompanhar refeições, exames e planos deles em um painel único."
+    },
+    "nutri": {
+      "title": "Seu protocolo de atendimento",
+      "description": "Em 1 parágrafo, descreva como você atende seus clientes — abordagem, exames que pede, estilo de plano alimentar, frequência de check-in. Esse texto guia a IA da Salus quando ela responde por você no painel.",
+      "label": "Protocolo",
+      "placeholder": "Ex.: Trabalho com nutrição funcional focada em saúde intestinal e equilíbrio hormonal. Solicito exames bioquímicos completos no início e a cada 3 meses. Planos alimentares são baseados em alimentos integrais, com flexibilidade prática para o dia a dia. Faço check-in semanal por mensagem e consulta presencial mensal...",
+      "minChars": "Mínimo 60 caracteres ({count}/60)",
+      "minCharsOk": "✓ Suficiente",
+      "charCount": "{count}/4000",
+      "nextUpTitle": "O que vem a seguir",
+      "nextUpBody": "Ao concluir, você cai no <b>painel do nutricionista</b>. Lá você convida clientes por e-mail, vê as refeições, exames e progresso de cada um, e usa a IA pra rascunhar planos alimentares baseados no seu protocolo.",
+      "successToast": "Painel do nutricionista pronto."
+    },
+    "profile": {
+      "title": "Seu perfil",
+      "description": "Nos ajude a entender seu ponto de partida",
+      "age": "Idade",
+      "agePlaceholder": "30",
+      "city": "Cidade",
+      "cityPlaceholder": "São Paulo",
+      "phone": "Celular (opcional)",
+      "phonePlaceholder": "(11) 99999-9999",
+      "sex": "Sexo biológico",
+      "height": "Altura (cm)",
+      "heightPlaceholder": "170",
+      "weight": "Peso (kg)",
+      "weightPlaceholder": "70",
+      "activityLevel": "Nível de atividade"
+    },
+    "sex": {
+      "male": "Masculino",
+      "female": "Feminino",
+      "nonBinary": "Não-binário",
+      "preferNotToSay": "Prefiro não dizer"
+    },
+    "activity": {
+      "sedentary": "Sedentário",
+      "moderate": "Moderado",
+      "active": "Ativo",
+      "athlete": "Atleta"
+    },
+    "goalsStep": {
+      "title": "Seus objetivos",
+      "description": "Selecione todos que se aplicam"
+    },
+    "goals": {
+      "loseWeight": "Perder peso",
+      "buildMuscle": "Ganhar massa",
+      "moreEnergy": "Mais energia",
+      "gutHealth": "Saúde intestinal",
+      "bloodSugar": "Controle do açúcar no sangue",
+      "sleep": "Melhorar o sono",
+      "longevity": "Longevidade",
+      "performance": "Performance esportiva",
+      "heartHealth": "Saúde cardiovascular"
+    },
+    "dietStep": {
+      "title": "Alimentação",
+      "description": "Como você se alimenta?",
+      "dietLabel": "Tipo de dieta",
+      "allergiesLabel": "Alergias e intolerâncias (opcional)"
+    },
+    "diet": {
+      "omnivore": "Onívoro",
+      "vegetarian": "Vegetariano",
+      "vegan": "Vegano",
+      "pescatarian": "Pescetariano",
+      "keto": "Low-carb/Keto",
+      "paleo": "Paleo"
+    },
+    "allergies": {
+      "gluten": "Glúten",
+      "dairy": "Lactose",
+      "seafood": "Frutos do mar",
+      "nuts": "Oleaginosas",
+      "soy": "Soja",
+      "eggs": "Ovos"
+    },
+    "labsStep": {
+      "title": "Seus exames",
+      "description": "Opcional — seus resultados personalizam ainda mais o seu score",
+      "placeholder": "Opcional"
+    },
+    "labs": {
+      "glucose": {
+        "label": "Glicose em jejum (mg/dL)",
+        "tooltip": "Mede o açúcar no sangue em jejum"
+      },
+      "hba1c": {
+        "label": "HbA1c (%)",
+        "tooltip": "Média do açúcar nos últimos 2-3 meses"
+      },
+      "hdl": {
+        "label": "HDL (mg/dL)",
+        "tooltip": "Colesterol bom"
+      },
+      "ldl": {
+        "label": "LDL (mg/dL)",
+        "tooltip": "Colesterol ruim"
+      },
+      "triglycerides": {
+        "label": "Triglicérides (mg/dL)",
+        "tooltip": "Gorduras no sangue"
+      },
+      "vitaminD": {
+        "label": "Vitamina D (ng/mL)",
+        "tooltip": "Níveis de vitamina D"
+      },
+      "ferritin": {
+        "label": "Ferritina (ng/mL)",
+        "tooltip": "Reserva de ferro"
+      },
+      "b12": {
+        "label": "Vitamina B12 (pg/mL)",
+        "tooltip": "Vitamina B12"
+      }
+    },
+    "gut": {
+      "title": "Saúde intestinal",
+      "description": "Nos ajude a entender sua linha de base digestiva",
+      "antibioticQuestion": "Tomou antibióticos nos últimos 2 anos?",
+      "questions": {
+        "bowelRegularity": "Regularidade intestinal",
+        "bloatingFrequency": "Frequência de inchaço abdominal",
+        "energyAfterMeals": "Energia após as refeições",
+        "fermentedFoodConsumption": "Consumo de alimentos fermentados",
+        "plantDiversity": "Diversidade de plantas por semana",
+        "digestiveComfort": "Conforto digestivo geral",
+        "stoolConsistency": "Consistência das fezes"
+      },
+      "range": {
+        "irregular": "Irregular",
+        "daily": "Diária",
+        "dailyMasc": "Diário",
+        "never": "Nunca",
+        "tired": "Cansado",
+        "energized": "Energizado",
+        "lt5": "<5",
+        "gt30": ">30",
+        "bad": "Ruim",
+        "excellent": "Excelente",
+        "ideal": "Ideal"
+      },
+      "score": {
+        "title": "Sua Saúde Intestinal Inicial",
+        "outOf": "/100",
+        "excellent": "Excelente — seu intestino está em ótima forma!",
+        "good": "Bom — há espaço para melhorias",
+        "regular": "Regular — vamos trabalhar na sua saúde intestinal",
+        "needsAttention": "Precisa de atenção — vamos reconstruir suas bactérias boas do intestino",
+        "redirecting": "Redirecionando para o seu painel..."
+      }
+    },
+    "errors": {
+      "saveGeneric": "Não foi possível salvar. Tente novamente.",
+      "network": "Erro de rede. Verifique sua conexão e tente novamente."
+    }
+  },
+  "log": {
+    "title": "Registrar refeição",
+    "subtitle": "Descreva o que comeu, envie uma foto ou escaneie um cardápio",
+    "tabs": {
+      "text": "Texto",
+      "photo": "Foto",
+      "menu": "Cardápio"
+    },
+    "bias": {
+      "label": "Estimativa de calorias",
+      "conservative": "Conservador",
+      "balanced": "Equilibrado",
+      "generous": "Generoso",
+      "hintConservative": "Usa porções menores quando há dúvida",
+      "hintBalanced": "Usa porções típicas como referência",
+      "hintGenerous": "Considera porções maiores estilo restaurante"
+    },
+    "source": {
+      "usda": "USDA",
+      "branded": "Marca",
+      "estimate": "Estimado"
+    },
+    "macros": {
+      "calories": "Calorias",
+      "protein": "Proteína",
+      "carbs": "Carbs",
+      "carbsLong": "Carboidratos",
+      "fat": "Gordura",
+      "fiber": "Fibra"
+    },
+    "confidence": "Confiança",
+    "howSalusDecided": "Como o Salus decidiu",
+    "close": "Fechar",
+    "errors": {
+      "unknown": "Erro desconhecido",
+      "saveFailed": "Falha ao salvar",
+      "saveMeal": "Erro ao salvar refeição",
+      "analysisFailed": "Análise falhou"
+    },
+    "saveMeal": "Salvar refeição",
+    "savingMeal": "Salvando...",
+    "mealSaved": "Refeição salva!",
+    "text": {
+      "detectedPrefix": "Detectado:",
+      "detectedSuffix": " — porções ajustadas para restaurante",
+      "placeholder": "O que você comeu? Ex: 2 ovos mexidos, fatia de pão integral, café com leite...",
+      "shortcutHint": "⌘↵ para analisar",
+      "clear": "Limpar",
+      "analyze": "Analisar",
+      "analyzing": "Analisando...",
+      "identifyingTitle": "Identificando alimentos...",
+      "identifyingSubtitle": "Estimando porções e calculando nutrientes",
+      "foodsCountOne": "{count} alimento identificado",
+      "foodsCountMany": "{count} alimentos identificados"
+    },
+    "photo": {
+      "title": "Fotografe seu prato",
+      "subtitle": "A IA identifica alimentos, estima porções e pontua a refeição em segundos",
+      "uploadCta": "Enviar foto",
+      "imageAlt": "Foto da refeição",
+      "contextPlaceholder": "Opcional: adicione contexto. Ex.: 'arroz integral com feijão preto, frango grelhado e salada'",
+      "contextHelp": "Ajuda a IA a identificar pratos parecidos.",
+      "retake": "Refazer",
+      "analyze": "Analisar prato",
+      "analyzing": "Analisando...",
+      "analyzingTitle": "Analisando seu prato...",
+      "analyzingSubtitle": "Identificando alimentos, estimando porções e calculando score",
+      "scoreLabel": "Score",
+      "lowSugar": "Pouco açúcar",
+      "mediumSugar": "Açúcar médio",
+      "highSugar": "Muito açúcar",
+      "plantTypes": "{count} tipos de plantas",
+      "processedPercent": "{pct}% processado",
+      "qualityWarning": "Qualidade da foto baixa — os resultados podem ser menos precisos. Tente uma foto com mais luz.",
+      "foodsDetected": "Alimentos detectados",
+      "processedTag": "processado",
+      "mayBe": "Pode ser: {alt}",
+      "confirmIdTitle": "Confirme a identificação",
+      "aiAnalysis": "Análise da IA",
+      "canImprove": "Pode melhorar",
+      "registerAnother": "Registrar outra refeição"
+    },
+    "restaurant": {
+      "title": "Restaurantes perto de você",
+      "description": "Precisamos da sua localização para listar opções próximas e ajustar porções no cálculo.",
+      "allow": "Permitir localização",
+      "locating": "Obtendo localização…",
+      "retry": "Tentar de novo",
+      "notSupported": "Seu dispositivo não suporta localização.",
+      "fetchError": "Falha ao buscar restaurantes",
+      "permissionDenied": "Permissão de localização negada. Ative nas configurações do navegador para ver restaurantes próximos.",
+      "noneNearby": "Nenhum restaurante encontrado por perto. Você ainda pode escanear o cardápio e registrar.",
+      "loadError": "Erro ao carregar lugares",
+      "whereYouAre": "Onde você está? (opcional)",
+      "notListed": "Não listado",
+      "scanTitle": "Escanear cardápio",
+      "scanHint": "Toque para tirar uma foto ou enviar a imagem do menu",
+      "menuImageAlt": "Cardápio",
+      "anotherPhoto": "Outra foto",
+      "scanning": "Lendo cardápio…",
+      "readMenu": "Ler cardápio",
+      "scanError": "Erro ao escanear",
+      "chooseDishes": "Escolha os pratos",
+      "all": "Todos",
+      "clear": "Limpar",
+      "estimateNutrition": "Estimar nutrição",
+      "parsing": "Analisando…",
+      "calculating": "Calculando nutrientes…",
+      "selectAtLeast": "Selecione ao menos um prato do cardápio.",
+      "foodsCountOne": "{count} alimento",
+      "foodsCountMany": "{count} alimentos",
+      "savingMeal": "Salvando…"
+    }
+  },
+  "plan": {
+    "title": "Seu Plano de Refeições",
+    "subtitle": "Gerado por IA baseado no seu perfil e objetivos",
+    "generateNew": "Gerar Novo Plano",
+    "selectDay": "Selecione o dia",
+    "dailyTotalsFor": "Totais de {day}",
+    "calories": "Calorias",
+    "protein": "Proteína",
+    "carbs": "Carboidratos",
+    "fat": "Gordura",
+    "generateGroceryList": "Gerar Lista de Compras",
+    "calLabel": "cal",
+    "proteinShort": "{value}g de proteína",
+    "carbsShort": "{value}g de carbs",
+    "fatShort": "{value}g de gordura",
+    "days": {
+      "Monday": "Segunda",
+      "Tuesday": "Terça",
+      "Wednesday": "Quarta",
+      "Thursday": "Quinta",
+      "Friday": "Sexta",
+      "Saturday": "Sábado",
+      "Sunday": "Domingo"
+    },
+    "daysShort": {
+      "Monday": "Seg",
+      "Tuesday": "Ter",
+      "Wednesday": "Qua",
+      "Thursday": "Qui",
+      "Friday": "Sex",
+      "Saturday": "Sáb",
+      "Sunday": "Dom"
+    },
+    "mealTypes": {
+      "Breakfast": "Café da manhã",
+      "Morning Snack": "Lanche da manhã",
+      "Lunch": "Almoço",
+      "Afternoon Snack": "Lanche da tarde",
+      "Dinner": "Jantar"
+    }
+  },
+  "grocery": {
+    "title": "Carrinho de Compras",
+    "subtitle": "O recurso que a ZOE nunca construiu",
+    "weekOf": "Semana de 13 jan – 19 jan",
+    "itemsCount": "{count} itens",
+    "copyList": "Copiar Lista",
+    "itemRemainingOne": "{count} item restante",
+    "itemRemainingMany": "{count} itens restantes",
+    "orderInstacart": "Pedir no Instacart",
+    "copySuccess": "Lista de compras copiada!",
+    "noItems": "Sem itens para pedir!",
+    "openingInstacart": "Abrindo Instacart para \"{name}\"",
+    "readyToOrder": "{count} itens prontos para pedir",
+    "copyHeader": "Lista de Compras - Semana de 13 jan a 19 jan",
+    "copyTotal": "Total: ${total} ({count} itens)",
+    "categories": {
+      "produce": "Hortifrúti",
+      "protein": "Proteínas",
+      "pantry": "Despensa",
+      "dairy": "Laticínios e Alternativas",
+      "snacks": "Lanches"
+    },
+    "items": {
+      "p1": "Frutas Vermelhas",
+      "p2": "Maçãs",
+      "p3": "Bananas",
+      "p4": "Brócolis",
+      "p5": "Batatas-doces",
+      "p6": "Espinafre",
+      "p7": "Folhas para Salada",
+      "p8": "Tomates Cereja",
+      "p9": "Pepino",
+      "p10": "Pimentões",
+      "p11": "Abacates",
+      "p12": "Limões",
+      "pr1": "Filés de Salmão",
+      "pr2": "Peito de Frango",
+      "pr3": "Ovos",
+      "pr4": "Grão-de-bico",
+      "pr5": "Iogurte Grego",
+      "pa1": "Quinoa",
+      "pa2": "Arroz Integral",
+      "pa3": "Azeite de Oliva",
+      "pa4": "Manteiga de Amêndoas",
+      "pa5": "Mel",
+      "pa6": "Tahine",
+      "pa7": "Granola",
+      "d1": "Queijo Feta",
+      "d2": "Homus",
+      "d3": "Leite de Aveia",
+      "s1": "Mix de Castanhas",
+      "s2": "Chocolate Amargo"
+    },
+    "quantities": {
+      "p1": "2 xícaras",
+      "p2": "4 unidades",
+      "p3": "6 unidades",
+      "p4": "2 unidades",
+      "p5": "4 unidades",
+      "p6": "1 pacote",
+      "p7": "2 pacotes",
+      "p8": "1 caixa",
+      "p9": "2 unidades",
+      "p10": "3 unidades",
+      "p11": "3 unidades",
+      "p12": "4 unidades",
+      "pr1": "4 x 170g",
+      "pr2": "1 kg",
+      "pr3": "1 dúzia",
+      "pr4": "2 latas",
+      "pr5": "grande",
+      "pa1": "1 pacote",
+      "pa2": "1 pacote",
+      "pa3": "garrafa",
+      "pa4": "pote",
+      "pa5": "frasco",
+      "pa6": "pote",
+      "pa7": "pacote",
+      "d1": "bloco",
+      "d2": "pote",
+      "d3": "caixa",
+      "s1": "pacote",
+      "s2": "85%"
+    }
+  },
+  "progress": {
+    "title": "Progresso",
+    "subtitle": "Sua evolução nutricional ao longo do tempo",
+    "stats": {
+      "avgScore": "Score médio",
+      "avgScoreSub": "+13 vs mês anterior",
+      "longestStreak": "Maior sequência",
+      "longestStreakSub": "dias consecutivos",
+      "mealsLogged": "Refeições logadas",
+      "mealsLoggedSub": "este mês",
+      "mealsAbove80": "Refeições acima 80",
+      "mealsAbove80Sub": "38% do total"
+    },
+    "thisWeek": "Esta Semana",
+    "lastFourWeeks": "Últimas 4 Semanas",
+    "weekDelta": "+7 pts",
+    "scoreLabel": "Score",
+    "avgScoreLabel": "Score médio",
+    "victoriesTitle": "Suas Conquistas",
+    "victories": {
+      "v1": "Atingiu 30 tipos diferentes de plantas em uma semana",
+      "v2": "Manteve sequência de 12 dias — recorde pessoal!",
+      "v3": "Score médio subiu 15 pontos este mês"
+    },
+    "weekFocusTitle": "Focos desta Semana",
+    "weekFocus": {
+      "f1": "Adicionar mais proteína no café da manhã — sua média está em 12g (meta: 25g)",
+      "f2": "Reduzir o efeito do jantar no açúcar no sangue — troque o arroz branco por integral",
+      "f3": "Experimente iogurte de kefir como lanche — vai bem no seu perfil intestinal"
+    },
+    "aiBadge": "IA",
+    "weekDays": {
+      "mon": "Seg",
+      "tue": "Ter",
+      "wed": "Qua",
+      "thu": "Qui",
+      "fri": "Sex",
+      "sat": "Sáb",
+      "sun": "Dom"
+    },
+    "weekLabel": "Sem {n}",
+    "tracker": {
+      "title": "Composição corporal",
+      "subtitle": "Últimos 90 dias",
+      "logCta": "Registrar",
+      "saveError": "Falha ao salvar",
+      "savedToast": "Registro salvo!",
+      "genericError": "Erro ao salvar",
+      "dialogTitle": "Novo registro corporal",
+      "dialogDescription": "Preencha o que tiver — qualquer campo já basta.",
+      "fieldDate": "Data",
+      "fieldWeight": "Peso (kg)",
+      "fieldBodyFat": "Gordura corporal (%)",
+      "fieldMuscle": "Massa muscular (kg)",
+      "fieldWater": "Água (%)",
+      "kpiCurrentWeight": "Peso atual",
+      "kpiBodyFat": "% Gordura",
+      "kpiMuscle": "Músculo",
+      "kpiSubLatest": "último registro",
+      "noChartHint": "Registre pelo menos 2 medições pra ver o gráfico de progresso.",
+      "tooltipDate": "Data: {value}",
+      "cancel": "Cancelar",
+      "save": "Salvar"
+    }
+  },
+  "healthData": {
+    "title": "Dados de Saúde",
+    "subtitle": "Conecte dispositivos, insira exames e acompanhe seu treino",
+    "tabs": {
+      "devices": "Dispositivos",
+      "labs": "Exames",
+      "training": "Treino"
+    },
+    "devices": {
+      "intro": "Conecte seus wearables para personalizar ainda mais seus scores e recomendações.",
+      "connectComingSoon": "Integração com {name} em breve — clique para entrar na lista de espera",
+      "connected": "Conectado",
+      "comingSoon": "Em breve",
+      "connect": "Conectar",
+      "disconnect": "Desconectar",
+      "waitlistSuccess": "Você entrou na lista de espera das integrações.",
+      "comingSoonTitle": "Integrações chegando em breve",
+      "comingSoonBody": "Estamos construindo as integrações com Apple Health, WHOOP, Oura e Garmin. Entre na lista de espera para ser o primeiro a testar.",
+      "waitlistCta": "Lista de espera",
+      "list": {
+        "appleHealth": "Passos, sono, FC e muito mais",
+        "whoop": "HRV, recuperação e esforço",
+        "oura": "Sono, temperatura e prontidão",
+        "garmin": "GPS, treinos e saúde",
+        "fitbit": "Atividade, sono e saúde",
+        "strava": "Corridas, ciclismo e natação"
+      }
+    },
+    "labs": {
+      "uploadPdf": "Upload de PDF de exame",
+      "uploadComingSoon": "Upload de PDF de exame em breve.",
+      "savedToast": "Exames salvos com sucesso!",
+      "saveCta": "Salvar exames",
+      "refLabel": "Ref: {ref} {unit}",
+      "privacyNote": "Seus dados de saúde são privados e criptografados. Usamos apenas para personalizar seus scores e recomendações nutricionais.",
+      "markers": {
+        "glucose": "Glicose em jejum",
+        "glucoseTooltip": "Mede o açúcar no sangue em jejum",
+        "hba1c": "HbA1c",
+        "hba1cTooltip": "Média do açúcar nos últimos 2-3 meses",
+        "hdl": "HDL (colesterol bom)",
+        "hdlTooltip": "Colesterol bom — protetor cardiovascular",
+        "ldl": "LDL (colesterol ruim)",
+        "ldlTooltip": "Colesterol ruim",
+        "triglycerides": "Triglicérides",
+        "triglyceridesTooltip": "Gorduras circulantes no sangue",
+        "vitaminD": "Vitamina D",
+        "vitaminDTooltip": "Fundamental para ossos, imunidade e humor",
+        "ferritin": "Ferritina",
+        "ferritinTooltip": "Reserva de ferro no organismo",
+        "b12": "Vitamina B12",
+        "b12Tooltip": "Essencial para nervos e produção de glóbulos vermelhos",
+        "tsh": "TSH",
+        "tshTooltip": "Hormônio que controla a tireoide",
+        "uricAcid": "Ácido úrico",
+        "uricAcidTooltip": "Relacionado à gota e saúde metabólica",
+        "crp": "PCR (Proteína C-reativa)",
+        "crpTooltip": "Marcador de inflamação sistêmica",
+        "magnesium": "Magnésio",
+        "magnesiumTooltip": "Mineral essencial para centenas de reações no corpo"
+      }
+    },
+    "training": {
+      "vo2": "VO₂ Máx",
+      "restingHr": "Frequência cardíaca em repouso",
+      "weeklyLoad": "Carga semanal",
+      "recentSessions": "Sessões Recentes",
+      "addSession": "Adicionar",
+      "addComingSoon": "Registro manual de sessões em breve.",
+      "noSessions": "Nenhuma sessão registrada",
+      "noSessionsHint": "Conecte um wearable ou adicione manualmente",
+      "weeklySchedule": "Agenda Semanal",
+      "days": {
+        "mon": "Seg",
+        "tue": "Ter",
+        "wed": "Qua",
+        "thu": "Qui",
+        "fri": "Sex",
+        "sat": "Sáb",
+        "sun": "Dom"
+      }
+    }
+  },
+  "insights": {
+    "title": "Insights",
+    "subtitleHasData": "Tendências da sua nutrição ao longo do tempo",
+    "subtitleEmpty": "Registre refeições para ver seus insights",
+    "weeklyTrend": "Tendência semanal",
+    "weeklyTrendDesc": "Média do seu score nos últimos 30 dias",
+    "trendBadge": "{value} pts",
+    "noDataYet": "Sem dados ainda — registre suas refeições!",
+    "stats": {
+      "avgScore": "Score médio",
+      "avgScoreSub": "últimos 30 dias",
+      "mealsLogged": "Refeições registradas",
+      "mealsLoggedSub": "últimos 30 dias",
+      "gutHealth": "Saúde intestinal",
+      "gutHealthSub": "seu score inicial"
+    },
+    "discoveries": "Descobertas",
+    "avgScoreCardTitle": "Score médio: {score} pontos",
+    "avgScoreHigh": "Ótimo trabalho! Você está mantendo uma alimentação consistente e nutritiva.",
+    "avgScoreMid": "Bom progresso. Pequenos ajustes nas escolhas alimentares podem elevar seu score.",
+    "avgScoreLow": "Há espaço para crescimento. Foque em adicionar mais proteína e fibras às suas refeições.",
+    "breakfastAhead": "Café da manhã {diff} pts acima do jantar",
+    "dinnerAhead": "Jantar {diff} pts acima do café da manhã",
+    "breakfastAheadDesc": "Seus cafés da manhã são mais nutritivos. Tente replicar essas escolhas no jantar.",
+    "dinnerAheadDesc": "Seus jantares pontuam melhor. Traga essas escolhas para o início do dia também.",
+    "trendCardTitle": "Tendência: {value} pts em 30 dias",
+    "trendUp": "Excelente evolução! Suas escolhas alimentares estão melhorando consistentemente.",
+    "trendFlat": "Você está mantendo seu nível. Continue assim!",
+    "trendDown": "Houve uma queda recente. Tente registrar todas as refeições para ter um panorama completo.",
+    "emptyTitle": "Ainda sem dados suficientes",
+    "emptyHint": "Registre pelo menos 3 refeições para começar a ver seus insights personalizados.",
+    "patternsTitle": "Padrões identificados",
+    "patternsDesc": "Com base nas suas {count} refeições registradas",
+    "patternsBody": "Continue registrando suas refeições — com mais dados, a IA identifica correlações entre sua alimentação, energia e bem-estar.",
+    "mealsAnalyzed": "Refeições analisadas: {count}"
+  },
+  "learn": {
+    "title": "Aprender",
+    "subtitle": "Descobertas de nutrição com base em ciência",
+    "featured": "Destaque",
+    "readArticle": "Ler artigo",
+    "readMore": "Ler mais"
+  },
+  "shop": {
+    "addedToCart": "{name} adicionado ao carrinho (em breve: checkout completo).",
+    "waitlistJoined": "Você entrou na lista de espera. Avisaremos no lançamento."
+  },
+  "nutri": {
+    "layout": {
+      "brand": "Salus Nutri",
+      "navDashboard": "Painel",
+      "navPatients": "Pacientes",
+      "navProtocol": "Protocolo",
+      "navSettings": "Config"
+    },
+    "dashboard": {
+      "greeting": "Olá, {name}",
+      "fallbackName": "doutor(a)",
+      "subtitle": "Acompanhe seus pacientes e seu protocolo de atendimento.",
+      "kpiActivePatients": "Pacientes ativos",
+      "kpiPendingInvites": "Convites pendentes",
+      "kpiPlan": "Plano",
+      "planName": "Nutri Pro",
+      "yourProtocol": "Seu protocolo",
+      "edit": "Editar",
+      "noProtocol": "Sem protocolo definido.",
+      "patients": "Pacientes",
+      "invitePatient": "Convidar paciente",
+      "noPatients": "Nenhum paciente vinculado ainda.",
+      "noPatientsHint": "Use a aba <b>Pacientes</b> para enviar um convite por e-mail.",
+      "noName": "Sem nome",
+      "viewProfile": "Ver perfil →",
+      "pendingInvites": "Convites pendentes",
+      "expiresOn": "expira em {date}"
+    },
+    "patients": {
+      "title": "Pacientes",
+      "subtitle": "Convide novos pacientes e acompanhe seus dados.",
+      "invitePatient": "Convidar paciente",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "paciente@exemplo.com",
+      "sendInvite": "Enviar convite",
+      "inviteFailed": "Falha ao convidar",
+      "inviteCreated": "Convite criado para {email}",
+      "networkError": "Erro de rede",
+      "linkCopied": "Link copiado",
+      "inviteHint": "Vamos gerar um link único. Você pode copiar e enviar por WhatsApp ou e-mail.",
+      "activePatients": "Pacientes ativos ({count})",
+      "noPatients": "Nenhum paciente vinculado ainda.",
+      "noName": "Sem nome",
+      "viewProfile": "Ver perfil →",
+      "sentInvites": "Convites enviados ({count})",
+      "noInvites": "Nenhum convite ainda.",
+      "accepted": "Aceito",
+      "expiredOn": "Expirado em {date}",
+      "expiresOn": "Expira em {date}",
+      "copied": "Copiado",
+      "copyLink": "Copiar link"
+    },
+    "protocol": {
+      "title": "Seu protocolo",
+      "subtitle": "Esse texto guia a IA quando ela responde aos seus pacientes em seu nome. Atualize sempre que mudar sua abordagem clínica.",
+      "minError": "Mínimo 60 caracteres.",
+      "saveError": "Falha ao salvar",
+      "saved": "Protocolo atualizado",
+      "networkError": "Erro de rede",
+      "placeholder": "Descreva seu protocolo de atendimento...",
+      "minHint": "Mínimo 60 caracteres ({count}/60)",
+      "minOk": "✓ Suficiente",
+      "save": "Salvar"
+    }
+  },
+  "micronutrients": {
+    "title": "Vitaminas e minerais",
+    "titleToday": "Vitaminas e minerais hoje",
+    "emptyHint": "Registre uma refeição com a câmera ou texto pra ver os micronutrientes do dia.",
+    "trackedOf": "{tracked} de {total}",
+    "showLess": "Mostrar menos",
+    "showMore": "Ver todos ({count} mais)"
+  },
+  "paywall": {
+    "srTitle": "Salus Pro — baixe o app",
+    "brand": "Salus",
+    "headline": "Nutrição inteligente",
+    "subline": "Análises e planos guiados por IA no seu ritmo",
+    "annualTitle": "Anual",
+    "annualPrice": "R$ 590/ano",
+    "annualSubtitle": "Só R$ 49,17/mês",
+    "annualBadge": "17% OFF",
+    "monthlyTitle": "Mensal",
+    "monthlyPrice": "R$ 59/mês",
+    "appNote": "A assinatura está no app iOS e Android",
+    "ios": "iOS",
+    "android": "Android",
+    "terms": "Termos",
+    "privacy": "Privacidade"
+  }
+}

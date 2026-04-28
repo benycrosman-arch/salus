@@ -8,35 +8,91 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import {
-  Bell, Shield, LogOut, ChevronRight,
-  Download, Trash2, Crown, Check
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import {
+  Bell, Shield, LogOut, ChevronRight, Globe,
+  Download, Trash2, Crown, Check, Apple, Smartphone, Loader2
 } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { resetIdentity, track } from "@/lib/posthog"
+import { useTranslations } from "next-intl"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export default function SettingsPage() {
   const router = useRouter()
   const supabase = createClient()
+  const tSettings = useTranslations('settings')
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
     nudgeHour: "08:00",
     weeklyReport: true,
   })
+  const [exporting, setExporting] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState("")
+  const [deleting, setDeleting] = useState(false)
 
   const handleLogout = async () => {
+    track("logout")
+    resetIdentity()
     await supabase.auth.signOut()
     router.push("/")
     router.refresh()
   }
 
-  const handleExportData = () => {
-    toast.info("Exportação de dados em desenvolvimento")
+  const handleExportData = async () => {
+    setExporting(true)
+    try {
+      const res = await fetch("/api/user/export")
+      if (!res.ok) {
+        toast.error("Não foi possível exportar seus dados.")
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `salus-data-${new Date().toISOString().split("T")[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      track("data_exported")
+      toast.success("Seus dados foram baixados.")
+    } catch (err) {
+      console.error(err)
+      toast.error("Erro ao exportar dados.")
+    } finally {
+      setExporting(false)
+    }
   }
 
-  const handleDeleteAccount = () => {
-    toast.error("Para excluir sua conta, entre em contato com suporte@salusnutri.com.br")
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== "EXCLUIR") return
+    setDeleting(true)
+    try {
+      const res = await fetch("/api/user/delete", { method: "POST" })
+      const body = await res.json()
+      if (!res.ok) {
+        toast.error(body.error || "Não foi possível excluir a conta.")
+        return
+      }
+      track("account_deleted")
+      resetIdentity()
+      toast.success("Conta excluída. Adeus.")
+      router.push("/")
+      router.refresh()
+    } catch (err) {
+      console.error(err)
+      toast.error("Erro ao excluir a conta.")
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -59,10 +115,29 @@ export default function SettingsPage() {
           <p className="text-white/80 text-sm font-body mb-4">
             Faça upgrade para Pro e desbloqueie fotos ilimitadas, planos personalizados e insights avançados.
           </p>
-          <Button className="w-full bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-all h-11">
-            <Crown className="w-4 h-4 mr-2 text-accent" />
-            Assinar Pro — R$ 59/mês
-          </Button>
+          <p className="text-white/70 text-xs font-body mb-3">
+            A assinatura é feita no nosso app iOS ou Android.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              asChild
+              className="bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-all h-11"
+            >
+              <a href="#download">
+                <Apple className="w-4 h-4 mr-2" />
+                iOS
+              </a>
+            </Button>
+            <Button
+              asChild
+              className="bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-all h-11"
+            >
+              <a href="#download">
+                <Smartphone className="w-4 h-4 mr-2" />
+                Android
+              </a>
+            </Button>
+          </div>
         </div>
         <div className="p-5 space-y-3">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">O que você ganha no Pro</p>
@@ -73,6 +148,16 @@ export default function SettingsPage() {
             </div>
           ))}
         </div>
+      </Card>
+
+      {/* Language */}
+      <Card className="border-0 shadow-md p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Globe className="w-4 h-4 text-primary" />
+          <h2 className="font-semibold text-foreground">{tSettings('language')}</h2>
+        </div>
+        <p className="text-xs text-muted-foreground font-body mb-4">{tSettings('languageHint')}</p>
+        <LanguageSwitcher variant="inline" />
       </Card>
 
       {/* Notifications */}
@@ -118,16 +203,27 @@ export default function SettingsPage() {
           <h2 className="font-semibold text-foreground">Privacidade e Dados</h2>
         </div>
         <div className="space-y-2">
-          <button onClick={handleExportData}
-            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted transition-colors text-left">
+          <button
+            onClick={handleExportData}
+            disabled={exporting}
+            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted transition-colors text-left disabled:opacity-50"
+          >
             <div className="flex items-center gap-3">
-              <Download className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-body text-foreground">Exportar meus dados</span>
+              {exporting ? (
+                <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 text-muted-foreground" />
+              )}
+              <span className="text-sm font-body text-foreground">
+                {exporting ? "Preparando download..." : "Exportar meus dados"}
+              </span>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
-          <button onClick={handleDeleteAccount}
-            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-destructive/5 transition-colors text-left">
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-destructive/5 transition-colors text-left"
+          >
             <div className="flex items-center gap-3">
               <Trash2 className="w-4 h-4 text-destructive" />
               <span className="text-sm font-body text-destructive">Excluir minha conta</span>
@@ -136,6 +232,48 @@ export default function SettingsPage() {
           </button>
         </div>
       </Card>
+
+      {/* Delete confirmation */}
+      <Dialog open={deleteOpen} onOpenChange={(open) => !deleting && setDeleteOpen(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Excluir conta</DialogTitle>
+            <DialogDescription>
+              Esta ação é <b>permanente e imediata</b>. Todos os seus dados — refeições, perfil,
+              exames, recomendações — serão removidos. Não conseguiremos recuperar.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <Label className="text-sm">
+              Para confirmar, digite <b>EXCLUIR</b> abaixo:
+            </Label>
+            <Input
+              autoFocus
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder="EXCLUIR"
+              className="mt-2"
+              disabled={deleting}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              disabled={deleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={deleting || deleteConfirm !== "EXCLUIR"}
+            >
+              {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Excluir permanentemente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Logout */}
       <Button onClick={handleLogout} variant="outline"

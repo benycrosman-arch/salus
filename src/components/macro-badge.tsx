@@ -18,7 +18,7 @@ export function MacroBadge({ label, value, unit, color, className }: MacroBadgeP
         className
       )}
     >
-      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#1a3a2a]/40">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#1a3a2a]/60">
         {label}
       </span>
       <span
@@ -27,7 +27,7 @@ export function MacroBadge({ label, value, unit, color, className }: MacroBadgeP
       >
         {Math.round(value)}
       </span>
-      <span className="text-[10px] text-[#1a3a2a]/35">{unit}</span>
+      <span className="text-[10px] text-[#1a3a2a]/60">{unit}</span>
     </div>
   )
 }

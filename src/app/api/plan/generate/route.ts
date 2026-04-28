@@ -1,343 +1,159 @@
 import { NextResponse } from 'next/server'
+import { guardRequest } from '@/lib/api-guard'
+
+interface MealDetail {
+  name: string
+  description: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+}
+
+interface DayPlan {
+  day: string
+  meals: {
+    breakfast: MealDetail
+    snack1: MealDetail
+    lunch: MealDetail
+    snack2: MealDetail
+    dinner: MealDetail
+  }
+}
+
+interface GroceryItem {
+  name: string
+  quantity: string
+  category: 'produce' | 'protein' | 'pantry' | 'dairy' | 'snacks'
+  estimatedPrice: number
+  owned: boolean
+}
 
 export async function POST() {
   try {
-    // TODO: Replace with actual Claude API integration
-    // For now, return hardcoded mock data
+    const guard = await guardRequest()
+    if (!guard.ok) return guard.response
 
-    const mockMealPlan = {
-      weekStartDate: '2025-01-13',
-      meals: {
-        monday: {
-          breakfast: {
-            name: 'Greek Yogurt Parfait with Berries',
-            description: 'Creamy Greek yogurt layered with mixed berries, chia seeds, and a drizzle of honey',
-            calories: 320,
-            protein_g: 18,
-            carbs_g: 42,
-            fat_g: 8,
-          },
-          snack1: {
-            name: 'Apple Slices with Almond Butter',
-            description: 'Crisp apple slices paired with natural almond butter',
-            calories: 180,
-            protein_g: 4,
-            carbs_g: 22,
-            fat_g: 9,
-          },
-          lunch: {
-            name: 'Grilled Chicken Quinoa Bowl',
-            description: 'Herb-marinated grilled chicken over quinoa with roasted vegetables and tahini dressing',
-            calories: 480,
-            protein_g: 38,
-            carbs_g: 45,
-            fat_g: 14,
-          },
-          snack2: {
-            name: 'Hummus with Carrot Sticks',
-            description: 'Homemade hummus with fresh carrot and cucumber sticks',
-            calories: 150,
-            protein_g: 5,
-            carbs_g: 18,
-            fat_g: 7,
-          },
-          dinner: {
-            name: 'Baked Salmon with Sweet Potato',
-            description: 'Herb-crusted salmon fillet with roasted sweet potato and steamed broccoli',
-            calories: 520,
-            protein_g: 42,
-            carbs_g: 38,
-            fat_g: 18,
-          },
-        },
-        tuesday: {
-          breakfast: {
-            name: 'Overnight Oats with Banana',
-            description: 'Steel-cut oats soaked overnight with banana, cinnamon, and walnuts',
-            calories: 340,
-            protein_g: 12,
-            carbs_g: 52,
-            fat_g: 10,
-          },
-          snack1: {
-            name: 'Mixed Nuts and Dried Fruit',
-            description: 'Trail mix with almonds, cashews, and unsweetened dried cranberries',
-            calories: 200,
-            protein_g: 6,
-            carbs_g: 18,
-            fat_g: 13,
-          },
-          lunch: {
-            name: 'Mediterranean Chickpea Salad',
-            description: 'Chickpeas, cucumber, tomatoes, red onion, feta, and olive oil dressing',
-            calories: 420,
-            protein_g: 16,
-            carbs_g: 48,
-            fat_g: 18,
-          },
-          snack2: {
-            name: 'Celery with Peanut Butter',
-            description: 'Celery sticks filled with natural peanut butter',
-            calories: 160,
-            protein_g: 7,
-            carbs_g: 10,
-            fat_g: 12,
-          },
-          dinner: {
-            name: 'Turkey Meatballs with Zucchini Noodles',
-            description: 'Lean turkey meatballs over zucchini noodles with marinara sauce',
-            calories: 460,
-            protein_g: 36,
-            carbs_g: 32,
-            fat_g: 18,
-          },
-        },
-        wednesday: {
-          breakfast: {
-            name: 'Veggie Scramble with Avocado',
-            description: 'Eggs scrambled with spinach, tomatoes, and mushrooms, topped with avocado',
-            calories: 360,
-            protein_g: 22,
-            carbs_g: 18,
-            fat_g: 22,
-          },
-          snack1: {
-            name: 'Cottage Cheese with Berries',
-            description: 'Low-fat cottage cheese with fresh blueberries and strawberries',
-            calories: 170,
-            protein_g: 15,
-            carbs_g: 20,
-            fat_g: 3,
-          },
-          lunch: {
-            name: 'Lentil Soup with Whole Grain Bread',
-            description: 'Hearty lentil soup with vegetables and a slice of whole grain bread',
-            calories: 440,
-            protein_g: 22,
-            carbs_g: 68,
-            fat_g: 8,
-          },
-          snack2: {
-            name: 'Greek Yogurt with Granola',
-            description: 'Plain Greek yogurt with homemade granola',
-            calories: 210,
-            protein_g: 12,
-            carbs_g: 28,
-            fat_g: 6,
-          },
-          dinner: {
-            name: 'Grilled Shrimp Tacos',
-            description: 'Grilled shrimp in corn tortillas with cabbage slaw and lime crema',
-            calories: 480,
-            protein_g: 32,
-            carbs_g: 52,
-            fat_g: 14,
-          },
-        },
-        thursday: {
-          breakfast: {
-            name: 'Smoothie Bowl with Toppings',
-            description: 'Berry smoothie bowl topped with granola, coconut flakes, and fresh fruit',
-            calories: 380,
-            protein_g: 14,
-            carbs_g: 58,
-            fat_g: 12,
-          },
-          snack1: {
-            name: 'Hard-Boiled Eggs with Cherry Tomatoes',
-            description: 'Two hard-boiled eggs with a handful of cherry tomatoes',
-            calories: 180,
-            protein_g: 14,
-            carbs_g: 6,
-            fat_g: 11,
-          },
-          lunch: {
-            name: 'Asian-Style Tofu Stir-Fry',
-            description: 'Crispy tofu with mixed vegetables in a ginger-garlic sauce over brown rice',
-            calories: 460,
-            protein_g: 20,
-            carbs_g: 58,
-            fat_g: 16,
-          },
-          snack2: {
-            name: 'Edamame with Sea Salt',
-            description: 'Steamed edamame lightly salted',
-            calories: 150,
-            protein_g: 12,
-            carbs_g: 12,
-            fat_g: 6,
-          },
-          dinner: {
-            name: 'Chicken Fajita Bowl',
-            description: 'Grilled chicken with peppers and onions over cilantro-lime rice',
-            calories: 500,
-            protein_g: 40,
-            carbs_g: 48,
-            fat_g: 14,
-          },
-        },
-        friday: {
-          breakfast: {
-            name: 'Whole Grain Toast with Avocado',
-            description: 'Multigrain toast topped with mashed avocado, hemp seeds, and cherry tomatoes',
-            calories: 340,
-            protein_g: 12,
-            carbs_g: 38,
-            fat_g: 16,
-          },
-          snack1: {
-            name: 'Protein Smoothie',
-            description: 'Banana, spinach, protein powder, and almond milk smoothie',
-            calories: 220,
-            protein_g: 20,
-            carbs_g: 28,
-            fat_g: 4,
-          },
-          lunch: {
-            name: 'Tuna Salad Lettuce Wraps',
-            description: 'Tuna salad made with Greek yogurt wrapped in butter lettuce leaves',
-            calories: 380,
-            protein_g: 34,
-            carbs_g: 18,
-            fat_g: 18,
-          },
-          snack2: {
-            name: 'Bell Pepper Strips with Guacamole',
-            description: 'Fresh bell pepper strips with homemade guacamole',
-            calories: 140,
-            protein_g: 3,
-            carbs_g: 14,
-            fat_g: 10,
-          },
-          dinner: {
-            name: 'Baked Cod with Asparagus',
-            description: 'Lemon-herb baked cod with roasted asparagus and wild rice',
-            calories: 460,
-            protein_g: 38,
-            carbs_g: 42,
-            fat_g: 12,
-          },
-        },
-        saturday: {
-          breakfast: {
-            name: 'Protein Pancakes with Berries',
-            description: 'Whole wheat protein pancakes topped with fresh berries and maple syrup',
-            calories: 400,
-            protein_g: 24,
-            carbs_g: 54,
-            fat_g: 10,
-          },
-          snack1: {
-            name: 'Rice Cakes with Almond Butter',
-            description: 'Brown rice cakes spread with almond butter and sliced banana',
-            calories: 190,
-            protein_g: 5,
-            carbs_g: 26,
-            fat_g: 8,
-          },
-          lunch: {
-            name: 'Black Bean Burrito Bowl',
-            description: 'Black beans, brown rice, salsa, cheese, and guacamole',
-            calories: 520,
-            protein_g: 22,
-            carbs_g: 72,
-            fat_g: 16,
-          },
-          snack2: {
-            name: 'Watermelon with Feta',
-            description: 'Fresh watermelon cubes with crumbled feta and mint',
-            calories: 130,
-            protein_g: 4,
-            carbs_g: 18,
-            fat_g: 5,
-          },
-          dinner: {
-            name: 'Grass-Fed Beef with Roasted Vegetables',
-            description: 'Lean beef medallions with roasted root vegetables and quinoa',
-            calories: 540,
-            protein_g: 42,
-            carbs_g: 44,
-            fat_g: 20,
-          },
-        },
-        sunday: {
-          breakfast: {
-            name: 'Veggie Omelet with Whole Grain Toast',
-            description: 'Three-egg omelet with vegetables and a slice of whole grain toast',
-            calories: 380,
-            protein_g: 26,
-            carbs_g: 28,
-            fat_g: 18,
-          },
-          snack1: {
-            name: 'Kale Chips',
-            description: 'Baked kale chips seasoned with nutritional yeast',
-            calories: 100,
-            protein_g: 4,
-            carbs_g: 12,
-            fat_g: 4,
-          },
-          lunch: {
-            name: 'Chicken Caesar Salad',
-            description: 'Grilled chicken over romaine with homemade Caesar dressing and parmesan',
-            calories: 440,
-            protein_g: 38,
-            carbs_g: 24,
-            fat_g: 22,
-          },
-          snack2: {
-            name: 'Dark Chocolate with Almonds',
-            description: '70% dark chocolate squares with a handful of almonds',
-            calories: 180,
-            protein_g: 5,
-            carbs_g: 16,
-            fat_g: 13,
-          },
-          dinner: {
-            name: 'Vegetable Curry with Chickpeas',
-            description: 'Mixed vegetable and chickpea curry over basmati rice',
-            calories: 500,
-            protein_g: 18,
-            carbs_g: 78,
-            fat_g: 14,
-          },
+    const now = new Date()
+    const dayOfWeek = now.getDay()
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7))
+    const weekStartDate = monday.toISOString().split('T')[0]
+
+    const days: DayPlan[] = [
+      {
+        day: 'Segunda',
+        meals: {
+          breakfast: { name: 'Parfait de Iogurte Grego', description: 'Iogurte grego com frutas vermelhas, chia e mel', calories: 320, protein_g: 18, carbs_g: 42, fat_g: 8 },
+          snack1: { name: 'Maçã com Pasta de Amêndoas', description: 'Fatias de maçã com pasta de amêndoas natural', calories: 180, protein_g: 4, carbs_g: 22, fat_g: 9 },
+          lunch: { name: 'Bowl de Frango com Quinoa', description: 'Frango grelhado sobre quinoa com legumes assados e molho tahini', calories: 480, protein_g: 38, carbs_g: 45, fat_g: 14 },
+          snack2: { name: 'Homus com Palitos de Cenoura', description: 'Homus caseiro com palitos de cenoura e pepino', calories: 150, protein_g: 5, carbs_g: 18, fat_g: 7 },
+          dinner: { name: 'Salmão com Batata Doce', description: 'Salmão ao forno com batata doce assada e brócolis', calories: 520, protein_g: 42, carbs_g: 38, fat_g: 18 },
         },
       },
-      groceryList: [
-        { name: 'Salmon Fillets', quantity: '4 x 170g', category: 'protein', estimatedPrice: 18.99 },
-        { name: 'Chicken Breast', quantity: '1.5 kg', category: 'protein', estimatedPrice: 14.99 },
-        { name: 'Ground Turkey', quantity: '500g', category: 'protein', estimatedPrice: 8.99 },
-        { name: 'Shrimp', quantity: '400g', category: 'protein', estimatedPrice: 12.99 },
-        { name: 'Cod Fillets', quantity: '2 x 200g', category: 'protein', estimatedPrice: 10.99 },
-        { name: 'Grass-Fed Beef Medallions', quantity: '4 x 150g', category: 'protein', estimatedPrice: 16.99 },
-        { name: 'Firm Tofu', quantity: '1 block (400g)', category: 'protein', estimatedPrice: 3.49 },
-        { name: 'Greek Yogurt', quantity: '1kg tub', category: 'dairy', estimatedPrice: 5.99 },
-        { name: 'Cottage Cheese', quantity: '500g', category: 'dairy', estimatedPrice: 4.49 },
-        { name: 'Eggs', quantity: '18 count', category: 'dairy', estimatedPrice: 6.99 },
-        { name: 'Feta Cheese', quantity: '200g', category: 'dairy', estimatedPrice: 5.49 },
-        { name: 'Quinoa', quantity: '500g bag', category: 'pantry', estimatedPrice: 4.99 },
-        { name: 'Brown Rice', quantity: '1kg bag', category: 'pantry', estimatedPrice: 3.99 },
-        { name: 'Lentils', quantity: '500g bag', category: 'pantry', estimatedPrice: 2.99 },
-        { name: 'Chickpeas', quantity: '2 cans', category: 'pantry', estimatedPrice: 3.98 },
-        { name: 'Black Beans', quantity: '2 cans', category: 'pantry', estimatedPrice: 3.98 },
-        { name: 'Steel-Cut Oats', quantity: '500g', category: 'pantry', estimatedPrice: 4.49 },
-        { name: 'Almond Butter', quantity: '350g jar', category: 'pantry', estimatedPrice: 8.99 },
-        { name: 'Mixed Berries', quantity: '2 cups frozen', category: 'produce', estimatedPrice: 6.99 },
-        { name: 'Bananas', quantity: '6 count', category: 'produce', estimatedPrice: 2.49 },
-        { name: 'Apples', quantity: '4 count', category: 'produce', estimatedPrice: 3.99 },
-        { name: 'Avocados', quantity: '6 count', category: 'produce', estimatedPrice: 8.99 },
-        { name: 'Sweet Potatoes', quantity: '4 medium', category: 'produce', estimatedPrice: 4.99 },
-        { name: 'Spinach', quantity: '2 bunches', category: 'produce', estimatedPrice: 5.98 },
-        { name: 'Broccoli', quantity: '2 heads', category: 'produce', estimatedPrice: 4.98 },
-        { name: 'Asparagus', quantity: '1 bunch', category: 'produce', estimatedPrice: 4.99 },
-        { name: 'Bell Peppers', quantity: '4 mixed colors', category: 'produce', estimatedPrice: 6.99 },
-        { name: 'Zucchini', quantity: '3 medium', category: 'produce', estimatedPrice: 3.99 },
-        { name: 'Cherry Tomatoes', quantity: '2 pints', category: 'produce', estimatedPrice: 5.98 },
-        { name: 'Romaine Lettuce', quantity: '2 heads', category: 'produce', estimatedPrice: 4.98 },
-      ],
-    }
+      {
+        day: 'Terça',
+        meals: {
+          breakfast: { name: 'Overnight Oats com Banana', description: 'Aveia com banana, canela e nozes', calories: 340, protein_g: 12, carbs_g: 52, fat_g: 10 },
+          snack1: { name: 'Mix de Castanhas', description: 'Amêndoas, castanhas e cranberries desidratadas', calories: 200, protein_g: 6, carbs_g: 18, fat_g: 13 },
+          lunch: { name: 'Salada Mediterrânea', description: 'Grão-de-bico, pepino, tomate, cebola roxa, feta e azeite', calories: 420, protein_g: 16, carbs_g: 48, fat_g: 18 },
+          snack2: { name: 'Salsão com Pasta de Amendoim', description: 'Talos de salsão com pasta de amendoim natural', calories: 160, protein_g: 7, carbs_g: 10, fat_g: 12 },
+          dinner: { name: 'Almôndegas de Peru com Abobrinha', description: 'Almôndegas de peru com espaguete de abobrinha e molho marinara', calories: 460, protein_g: 36, carbs_g: 32, fat_g: 18 },
+        },
+      },
+      {
+        day: 'Quarta',
+        meals: {
+          breakfast: { name: 'Scramble de Ovos com Abacate', description: 'Ovos mexidos com espinafre, tomate e cogumelos, cobertos com abacate', calories: 360, protein_g: 22, carbs_g: 18, fat_g: 22 },
+          snack1: { name: 'Cottage com Frutas Vermelhas', description: 'Queijo cottage com mirtilos e morangos', calories: 170, protein_g: 15, carbs_g: 20, fat_g: 3 },
+          lunch: { name: 'Sopa de Lentilha', description: 'Sopa de lentilha com legumes e pão integral', calories: 440, protein_g: 22, carbs_g: 68, fat_g: 8 },
+          snack2: { name: 'Iogurte com Granola', description: 'Iogurte grego com granola caseira', calories: 210, protein_g: 12, carbs_g: 28, fat_g: 6 },
+          dinner: { name: 'Tacos de Camarão', description: 'Camarão grelhado em tortilha de milho com salada de repolho', calories: 480, protein_g: 32, carbs_g: 52, fat_g: 14 },
+        },
+      },
+      {
+        day: 'Quinta',
+        meals: {
+          breakfast: { name: 'Smoothie Bowl', description: 'Bowl de smoothie de frutas com granola, coco ralado e frutas frescas', calories: 380, protein_g: 14, carbs_g: 58, fat_g: 12 },
+          snack1: { name: 'Ovos Cozidos com Tomate', description: 'Dois ovos cozidos com tomatinhos cereja', calories: 180, protein_g: 14, carbs_g: 6, fat_g: 11 },
+          lunch: { name: 'Stir-Fry de Tofu', description: 'Tofu crocante com legumes variados em molho gengibre-alho sobre arroz integral', calories: 460, protein_g: 20, carbs_g: 58, fat_g: 16 },
+          snack2: { name: 'Edamame com Sal Marinho', description: 'Edamame no vapor levemente salgado', calories: 150, protein_g: 12, carbs_g: 12, fat_g: 6 },
+          dinner: { name: 'Fajita de Frango', description: 'Frango grelhado com pimentões sobre arroz com coentro e limão', calories: 500, protein_g: 40, carbs_g: 48, fat_g: 14 },
+        },
+      },
+      {
+        day: 'Sexta',
+        meals: {
+          breakfast: { name: 'Torrada com Abacate', description: 'Pão multigrãos com abacate amassado, sementes de hemp e tomatinhos', calories: 340, protein_g: 12, carbs_g: 38, fat_g: 16 },
+          snack1: { name: 'Smoothie Proteico', description: 'Banana, espinafre, whey e leite de amêndoas', calories: 220, protein_g: 20, carbs_g: 28, fat_g: 4 },
+          lunch: { name: 'Wrap de Atum', description: 'Salada de atum com iogurte grego em folhas de alface', calories: 380, protein_g: 34, carbs_g: 18, fat_g: 18 },
+          snack2: { name: 'Pimentão com Guacamole', description: 'Tiras de pimentão com guacamole caseiro', calories: 140, protein_g: 3, carbs_g: 14, fat_g: 10 },
+          dinner: { name: 'Bacalhau com Aspargos', description: 'Bacalhau ao forno com aspargos grelhados e arroz selvagem', calories: 460, protein_g: 38, carbs_g: 42, fat_g: 12 },
+        },
+      },
+      {
+        day: 'Sábado',
+        meals: {
+          breakfast: { name: 'Panquecas Proteicas', description: 'Panquecas de aveia com frutas vermelhas e mel', calories: 400, protein_g: 24, carbs_g: 54, fat_g: 10 },
+          snack1: { name: 'Biscoito de Arroz com Amêndoas', description: 'Biscoito de arroz integral com pasta de amêndoas e banana', calories: 190, protein_g: 5, carbs_g: 26, fat_g: 8 },
+          lunch: { name: 'Burrito Bowl de Feijão Preto', description: 'Feijão preto, arroz integral, salsa, queijo e guacamole', calories: 520, protein_g: 22, carbs_g: 72, fat_g: 16 },
+          snack2: { name: 'Melancia com Feta', description: 'Cubos de melancia com queijo feta esfarelado e hortelã', calories: 130, protein_g: 4, carbs_g: 18, fat_g: 5 },
+          dinner: { name: 'Carne com Legumes Assados', description: 'Medalhões de carne com raízes assadas e quinoa', calories: 540, protein_g: 42, carbs_g: 44, fat_g: 20 },
+        },
+      },
+      {
+        day: 'Domingo',
+        meals: {
+          breakfast: { name: 'Omelete de Legumes', description: 'Omelete de 3 ovos com vegetais e torrada integral', calories: 380, protein_g: 26, carbs_g: 28, fat_g: 18 },
+          snack1: { name: 'Chips de Couve', description: 'Couve assada temperada com levedura nutricional', calories: 100, protein_g: 4, carbs_g: 12, fat_g: 4 },
+          lunch: { name: 'Salada Caesar de Frango', description: 'Frango grelhado sobre alface romana com molho Caesar caseiro', calories: 440, protein_g: 38, carbs_g: 24, fat_g: 22 },
+          snack2: { name: 'Chocolate 70% com Amêndoas', description: 'Quadradinhos de chocolate amargo com amêndoas', calories: 180, protein_g: 5, carbs_g: 16, fat_g: 13 },
+          dinner: { name: 'Curry de Grão-de-Bico', description: 'Curry de legumes e grão-de-bico sobre arroz basmati', calories: 500, protein_g: 18, carbs_g: 78, fat_g: 14 },
+        },
+      },
+    ]
 
-    return NextResponse.json(mockMealPlan)
+    const groceryList: GroceryItem[] = [
+      { name: 'Filé de Salmão', quantity: '4 x 170g', category: 'protein', estimatedPrice: 69.90, owned: false },
+      { name: 'Peito de Frango', quantity: '1.5 kg', category: 'protein', estimatedPrice: 29.90, owned: false },
+      { name: 'Carne Moída de Peru', quantity: '500g', category: 'protein', estimatedPrice: 18.90, owned: false },
+      { name: 'Camarão', quantity: '400g', category: 'protein', estimatedPrice: 34.90, owned: false },
+      { name: 'Filé de Bacalhau', quantity: '2 x 200g', category: 'protein', estimatedPrice: 39.90, owned: false },
+      { name: 'Medalhões de Carne', quantity: '4 x 150g', category: 'protein', estimatedPrice: 45.90, owned: false },
+      { name: 'Tofu Firme', quantity: '1 bloco (400g)', category: 'protein', estimatedPrice: 9.90, owned: false },
+      { name: 'Iogurte Grego', quantity: '1kg', category: 'dairy', estimatedPrice: 14.90, owned: false },
+      { name: 'Queijo Cottage', quantity: '500g', category: 'dairy', estimatedPrice: 12.90, owned: false },
+      { name: 'Ovos Caipira', quantity: '18 unidades', category: 'dairy', estimatedPrice: 19.90, owned: false },
+      { name: 'Queijo Feta', quantity: '200g', category: 'dairy', estimatedPrice: 14.90, owned: false },
+      { name: 'Quinoa', quantity: '500g', category: 'pantry', estimatedPrice: 12.90, owned: false },
+      { name: 'Arroz Integral', quantity: '1kg', category: 'pantry', estimatedPrice: 7.90, owned: false },
+      { name: 'Lentilha', quantity: '500g', category: 'pantry', estimatedPrice: 6.90, owned: false },
+      { name: 'Grão-de-Bico', quantity: '2 latas', category: 'pantry', estimatedPrice: 11.80, owned: false },
+      { name: 'Feijão Preto', quantity: '2 latas', category: 'pantry', estimatedPrice: 9.80, owned: false },
+      { name: 'Aveia em Flocos', quantity: '500g', category: 'pantry', estimatedPrice: 8.90, owned: false },
+      { name: 'Pasta de Amêndoas', quantity: '350g', category: 'pantry', estimatedPrice: 24.90, owned: false },
+      { name: 'Frutas Vermelhas', quantity: '2 bandejas', category: 'produce', estimatedPrice: 12.90, owned: false },
+      { name: 'Bananas', quantity: '6 unidades', category: 'produce', estimatedPrice: 4.50, owned: false },
+      { name: 'Maçãs', quantity: '4 unidades', category: 'produce', estimatedPrice: 6.90, owned: false },
+      { name: 'Abacates', quantity: '6 unidades', category: 'produce', estimatedPrice: 15.90, owned: false },
+      { name: 'Batata Doce', quantity: '4 médias', category: 'produce', estimatedPrice: 8.90, owned: false },
+      { name: 'Espinafre', quantity: '2 maços', category: 'produce', estimatedPrice: 7.80, owned: false },
+      { name: 'Brócolis', quantity: '2 maços', category: 'produce', estimatedPrice: 9.80, owned: false },
+      { name: 'Aspargos', quantity: '1 maço', category: 'produce', estimatedPrice: 12.90, owned: false },
+      { name: 'Pimentões', quantity: '4 cores variadas', category: 'produce', estimatedPrice: 11.90, owned: false },
+      { name: 'Abobrinha', quantity: '3 médias', category: 'produce', estimatedPrice: 5.90, owned: false },
+      { name: 'Tomate Cereja', quantity: '2 bandejas', category: 'produce', estimatedPrice: 9.80, owned: false },
+      { name: 'Alface Americana', quantity: '2 unidades', category: 'produce', estimatedPrice: 7.80, owned: false },
+    ]
+
+    const estimatedTotal = Math.round(groceryList.reduce((sum, item) => sum + item.estimatedPrice, 0) * 100) / 100
+
+    return NextResponse.json({
+      weekStartDate,
+      days,
+      groceryList,
+      estimatedTotal,
+    })
   } catch (error) {
     console.error('Meal plan generation error:', error)
     return NextResponse.json(

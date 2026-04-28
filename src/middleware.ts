@@ -39,10 +39,11 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
-    pathname === route || pathname.startsWith(route + '/')
-  )
+  const isPublicRoute =
+    PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/')) ||
+    pathname.startsWith('/auth/')
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route))
+  const isOnboardingRoute = pathname === '/onboarding' || pathname.startsWith('/onboarding/')
 
   // Redirect unauthenticated users away from protected routes
   if (!user && !isPublicRoute) {
@@ -51,9 +52,45 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Redirect authenticated users away from auth pages
-  if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed, role')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const onboardingDone = profile?.onboarding_completed === true
+    const isNutri = profile?.role === 'nutricionista'
+    const isNutriRoute = pathname === '/nutri' || pathname.startsWith('/nutri/')
+
+    // Logged-in users hitting login/signup go to app (never skip onboarding)
+    if (isAuthRoute) {
+      const destination = onboardingDone ? (isNutri ? '/nutri' : '/dashboard') : '/onboarding'
+      return NextResponse.redirect(new URL(destination, request.url))
+    }
+
+    if (isOnboardingRoute && onboardingDone) {
+      return NextResponse.redirect(new URL(isNutri ? '/nutri' : '/dashboard', request.url))
+    }
+
+    // Block the rest of the app until the onboarding quiz is completed and saved
+    if (!onboardingDone && !isPublicRoute && !isOnboardingRoute) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
+
+    // Role gate: nutricionistas don't belong on the patient app surface, and
+    // patients don't belong on the nutri panel. Shared routes (settings, profile,
+    // auth, public) fall through.
+    if (onboardingDone) {
+      const PATIENT_ONLY = ['/dashboard', '/log', '/plan', '/grocery', '/progress', '/health-data', '/insights', '/meal-result']
+      const onPatientArea = PATIENT_ONLY.some((p) => pathname === p || pathname.startsWith(p + '/'))
+      if (isNutri && onPatientArea) {
+        return NextResponse.redirect(new URL('/nutri', request.url))
+      }
+      if (!isNutri && isNutriRoute) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    }
   }
 
   return response

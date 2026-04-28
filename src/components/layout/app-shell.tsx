@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import {
   Home,
   Camera,
@@ -13,28 +15,31 @@ import {
   Settings,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const mobileNavItems = [
-  { href: "/dashboard", icon: Home, label: "Início" },
-  { href: "/log", icon: Camera, label: "Registrar" },
-  { href: "/plan", icon: CalendarDays, label: "Plano" },
-  { href: "/grocery", icon: ShoppingCart, label: "Compras" },
-  { href: "/profile", icon: User, label: "Perfil" },
-]
-
-const desktopNavItems = [
-  { href: "/dashboard", icon: Home, label: "Início" },
-  { href: "/log", icon: Camera, label: "Registrar Refeição" },
-  { href: "/plan", icon: CalendarDays, label: "Plano Alimentar" },
-  { href: "/grocery", icon: ShoppingCart, label: "Lista de Compras" },
-  { href: "/progress", icon: BarChart3, label: "Progresso" },
-  { href: "/health-data", icon: Activity, label: "Dados de Saúde" },
-  { href: "/profile", icon: User, label: "Perfil" },
-  { href: "/settings", icon: Settings, label: "Configurações" },
-]
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { TrialBanner } from "@/components/trial-banner"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const t = useTranslations('nav')
+
+  const mobileNavItems = [
+    { href: "/dashboard", icon: Home, label: t('dashboard') },
+    { href: "/log", icon: Camera, label: t('log') },
+    { href: "/plan", icon: CalendarDays, label: t('plan') },
+    { href: "/grocery", icon: ShoppingCart, label: t('grocery') },
+    { href: "/profile", icon: User, label: t('profile') },
+  ]
+
+  const desktopNavItems = [
+    { href: "/dashboard", icon: Home, label: t('dashboard') },
+    { href: "/log", icon: Camera, label: t('log') },
+    { href: "/plan", icon: CalendarDays, label: t('plan') },
+    { href: "/grocery", icon: ShoppingCart, label: t('grocery') },
+    { href: "/progress", icon: BarChart3, label: t('progress') },
+    { href: "/health-data", icon: Activity, label: t('insights') },
+    { href: "/profile", icon: User, label: t('profile') },
+    { href: "/settings", icon: Settings, label: t('settings') },
+  ]
 
   return (
     <div className="min-h-screen flex flex-col bg-[#faf8f4]">
@@ -42,36 +47,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 bg-[#faf8f4]/90 backdrop-blur-md border-b border-[#e4ddd4]/60 lg:hidden">
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2 group">
-            <div className="w-7 h-7 rounded-lg bg-[#1a3a2a] flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2 2 4.5c.5 2.5 0 4.5-1 6" />
-                <path d="M15.8 17a7 7 0 0 1-12.6-3" />
-              </svg>
-            </div>
-            <span className="font-serif text-lg italic text-[#1a3a2a]">Salus</span>
+            <Image src="/logo.png" alt="Salus Logo" width={120} height={32} className="h-7 w-auto object-contain mix-blend-multiply" />
           </Link>
-          <Link href="/settings" className="w-8 h-8 flex items-center justify-center rounded-xl text-[#1a3a2a]/40 hover:text-[#1a3a2a] hover:bg-[#1a3a2a]/5 transition-all">
-            <Settings className="h-4 w-4" />
-          </Link>
+          <div className="flex items-center gap-1">
+            <LanguageSwitcher />
+            <Link href="/settings" className="w-8 h-8 flex items-center justify-center rounded-xl text-[#1a3a2a]/60 hover:text-[#1a3a2a] hover:bg-[#1a3a2a]/5 transition-all">
+              <Settings className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </header>
 
       <div className="flex flex-1">
         {/* Desktop sidebar */}
         <aside className="hidden lg:flex flex-col w-64 border-r border-[#e4ddd4]/60 bg-[#faf8f4] sticky top-0 h-screen">
-          <div className="p-6 pb-8">
-            <Link href="/dashboard" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 rounded-xl bg-[#1a3a2a] flex items-center justify-center shadow-sm">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2 2 4.5c.5 2.5 0 4.5-1 6" />
-                  <path d="M15.8 17a7 7 0 0 1-12.6-3" />
-                </svg>
-              </div>
+          <div className="p-6 pb-8 flex items-start justify-between gap-2">
+            <Link href="/dashboard" className="flex flex-col gap-1 group">
+              <Image src="/logo.png" alt="Salus Logo" width={140} height={38} className="h-9 w-auto object-contain object-left mix-blend-multiply" />
               <div>
-                <span className="font-serif text-xl italic text-[#1a3a2a] leading-none">Salus</span>
-                <p className="text-[10px] font-medium tracking-widest uppercase text-[#1a3a2a]/30 mt-0.5">Nutrição de Precisão</p>
+                <p className="text-[10px] font-medium tracking-widest uppercase text-[#1a3a2a]/50 mt-1">{t('tagline')}</p>
               </div>
             </Link>
+            <LanguageSwitcher />
           </div>
 
           <nav className="flex-1 px-3 space-y-0.5">
@@ -98,10 +95,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="p-4 border-t border-[#e4ddd4]/60">
             <div className="rounded-2xl bg-[#1a3a2a]/[0.04] p-4 ring-1 ring-[#1a3a2a]/[0.06]">
-              <p className="text-xs font-semibold text-[#1a3a2a] mb-1">Upgrade para Pro</p>
-              <p className="text-[11px] text-[#1a3a2a]/50 leading-relaxed">Desbloqueie planos, lista de compras e insights avançados.</p>
+              <p className="text-xs font-semibold text-[#1a3a2a] mb-1">{t('upgradeTitle')}</p>
+              <p className="text-[11px] text-[#1a3a2a]/50 leading-relaxed">{t('upgradeBody')}</p>
               <Link href="/settings" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#c4614a] hover:underline">
-                Ver planos →
+                {t('viewPlans')}
               </Link>
             </div>
           </div>
@@ -109,7 +106,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Main content */}
         <main className="flex-1 w-full pb-24 lg:pb-8 min-h-screen bg-[#faf8f4]">
-          <div className="max-w-2xl mx-auto lg:max-w-5xl px-4 sm:px-6 py-6 lg:py-8">
+          <div className="max-w-2xl mx-auto lg:max-w-5xl px-4 sm:px-6 py-6 lg:py-8 space-y-4">
+            <TrialBanner />
             {children}
           </div>
         </main>
@@ -129,7 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all duration-200 relative",
                   isLog && "px-4",
-                  isActive ? "text-[#1a3a2a]" : "text-[#1a3a2a]/35 hover:text-[#1a3a2a]/60"
+                  isActive ? "text-[#1a3a2a]" : "text-[#1a3a2a]/60 hover:text-[#1a3a2a]/60"
                 )}
               >
                 {isLog ? (

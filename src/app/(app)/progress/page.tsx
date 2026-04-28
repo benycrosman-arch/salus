@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
 import { TrendingUp, Flame, Camera, Star, Target } from "lucide-react"
+import { BodyTracker } from "@/components/progress/body-tracker"
 
 const weeklyData = [
   { day: "Seg", score: 65 }, { day: "Ter", score: 70 }, { day: "Qua", score: 58 },
@@ -22,7 +23,7 @@ const victories = [
 
 const weekFocus = [
   "Adicionar mais proteína no café da manhã — sua média está em 12g (meta: 25g)",
-  "Reduzir o índice glicêmico do jantar — troque o arroz branco por integral",
+  "Reduzir o efeito do jantar no açúcar no sangue — troque o arroz branco por integral",
   "Experimente iogurte de kefir como lanche — vai bem no seu perfil intestinal",
 ]
 
@@ -33,6 +34,9 @@ export default function ProgressPage() {
         <h1 className="text-2xl font-bold text-foreground font-sans">Progresso</h1>
         <p className="text-sm text-muted-foreground font-body mt-1">Sua evolução nutricional ao longo do tempo</p>
       </div>
+
+      {/* Body composition tracker (real data) */}
+      <BodyTracker />
 
       {/* Stats summary */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

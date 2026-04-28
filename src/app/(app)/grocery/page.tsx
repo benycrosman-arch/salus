@@ -163,7 +163,7 @@ export default function GroceryPage() {
                 </div>
                 <h1 className="font-display text-4xl text-[#1a3a2a]">Grocery Cart</h1>
               </div>
-              <p className="text-[#1a3a2a]/40">The feature ZOE never built</p>
+              <p className="text-[#1a3a2a]/60">The feature ZOE never built</p>
             </div>
             <div className="flex flex-col gap-2 items-end">
               <Badge variant="outline" className="border-[#1a3a2a]/15 bg-[#1a3a2a]/5 text-[#1a3a2a]">
@@ -218,14 +218,14 @@ export default function GroceryPage() {
                         <div className="flex items-center gap-2">
                           <span
                             className={`font-medium text-sm ${
-                              item.checked ? "line-through text-[#1a3a2a]/30" : "text-[#1a3a2a]"
+                              item.checked ? "line-through text-[#1a3a2a]/50" : "text-[#1a3a2a]"
                             }`}
                           >
                             {item.name}
                           </span>
                           <span
                             className={`text-xs ${
-                              item.checked ? "text-[#1a3a2a]/20" : "text-[#1a3a2a]/35"
+                              item.checked ? "text-[#1a3a2a]/20" : "text-[#1a3a2a]/60"
                             }`}
                           >
                             ({item.quantity})

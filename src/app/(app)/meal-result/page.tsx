@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import {
   ArrowLeft, TrendingUp, TrendingDown, RefreshCw,
-  CheckCircle2, AlertCircle, ArrowRight, Save, X
+  CheckCircle2, AlertCircle, ArrowRight, Save, X, Loader2, Flag
 } from "lucide-react"
+import { toast } from "sonner"
+import { track } from "@/lib/posthog"
 
 // Score color helper
 function scoreColor(score: number) {
@@ -77,7 +79,7 @@ const mockResult = {
     ],
   },
   swaps: [
-    { from: "Arroz branco", to: "Quinoa ou arroz integral", delta: +8, reason: "Menor índice glicêmico e mais fibras" },
+    { from: "Arroz branco", to: "Quinoa ou arroz integral", delta: +8, reason: "Sobe menos o açúcar no sangue e tem mais fibras" },
     { from: "Óleo de girassol", to: "Azeite extra virgem", delta: +5, reason: "Mais antioxidantes e ômega-9" },
   ],
 }
@@ -85,7 +87,72 @@ const mockResult = {
 export default function MealResultPage() {
   const router = useRouter()
   const [foods, setFoods] = useState(mockResult.foods)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const { macros, analysis, swaps, score, delta } = mockResult
+
+  const handleSave = async () => {
+    if (saved) return
+    setSaving(true)
+    try {
+      const res = await fetch("/api/meals/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: foods,
+          totals: {
+            kcal: macros.calories,
+            protein: macros.protein_g,
+            carbs: macros.carbs_g,
+            fat: macros.fat_g,
+            fiber: macros.fiber_g,
+          },
+          meal_type: "other",
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Não foi possível salvar a refeição.")
+        return
+      }
+      setSaved(true)
+      track("meal_logged", { source: "photo", calories: macros.calories, score, items: foods.length })
+      toast.success("Refeição salva!")
+      setTimeout(() => router.push("/dashboard"), 800)
+    } catch (err) {
+      console.error(err)
+      toast.error("Erro ao salvar a refeição.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleAddNote = () => {
+    toast.info("Notas por refeição em breve.")
+  }
+
+  const handleReportAI = async () => {
+    const reason = window.prompt(
+      "O que está errado com esta análise?\n\n1 = Informação incorreta\n2 = Pode ser prejudicial\n3 = Enganosa\n4 = Ofensiva\n5 = Outro\n\nDigite o número:"
+    )
+    const map: Record<string, string> = {
+      "1": "incorrect", "2": "harmful", "3": "misleading", "4": "offensive", "5": "other",
+    }
+    const mapped = reason ? map[reason.trim()] : null
+    if (!mapped) return
+    const note = window.prompt("Quer adicionar um comentário? (opcional)") ?? ""
+    await fetch("/api/ai/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reason: mapped,
+        note,
+        context: { surface: "meal-result", content: JSON.stringify({ foods, score }) },
+      }),
+    })
+    track("ai_report_submitted", { reason: mapped, surface: "meal-result" })
+    toast.success("Obrigado. Vamos revisar essa análise.")
+  }
 
   const macroItems = [
     { label: "Proteína", value: macros.protein_g, unit: "g", max: 60, color: "bg-primary" },
@@ -211,13 +278,48 @@ export default function MealResultPage() {
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <Button className="flex-1 h-12 rounded-xl bg-primary font-semibold hover:bg-primary-hover transition-all gap-2">
-          <Save className="w-4 h-4" />
-          Salvar refeição
+        <Button
+          onClick={handleSave}
+          disabled={saving || saved}
+          className="flex-1 h-12 rounded-xl bg-primary font-semibold hover:bg-primary-hover transition-all gap-2"
+        >
+          {saving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : saved ? (
+            <>
+              <CheckCircle2 className="w-4 h-4" />
+              Salvo
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              Salvar refeição
+            </>
+          )}
         </Button>
-        <Button variant="outline" className="h-12 rounded-xl border-2 font-medium font-body px-5">
+        <Button
+          onClick={handleAddNote}
+          variant="outline"
+          className="h-12 rounded-xl border-2 font-medium font-body px-5"
+        >
           Adicionar nota
         </Button>
+      </div>
+
+      {/* AI + health disclaimer (required for App Store / Play Store health categories) */}
+      <div className="pt-3 text-center">
+        <p className="text-[11px] leading-relaxed text-muted-foreground font-body">
+          Análise gerada por IA — valores são estimativas. Não substitui aconselhamento médico ou
+          nutricional. Consulte um profissional de saúde antes de mudanças significativas na sua dieta.
+        </p>
+        <button
+          type="button"
+          onClick={handleReportAI}
+          className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-[#c4614a] transition-colors"
+        >
+          <Flag className="w-3 h-3" />
+          Reportar problema nesta análise
+        </button>
       </div>
     </div>
   )

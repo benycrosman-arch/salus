@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { toast } from "sonner"
 import {
   Leaf,
   User,
@@ -35,19 +36,29 @@ import {
   Heart,
   Moon,
   TrendingUp,
+  Loader2,
+  Stethoscope,
+  Users,
+  FileText,
 } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { callEdgeFunction } from "@/lib/ai-client"
 
 type Sex = "male" | "female" | "non-binary" | "prefer-not-to-say"
 type ActivityLevel = "sedentary" | "moderate" | "active" | "athlete"
 type DietType = "omnivore" | "vegetarian" | "vegan" | "pescatarian" | "keto" | "paleo"
+type Role = "user" | "nutricionista" | ""
 
 interface OnboardingData {
+  role: Role
+  nutriProtocol: string
   age: number | ""
   sex: Sex | ""
   height: number | ""
   weight: number | ""
   activityLevel: ActivityLevel | ""
   city: string
+  phone: string
   goals: string[]
   dietType: DietType | ""
   allergies: string[]
@@ -75,14 +86,17 @@ interface OnboardingData {
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(0)
   const [data, setData] = useState<OnboardingData>({
+    role: "",
+    nutriProtocol: "",
     age: "",
     sex: "",
     height: "",
     weight: "",
     activityLevel: "",
     city: "",
+    phone: "",
     goals: [],
     dietType: "",
     allergies: [],
@@ -99,9 +113,14 @@ export default function OnboardingPage() {
     },
   })
   const [showGutScore, setShowGutScore] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  const totalSteps = 5
-  const progress = (currentStep / totalSteps) * 100
+  // Step 0 = role picker (always)
+  // Nutri flow:    step 0 → step 1 (protocol) → save
+  // Client flow:   step 0 → steps 1..5 (existing) → save
+  const isNutri = data.role === "nutricionista"
+  const totalSteps = isNutri ? 1 : 5
+  const progress = currentStep === 0 ? 0 : (currentStep / totalSteps) * 100
 
   const getGutScore = () => {
     const { gutHealth } = data
@@ -117,20 +136,67 @@ export default function OnboardingPage() {
     if (score >= 80) return "Excelente — seu intestino está em ótima forma!"
     if (score >= 60) return "Bom — há espaço para melhorias"
     if (score >= 40) return "Regular — vamos trabalhar na sua saúde intestinal"
-    return "Precisa de atenção — vamos reconstruir seu microbioma"
+    return "Precisa de atenção — vamos reconstruir suas bactérias boas do intestino"
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1)
     } else {
-      setShowGutScore(true)
-      setTimeout(() => router.push("/dashboard"), 3000)
+      setSaving(true)
+      try {
+        const res = await fetch("/api/user/complete-onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        })
+        const payload = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          const msg = typeof payload?.error === "string" ? payload.error : "Não foi possível salvar. Tente novamente."
+          toast.error(msg)
+          return
+        }
+        if (isNutri) {
+          toast.success("Painel do nutricionista pronto.")
+          router.push("/nutri")
+          router.refresh()
+        } else {
+          // Fire-and-forget: trigger AI goal personalization in background.
+          // The user lands on /dashboard while Sonnet 4.6 generates goals (~10s).
+          // Dashboard polls or refreshes once it's ready.
+          void triggerPersonalizedGoals()
+          setShowGutScore(true)
+          setTimeout(() => {
+            router.push("/dashboard")
+            router.refresh()
+          }, 3000)
+        }
+      } catch {
+        toast.error("Erro de rede. Verifique sua conexão e tente novamente.")
+      } finally {
+        setSaving(false)
+      }
     }
   }
 
   const handleBack = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1)
+    if (currentStep > 0) setCurrentStep(currentStep - 1)
+  }
+
+  const pickRole = (role: Role) => {
+    setData((prev) => ({ ...prev, role }))
+    // Auto-advance after a tiny delay so the user sees the selection
+    setTimeout(() => setCurrentStep(1), 150)
+  }
+
+  const triggerPersonalizedGoals = async () => {
+    try {
+      // No await on outer caller — fire and forget. AbortController guards against hung sockets.
+      await callEdgeFunction("ai-personalize-goals", {})
+    } catch (err) {
+      // Silent — dashboard works fine with Mifflin-St Jeor fallback if AI didn't run
+      console.warn("personalize-goals failed silently:", err)
+    }
   }
 
   const toggleGoal = (goal: string) =>
@@ -148,6 +214,11 @@ export default function OnboardingPage() {
     }))
 
   const canProceed = () => {
+    if (currentStep === 0) return Boolean(data.role)
+    if (isNutri) {
+      // Nutri only has one step: protocol paragraph (min 60 chars)
+      return data.nutriProtocol.trim().length >= 60
+    }
     switch (currentStep) {
       case 1: return data.age && data.sex && data.height && data.weight && data.activityLevel
       case 2: return data.goals.length > 0
@@ -157,13 +228,9 @@ export default function OnboardingPage() {
     }
   }
 
-  const stepTitles = [
-    "Perfil",
-    "Objetivos",
-    "Alimentação",
-    "Exames",
-    "Saúde Intestinal",
-  ]
+  const stepTitles = isNutri
+    ? ["Protocolo"]
+    : ["Perfil", "Objetivos", "Alimentação", "Exames", "Saúde Intestinal"]
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 page-enter">
@@ -176,30 +243,138 @@ export default function OnboardingPage() {
             </div>
             <h1 className="text-2xl font-bold text-primary font-sans tracking-tight">Salus</h1>
           </div>
-          <p className="text-muted-foreground font-body">Vamos personalizar sua jornada nutricional</p>
+          <p className="text-muted-foreground font-body">
+            {currentStep === 0
+              ? "Como você vai usar o Salus?"
+              : isNutri
+                ? "Configure seu painel de atendimento"
+                : "Vamos personalizar sua jornada nutricional"}
+          </p>
         </div>
 
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">{stepTitles[currentStep - 1]}</span>
-            <span className="text-sm text-muted-foreground font-body">Passo {currentStep} de {totalSteps}</span>
+        {/* Progress (hidden on role-picker step) */}
+        {currentStep > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-foreground">{stepTitles[currentStep - 1]}</span>
+              <span className="text-sm text-muted-foreground font-body">Passo {currentStep} de {totalSteps}</span>
+            </div>
+            <Progress value={progress} className="h-1.5" />
+            <div className="flex justify-between mt-2">
+              {stepTitles.map((title, i) => (
+                <span key={i} className={`text-[10px] font-medium ${i + 1 <= currentStep ? "text-primary" : "text-muted-foreground/50"}`}>
+                  {title}
+                </span>
+              ))}
+            </div>
           </div>
-          <Progress value={progress} className="h-1.5" />
-          <div className="flex justify-between mt-2">
-            {stepTitles.map((title, i) => (
-              <span key={i} className={`text-[10px] font-medium ${i + 1 <= currentStep ? "text-primary" : "text-muted-foreground/50"}`}>
-                {title}
-              </span>
-            ))}
-          </div>
-        </div>
+        )}
 
         <Card className="shadow-md border-border">
           <CardContent className="pt-6">
 
+            {/* STEP 0 — Role picker */}
+            {currentStep === 0 && (
+              <div className="space-y-5 animate-in fade-in duration-300">
+                <div>
+                  <CardTitle className="text-2xl mb-1">Conta de cliente ou nutricionista?</CardTitle>
+                  <CardDescription className="font-body">
+                    Você pode mudar isso depois entrando em contato com o suporte.
+                  </CardDescription>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => pickRole("user")}
+                    className={`group flex items-start gap-4 rounded-2xl border-2 p-5 text-left transition-all ${
+                      data.role === "user"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40 hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <UserCircle className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-foreground">Sou cliente</div>
+                      <p className="text-sm text-muted-foreground font-body mt-0.5">
+                        Quero acompanhar minha nutrição, receber análises por foto e planos personalizados.
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => pickRole("nutricionista")}
+                    className={`group flex items-start gap-4 rounded-2xl border-2 p-5 text-left transition-all ${
+                      data.role === "nutricionista"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40 hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Stethoscope className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-foreground">Sou nutricionista</div>
+                      <p className="text-sm text-muted-foreground font-body mt-0.5">
+                        Atendo clientes e quero usar a Salus pra acompanhar refeições, exames e planos
+                        deles em um painel único.
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 1 (NUTRI) — Protocolo */}
+            {isNutri && currentStep === 1 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div>
+                  <CardTitle className="text-2xl mb-1 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    Seu protocolo de atendimento
+                  </CardTitle>
+                  <CardDescription className="font-body">
+                    Em 1 parágrafo, descreva como você atende seus clientes — abordagem, exames que pede,
+                    estilo de plano alimentar, frequência de check-in. Esse texto guia a IA da Salus
+                    quando ela responde por você no painel.
+                  </CardDescription>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="protocol">Protocolo</Label>
+                  <Textarea
+                    id="protocol"
+                    placeholder="Ex.: Trabalho com nutrição funcional focada em saúde intestinal e equilíbrio hormonal. Solicito exames bioquímicos completos no início e a cada 3 meses. Planos alimentares são baseados em alimentos integrais, com flexibilidade prática para o dia a dia. Faço check-in semanal por mensagem e consulta presencial mensal..."
+                    value={data.nutriProtocol}
+                    onChange={(e) => setData({ ...data, nutriProtocol: e.target.value.slice(0, 4000) })}
+                    rows={10}
+                    className="font-body resize-none"
+                  />
+                  <div className="flex items-center justify-between text-xs text-muted-foreground font-body">
+                    <span>{data.nutriProtocol.trim().length < 60
+                      ? `Mínimo 60 caracteres (${data.nutriProtocol.trim().length}/60)`
+                      : "✓ Suficiente"}
+                    </span>
+                    <span>{data.nutriProtocol.length}/4000</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-xl bg-muted/40 p-4">
+                  <Users className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-muted-foreground font-body leading-relaxed">
+                    <p className="font-semibold text-foreground mb-1">O que vem a seguir</p>
+                    Ao concluir, você cai no <b>painel do nutricionista</b>. Lá você convida clientes
+                    por e-mail, vê as refeições, exames e progresso de cada um, e usa a IA pra rascunhar
+                    planos alimentares baseados no seu protocolo.
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* STEP 1 — Perfil */}
-            {currentStep === 1 && (
+            {!isNutri && currentStep === 1 && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div>
                   <CardTitle className="text-2xl mb-1">Seu perfil</CardTitle>
@@ -216,6 +391,11 @@ export default function OnboardingPage() {
                     <Input id="city" type="text" placeholder="São Paulo" value={data.city}
                       onChange={(e) => setData({ ...data, city: e.target.value })} className="mt-1.5" />
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="phone">Celular (opcional)</Label>
+                  <Input id="phone" type="tel" placeholder="(11) 99999-9999" value={data.phone}
+                    onChange={(e) => setData({ ...data, phone: e.target.value })} className="mt-1.5" />
                 </div>
                 <div>
                   <Label className="mb-3 block">Sexo biológico</Label>
@@ -269,7 +449,7 @@ export default function OnboardingPage() {
             )}
 
             {/* STEP 2 — Objetivos */}
-            {currentStep === 2 && (
+            {!isNutri && currentStep === 2 && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div>
                   <CardTitle className="text-2xl mb-1">Seus objetivos</CardTitle>
@@ -281,7 +461,7 @@ export default function OnboardingPage() {
                     { value: "build-muscle", icon: Dumbbell, label: "Ganhar massa" },
                     { value: "more-energy", icon: Zap, label: "Mais energia" },
                     { value: "gut-health", icon: Activity, label: "Saúde intestinal" },
-                    { value: "blood-sugar", icon: Droplet, label: "Controle glicêmico" },
+                    { value: "blood-sugar", icon: Droplet, label: "Controle do açúcar no sangue" },
                     { value: "sleep", icon: Moon, label: "Melhorar o sono" },
                     { value: "longevity", icon: Clock, label: "Longevidade" },
                     { value: "performance", icon: TrendingUp, label: "Performance esportiva" },
@@ -304,7 +484,7 @@ export default function OnboardingPage() {
             )}
 
             {/* STEP 3 — Dieta */}
-            {currentStep === 3 && (
+            {!isNutri && currentStep === 3 && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div>
                   <CardTitle className="text-2xl mb-1">Alimentação</CardTitle>
@@ -352,7 +532,7 @@ export default function OnboardingPage() {
             )}
 
             {/* STEP 4 — Exames */}
-            {currentStep === 4 && (
+            {!isNutri && currentStep === 4 && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div>
                   <CardTitle className="text-2xl mb-1">Seus exames</CardTitle>
@@ -394,7 +574,7 @@ export default function OnboardingPage() {
             )}
 
             {/* STEP 5 — Saúde intestinal */}
-            {currentStep === 5 && (
+            {!isNutri && currentStep === 5 && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 {!showGutScore ? (
                   <>
@@ -461,13 +641,16 @@ export default function OnboardingPage() {
 
         {!showGutScore && (
           <div className="flex items-center justify-between mt-6">
-            <Button variant="ghost" onClick={handleBack} disabled={currentStep === 1} className="gap-2 font-body">
+            <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="gap-2 font-body">
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </Button>
-            <Button onClick={handleNext} disabled={!canProceed()} className="gap-2 min-w-32 font-semibold">
-              {currentStep === totalSteps ? "Concluir" : "Continuar"}
-              <ArrowRight className="w-4 h-4" />
+            <Button onClick={handleNext} disabled={!canProceed() || saving} className="gap-2 min-w-32 font-semibold">
+              {saving ? (
+                <><Loader2 className="w-4 h-4 animate-spin" />Salvando...</>
+              ) : (
+                <>{currentStep === totalSteps ? "Concluir" : "Continuar"}<ArrowRight className="w-4 h-4" /></>
+              )}
             </Button>
           </div>
         )}

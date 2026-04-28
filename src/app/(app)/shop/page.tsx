@@ -12,6 +12,7 @@ import {
   Calendar,
   Dna,
 } from "lucide-react";
+import { toast } from "sonner";
 
 // Mock product data
 const supplements = [
@@ -68,6 +69,12 @@ const starterKit = {
 };
 
 export default function ShopPage() {
+  const handleAddToCart = (name: string) => {
+    toast.success(`${name} adicionado ao carrinho (em breve: checkout completo).`)
+  }
+  const handleJoinWaitlist = () => {
+    toast.success("Você entrou na lista de espera. Avisaremos no lançamento.")
+  }
   return (
     <div className="page-enter min-h-screen bg-[#faf8f4] p-4 md:p-8">
       <div className="mx-auto max-w-6xl space-y-8">
@@ -129,7 +136,10 @@ export default function ShopPage() {
               </div>
 
               {/* Add to Cart Button */}
-              <Button className="w-full rounded-xl bg-[#1a3a2a] text-white shadow-md shadow-[#1a3a2a]/15 transition-all hover:bg-[#1a3a2a]/90 hover:shadow-lg">
+              <Button
+                onClick={() => handleAddToCart(product.name)}
+                className="w-full rounded-xl bg-[#1a3a2a] text-white shadow-md shadow-[#1a3a2a]/15 transition-all hover:bg-[#1a3a2a]/90 hover:shadow-lg"
+              >
                 <ShoppingCart className="mr-2 h-4 w-4" />
                 Add to Cart
               </Button>
@@ -206,19 +216,20 @@ export default function ShopPage() {
               <div className="flex flex-col gap-4 md:items-end md:justify-center">
                 <div className="rounded-3xl border-2 border-[#1a3a2a]/8 bg-white/90 p-8 shadow-lg backdrop-blur-sm">
                   <div className="mb-5 text-center">
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-[0.15em] text-[#1a3a2a]/40">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-[0.15em] text-[#1a3a2a]/60">
                       Early Access Pricing
                     </p>
                     <p className="font-display text-5xl text-[#1a3a2a]">
                       ${starterKit.price}
                     </p>
-                    <p className="mt-1 text-xs text-[#1a3a2a]/35">
+                    <p className="mt-1 text-xs text-[#1a3a2a]/60">
                       Regular price: $199
                     </p>
                   </div>
 
                   <Button
                     size="lg"
+                    onClick={handleJoinWaitlist}
                     className="group w-full rounded-xl bg-[#1a3a2a] py-6 text-lg font-semibold text-white shadow-lg shadow-[#1a3a2a]/20 transition-all hover:bg-[#1a3a2a]/90 hover:shadow-xl"
                   >
                     <Calendar className="mr-2 h-5 w-5" />
@@ -226,7 +237,7 @@ export default function ShopPage() {
                     <Sparkles className="ml-2 h-5 w-5 transition-transform group-hover:scale-110" />
                   </Button>
 
-                  <p className="mt-3 text-center text-xs text-[#1a3a2a]/35">
+                  <p className="mt-3 text-center text-xs text-[#1a3a2a]/60">
                     Be the first to know when we launch
                   </p>
                 </div>

@@ -50,6 +50,18 @@ export default function HealthDataPage() {
     toast.success("Exames salvos com sucesso!")
   }
 
+  const handleWaitlist = () => {
+    toast.success("Você entrou na lista de espera das integrações.")
+  }
+
+  const handleUploadPdf = () => {
+    toast.info("Upload de PDF de exame em breve.")
+  }
+
+  const handleAddSession = () => {
+    toast.info("Registro manual de sessões em breve.")
+  }
+
   return (
     <div className="page-enter space-y-6">
       <div>
@@ -109,7 +121,12 @@ export default function HealthDataPage() {
                 <p className="text-xs text-muted-foreground font-body mt-1 leading-relaxed">
                   Estamos construindo as integrações com Apple Health, WHOOP, Oura e Garmin. Entre na lista de espera para ser o primeiro a testar.
                 </p>
-                <Button size="sm" variant="outline" className="mt-3 rounded-xl text-xs border-primary/30 text-primary hover:bg-primary/5">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleWaitlist}
+                  className="mt-3 rounded-xl text-xs border-primary/30 text-primary hover:bg-primary/5"
+                >
                   <ExternalLink className="w-3 h-3 mr-1.5" />
                   Lista de espera
                 </Button>
@@ -121,7 +138,11 @@ export default function HealthDataPage() {
         {/* LABS TAB */}
         <TabsContent value="labs" className="mt-4 space-y-4">
           <div className="flex gap-3">
-            <Button variant="outline" className="rounded-xl border-2 border-dashed border-primary/30 text-primary text-sm font-medium hover:bg-primary/5 flex-1 h-11">
+            <Button
+              variant="outline"
+              onClick={handleUploadPdf}
+              className="rounded-xl border-2 border-dashed border-primary/30 text-primary text-sm font-medium hover:bg-primary/5 flex-1 h-11"
+            >
               <Upload className="w-4 h-4 mr-2" />
               Upload de PDF de exame
             </Button>
@@ -174,7 +195,7 @@ export default function HealthDataPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[
               { label: "VO₂ Máx", value: "—", unit: "mL/kg/min", icon: "🫁" },
-              { label: "FC em repouso", value: "—", unit: "bpm", icon: "❤️" },
+              { label: "Frequência cardíaca em repouso", value: "—", unit: "bpm", icon: "❤️" },
               { label: "Carga semanal", value: "—", unit: "min", icon: "⏱️" },
             ].map((metric, i) => (
               <Card key={i} className="border-0 shadow-md p-4 text-center">
@@ -189,12 +210,17 @@ export default function HealthDataPage() {
           <Card className="border-0 shadow-md p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-foreground">Sessões Recentes</h2>
-              <Button size="sm" variant="ghost" className="text-xs text-primary rounded-xl">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleAddSession}
+                className="text-xs text-primary rounded-xl"
+              >
                 <Plus className="w-3.5 h-3.5 mr-1" />Adicionar
               </Button>
             </div>
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Dumbbell className="w-10 h-10 text-muted-foreground/30 mb-3" />
+              <Dumbbell className="w-10 h-10 text-muted-foreground/50 mb-3" />
               <p className="text-sm font-medium text-muted-foreground">Nenhuma sessão registrada</p>
               <p className="text-xs text-muted-foreground/70 font-body mt-1">Conecte um wearable ou adicione manualmente</p>
             </div>

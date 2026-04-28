@@ -110,7 +110,7 @@ export default function LearnPage() {
                 >
                   {featuredArticle.tag}
                 </Badge>
-                <div className="flex items-center gap-1.5 text-sm text-[#1a3a2a]/40">
+                <div className="flex items-center gap-1.5 text-sm text-[#1a3a2a]/60">
                   <Clock className="size-4" />
                   <span>{featuredArticle.readTime}</span>
                 </div>
@@ -146,7 +146,7 @@ export default function LearnPage() {
                   >
                     {article.tag}
                   </Badge>
-                  <div className="flex items-center gap-1.5 text-xs text-[#1a3a2a]/35">
+                  <div className="flex items-center gap-1.5 text-xs text-[#1a3a2a]/60">
                     <Clock className="size-3.5" />
                     <span>{article.readTime}</span>
                   </div>
