@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
@@ -21,7 +21,6 @@ import {
   Dumbbell,
   Target,
   Zap,
-  Activity,
   Droplet,
   Clock,
   Apple,
@@ -43,6 +42,7 @@ import {
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { callEdgeFunction } from "@/lib/ai-client"
+import { createClient } from "@/lib/supabase/client"
 
 type Sex = "male" | "female" | "non-binary" | "prefer-not-to-say"
 type ActivityLevel = "sedentary" | "moderate" | "active" | "athlete"
@@ -72,21 +72,13 @@ interface OnboardingData {
     ferritin: number | ""
     b12: number | ""
   }
-  gutHealth: {
-    bowelRegularity: number
-    bloatingFrequency: number
-    energyAfterMeals: number
-    antibioticHistory: boolean
-    fermentedFoodConsumption: number
-    plantDiversity: number
-    digestiveComfort: number
-    stoolConsistency: number
-  }
 }
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const supabase = createClient()
   const [currentStep, setCurrentStep] = useState(0)
+  const [bootstrapping, setBootstrapping] = useState(true)
   const [data, setData] = useState<OnboardingData>({
     role: "",
     nutriProtocol: "",
@@ -101,43 +93,54 @@ export default function OnboardingPage() {
     dietType: "",
     allergies: [],
     labs: { glucose: "", hba1c: "", hdl: "", ldl: "", triglycerides: "", vitaminD: "", ferritin: "", b12: "" },
-    gutHealth: {
-      bowelRegularity: 3,
-      bloatingFrequency: 3,
-      energyAfterMeals: 3,
-      antibioticHistory: false,
-      fermentedFoodConsumption: 3,
-      plantDiversity: 3,
-      digestiveComfort: 3,
-      stoolConsistency: 3,
-    },
   })
-  const [showGutScore, setShowGutScore] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  // Step 0 = role picker (always)
+  // Recognise the existing account on mount: if onboarding is already done, skip
+  // straight to the destination. If the role is already set on the profile (from
+  // signup or a prior partial run), pre-fill it and skip the role-picker step.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.replace('/auth/login?next=/onboarding')
+          return
+        }
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, onboarding_completed')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (cancelled) return
+
+        if (profile?.onboarding_completed) {
+          router.replace(profile.role === 'nutricionista' ? '/nutri' : '/dashboard')
+          return
+        }
+
+        if (profile?.role === 'nutricionista') {
+          // They picked nutri at signup — jump straight to the protocol step.
+          setData((prev) => ({ ...prev, role: 'nutricionista' }))
+          setCurrentStep(1)
+        } else if (profile?.role === 'user') {
+          setData((prev) => ({ ...prev, role: 'user' }))
+          setCurrentStep(1)
+        }
+      } finally {
+        if (!cancelled) setBootstrapping(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [router, supabase])
+
+  // Step 0 = role picker (only when role isn't set on the profile yet)
   // Nutri flow:    step 0 → step 1 (protocol) → save
-  // Client flow:   step 0 → steps 1..5 (existing) → save
+  // Client flow:   step 0 → steps 1..4 (perfil → objetivos → alimentação → exames) → save
   const isNutri = data.role === "nutricionista"
-  const totalSteps = isNutri ? 1 : 5
+  const totalSteps = isNutri ? 1 : 4
   const progress = currentStep === 0 ? 0 : (currentStep / totalSteps) * 100
-
-  const getGutScore = () => {
-    const { gutHealth } = data
-    const antibioticValue = gutHealth.antibioticHistory ? 2 : 4
-    return Math.round(
-      ((gutHealth.bowelRegularity + gutHealth.bloatingFrequency + gutHealth.energyAfterMeals +
-        antibioticValue + gutHealth.fermentedFoodConsumption + gutHealth.plantDiversity +
-        gutHealth.digestiveComfort + gutHealth.stoolConsistency) / 40) * 100
-    )
-  }
-
-  const getGutDescription = (score: number) => {
-    if (score >= 80) return "Excelente — seu intestino está em ótima forma!"
-    if (score >= 60) return "Bom — há espaço para melhorias"
-    if (score >= 40) return "Regular — vamos trabalhar na sua saúde intestinal"
-    return "Precisa de atenção — vamos reconstruir suas bactérias boas do intestino"
-  }
 
   const handleNext = async () => {
     if (currentStep < totalSteps) {
@@ -165,11 +168,8 @@ export default function OnboardingPage() {
           // The user lands on /dashboard while Sonnet 4.6 generates goals (~10s).
           // Dashboard polls or refreshes once it's ready.
           void triggerPersonalizedGoals()
-          setShowGutScore(true)
-          setTimeout(() => {
-            router.push("/dashboard")
-            router.refresh()
-          }, 3000)
+          router.push("/dashboard")
+          router.refresh()
         }
       } catch {
         toast.error("Erro de rede. Verifique sua conexão e tente novamente.")
@@ -223,14 +223,22 @@ export default function OnboardingPage() {
       case 1: return data.age && data.sex && data.height && data.weight && data.activityLevel
       case 2: return data.goals.length > 0
       case 3: return data.dietType
-      case 4: case 5: return true
+      case 4: return true
       default: return false
     }
   }
 
   const stepTitles = isNutri
     ? ["Protocolo"]
-    : ["Perfil", "Objetivos", "Alimentação", "Exames", "Saúde Intestinal"]
+    : ["Perfil", "Objetivos", "Alimentação", "Exames"]
+
+  if (bootstrapping) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 page-enter">
@@ -460,7 +468,6 @@ export default function OnboardingPage() {
                     { value: "lose-weight", icon: Target, label: "Perder peso" },
                     { value: "build-muscle", icon: Dumbbell, label: "Ganhar massa" },
                     { value: "more-energy", icon: Zap, label: "Mais energia" },
-                    { value: "gut-health", icon: Activity, label: "Saúde intestinal" },
                     { value: "blood-sugar", icon: Droplet, label: "Controle do açúcar no sangue" },
                     { value: "sleep", icon: Moon, label: "Melhorar o sono" },
                     { value: "longevity", icon: Clock, label: "Longevidade" },
@@ -573,87 +580,22 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* STEP 5 — Saúde intestinal */}
-            {!isNutri && currentStep === 5 && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                {!showGutScore ? (
-                  <>
-                    <div>
-                      <CardTitle className="text-2xl mb-1">Saúde intestinal</CardTitle>
-                      <CardDescription className="font-body">Nos ajude a entender sua linha de base digestiva</CardDescription>
-                    </div>
-                    <div className="space-y-5">
-                      {[
-                        { key: "bowelRegularity", label: "Regularidade intestinal", min: "Irregular", max: "Diária" },
-                        { key: "bloatingFrequency", label: "Frequência de inchaço abdominal", min: "Diário", max: "Nunca" },
-                        { key: "energyAfterMeals", label: "Energia após as refeições", min: "Cansado", max: "Energizado" },
-                        { key: "fermentedFoodConsumption", label: "Consumo de alimentos fermentados", min: "Nunca", max: "Diário" },
-                        { key: "plantDiversity", label: "Diversidade de plantas por semana", min: "<5", max: ">30" },
-                        { key: "digestiveComfort", label: "Conforto digestivo geral", min: "Ruim", max: "Excelente" },
-                        { key: "stoolConsistency", label: "Consistência das fezes", min: "Irregular", max: "Ideal" },
-                      ].map(({ key, label, min, max }) => (
-                        <div key={key}>
-                          <Label className="mb-2 block text-sm font-body">{label}</Label>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-muted-foreground w-14 shrink-0 font-body">{min}</span>
-                            <input type="range" min="1" max="5"
-                              value={data.gutHealth[key as keyof typeof data.gutHealth] as number}
-                              onChange={(e) => setData({ ...data, gutHealth: { ...data.gutHealth, [key]: parseInt(e.target.value) } })}
-                              className="flex-1" />
-                            <span className="text-xs text-muted-foreground w-14 text-right shrink-0 font-body">{max}</span>
-                            <Badge variant="secondary" className="ml-1 w-8 justify-center text-xs">
-                              {data.gutHealth[key as keyof typeof data.gutHealth] as number}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                      <div>
-                        <Label className="mb-2 block text-sm font-body">Tomou antibióticos nos últimos 2 anos?</Label>
-                        <div className="grid grid-cols-2 gap-3">
-                          <Button type="button" variant={data.gutHealth.antibioticHistory ? "default" : "outline"}
-                            onClick={() => setData({ ...data, gutHealth: { ...data.gutHealth, antibioticHistory: true } })}>
-                            Sim
-                          </Button>
-                          <Button type="button" variant={!data.gutHealth.antibioticHistory ? "default" : "outline"}
-                            onClick={() => setData({ ...data, gutHealth: { ...data.gutHealth, antibioticHistory: false } })}>
-                            Não
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-8 animate-in fade-in duration-500">
-                    <div className="mb-6">
-                      <Activity className="w-16 h-16 text-primary mx-auto mb-4" />
-                      <CardTitle className="text-2xl mb-2">Sua Saúde Intestinal Inicial</CardTitle>
-                    </div>
-                    <div className="text-6xl font-bold text-primary mb-2 font-sans">{getGutScore()}</div>
-                    <div className="text-sm text-muted-foreground font-body">/100</div>
-                    <p className="text-base text-muted-foreground mt-3 font-body">{getGutDescription(getGutScore())}</p>
-                    <p className="text-sm text-muted-foreground mt-8 font-body">Redirecionando para o seu painel...</p>
-                  </div>
-                )}
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {!showGutScore && (
-          <div className="flex items-center justify-between mt-6">
-            <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="gap-2 font-body">
-              <ArrowLeft className="w-4 h-4" />
-              Voltar
-            </Button>
-            <Button onClick={handleNext} disabled={!canProceed() || saving} className="gap-2 min-w-32 font-semibold">
-              {saving ? (
-                <><Loader2 className="w-4 h-4 animate-spin" />Salvando...</>
-              ) : (
-                <>{currentStep === totalSteps ? "Concluir" : "Continuar"}<ArrowRight className="w-4 h-4" /></>
-              )}
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center justify-between mt-6">
+          <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="gap-2 font-body">
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
+          </Button>
+          <Button onClick={handleNext} disabled={!canProceed() || saving} className="gap-2 min-w-32 font-semibold">
+            {saving ? (
+              <><Loader2 className="w-4 h-4 animate-spin" />Salvando...</>
+            ) : (
+              <>{currentStep === totalSteps ? "Concluir" : "Continuar"}<ArrowRight className="w-4 h-4" /></>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   )

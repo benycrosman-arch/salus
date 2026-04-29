@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     role: roleInput,
     nutriProtocol,
     age, sex, height, weight, activityLevel, city, phone,
-    goals, dietType, allergies, labs, gutHealth,
+    goals, dietType, allergies, labs,
   } = body
 
   const role: 'user' | 'nutricionista' = roleInput === 'nutricionista' ? 'nutricionista' : 'user'
@@ -88,12 +88,6 @@ export async function POST(request: NextRequest) {
   }
 
   // ─── CLIENT BRANCH ───────────────────────────────────────
-  const gutScore = Math.round(
-    ((gutHealth.bowelRegularity + gutHealth.bloatingFrequency + gutHealth.energyAfterMeals +
-      (gutHealth.antibioticHistory ? 2 : 4) + gutHealth.fermentedFoodConsumption +
-      gutHealth.plantDiversity + gutHealth.digestiveComfort + gutHealth.stoolConsistency) / 40) * 100
-  )
-
   // Upsert so the row is created even if the signup trigger did not run (avoids silent no-op updates)
   const { error: profileError } = await supabase
     .from('profiles')
@@ -120,7 +114,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: profileError.message }, { status: 500 })
   }
 
-  // Upsert preferences
+  // Upsert preferences (gut health questionnaire removed from onboarding flow)
   const { error: prefError } = await supabase
     .from('user_preferences')
     .upsert({
@@ -128,8 +122,6 @@ export async function POST(request: NextRequest) {
       goals,
       diet_type: dietType,
       allergies,
-      gut_score: gutScore,
-      gut_questionnaire: gutHealth,
       updated_at: new Date().toISOString(),
     })
 
