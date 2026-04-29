@@ -673,10 +673,18 @@
     },
     "nutri": {
       "name": "Salus for Dietitians",
-      "price": "R$ 249",
-      "period": "/month",
-      "note": "Unlimited patients + clinical dashboard",
-      "tagline": "Invites · protocols · patient WhatsApp in one place"
+      "price": "Free",
+      "period": "earn commission",
+      "note": "Unlimited patients + dashboard + referral revenue",
+      "tagline": "Use it free with your patients. Earn 30% of what they pay, every month, for as long as they stay subscribed.",
+      "kicker": "For dietitians",
+      "headline": "Free for you. Commission on every patient.",
+      "bullet1": "Unlimited patients and dashboard",
+      "bullet2": "30% recurring per subscribed patient",
+      "bullet3": "Monthly payouts via Pix (coming soon)",
+      "bullet4": "Zero monthly fee",
+      "commissionLabel": "30% recurring",
+      "commissionNote": "R$ 8.70/mo per Essential patient · R$ 17.70/mo per Pro"
     },
     "badges": {
       "mostPopular": "Most popular",
@@ -692,8 +700,8 @@
       "bodyEssencial": "You’ve hit the monthly limit of {limit} analyses on Essential. Upgrade to Pro or wait until next month."
     },
     "nutriPatientAdded": {
-      "title": "Dietitian plan required",
-      "body": "To add patients, activate the Salus for Dietitians plan (R$ 249/month)."
+      "title": "Dietitian onboarding required",
+      "body": "To add patients, complete dietitian onboarding. It's free, and you earn commission on your patients’ subscriptions."
     },
     "appNote": "Subscriptions are processed via App Store or Google Play.",
     "ios": "iOS",

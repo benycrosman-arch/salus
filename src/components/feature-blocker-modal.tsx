@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Lock, Apple, Smartphone } from 'lucide-react'
+import { Lock, Apple, Smartphone, ArrowRight } from 'lucide-react'
 import { track } from '@/lib/posthog'
 import type { FeatureKey } from '@/lib/feature-quota'
 import type { Tier } from '@/lib/pro'
@@ -26,9 +27,12 @@ export function FeatureBlockerModal({ isOpen, featureKey, tier, used, limit }: F
   }, [isOpen, featureKey, tier, used, limit])
 
   // Decide which body copy + which target plan to upsell.
+  // Note: 'nutri_patient_added' takes a different path entirely — it's an
+  // onboarding-route, not a payment upsell, since the nutri plan is now free.
   let title = ''
   let body = ''
-  let upsellPlanKey: 'essencial' | 'pro' | 'nutri' = 'essencial'
+  let upsellPlanKey: 'essencial' | 'pro' = 'essencial'
+  const isNutriOnboarding = featureKey === 'nutri_patient_added'
 
   if (featureKey === 'meal_photo_analysis') {
     title = t('mealPhotoAnalysis.title')
@@ -42,13 +46,12 @@ export function FeatureBlockerModal({ isOpen, featureKey, tier, used, limit }: F
   } else {
     title = t('nutriPatientAdded.title')
     body = t('nutriPatientAdded.body')
-    upsellPlanKey = 'nutri'
   }
 
-  const planName = tp(`${upsellPlanKey}.name`)
-  const planPrice = tp(`${upsellPlanKey}.price`)
-  const planPeriod = tp(`${upsellPlanKey}.period`)
-  const planNote = tp(`${upsellPlanKey}.note`)
+  const planName = !isNutriOnboarding ? tp(`${upsellPlanKey}.name`) : ''
+  const planPrice = !isNutriOnboarding ? tp(`${upsellPlanKey}.price`) : ''
+  const planPeriod = !isNutriOnboarding ? tp(`${upsellPlanKey}.period`) : ''
+  const planNote = !isNutriOnboarding ? tp(`${upsellPlanKey}.note`) : ''
 
   return (
     <Dialog open={isOpen} onOpenChange={() => { /* non-dismissable */ }}>
@@ -69,47 +72,64 @@ export function FeatureBlockerModal({ isOpen, featureKey, tier, used, limit }: F
         </div>
 
         <div className="px-6 py-6 space-y-3 bg-white">
-          <div className="rounded-2xl border-2 border-[#4a7c4a] bg-[#4a7c4a]/5 px-5 py-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-widest text-[#4a7c4a]">{planName}</p>
-                <p className="text-xs text-[#1a3a2a]/60 mt-1 truncate">{planNote}</p>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="font-serif text-2xl italic text-[#1a3a2a]">{planPrice}</p>
-                <p className="text-[10px] text-[#1a3a2a]/50">{planPeriod}</p>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-center text-[11px] text-[#1a3a2a]/50">{t('appNote')}</p>
-
-          <div className="grid grid-cols-2 gap-2.5 pt-1">
+          {isNutriOnboarding ? (
             <Button
               asChild
-              className="h-12 rounded-2xl bg-[#1a3a2a] font-semibold text-white hover:bg-[#1a3a2a]/90"
+              className="w-full h-12 rounded-2xl bg-[#1a3a2a] font-semibold text-white hover:bg-[#1a3a2a]/90"
             >
-              <a
-                href="/#download"
-                onClick={() => track('feature_blocker_cta_clicked', { feature: featureKey, tier, plan: upsellPlanKey, platform: 'ios' })}
+              <Link
+                href="/onboarding-nutri"
+                onClick={() => track('feature_blocker_cta_clicked', { feature: featureKey, tier, route: 'onboarding-nutri' })}
               >
-                <Apple className="w-4 h-4 mr-2" />
-                {t('ios')}
-              </a>
+                {t('upgradeCta')}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
             </Button>
-            <Button
-              asChild
-              className="h-12 rounded-2xl bg-[#1a3a2a] font-semibold text-white hover:bg-[#1a3a2a]/90"
-            >
-              <a
-                href="/#download"
-                onClick={() => track('feature_blocker_cta_clicked', { feature: featureKey, tier, plan: upsellPlanKey, platform: 'android' })}
-              >
-                <Smartphone className="w-4 h-4 mr-2" />
-                {t('android')}
-              </a>
-            </Button>
-          </div>
+          ) : (
+            <>
+              <div className="rounded-2xl border-2 border-[#4a7c4a] bg-[#4a7c4a]/5 px-5 py-4">
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-[#4a7c4a]">{planName}</p>
+                    <p className="text-xs text-[#1a3a2a]/60 mt-1 truncate">{planNote}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-serif text-2xl italic text-[#1a3a2a]">{planPrice}</p>
+                    <p className="text-[10px] text-[#1a3a2a]/50">{planPeriod}</p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-center text-[11px] text-[#1a3a2a]/50">{t('appNote')}</p>
+
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <Button
+                  asChild
+                  className="h-12 rounded-2xl bg-[#1a3a2a] font-semibold text-white hover:bg-[#1a3a2a]/90"
+                >
+                  <a
+                    href="/#download"
+                    onClick={() => track('feature_blocker_cta_clicked', { feature: featureKey, tier, plan: upsellPlanKey, platform: 'ios' })}
+                  >
+                    <Apple className="w-4 h-4 mr-2" />
+                    {t('ios')}
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  className="h-12 rounded-2xl bg-[#1a3a2a] font-semibold text-white hover:bg-[#1a3a2a]/90"
+                >
+                  <a
+                    href="/#download"
+                    onClick={() => track('feature_blocker_cta_clicked', { feature: featureKey, tier, plan: upsellPlanKey, platform: 'android' })}
+                  >
+                    <Smartphone className="w-4 h-4 mr-2" />
+                    {t('android')}
+                  </a>
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

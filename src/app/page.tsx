@@ -726,26 +726,42 @@ export default function LandingPage() {
             </ScaleIn>
           </div>
 
-          {/* NUTRI ROW (B2B) */}
+          {/* NUTRI COMMISSION ROW — referral channel, not a paid plan */}
           <div className="mt-12 max-w-4xl mx-auto">
             <ScaleIn delay={0.32}>
               <div className="rounded-3xl bg-gradient-to-br from-[#1a3a2a] to-[#0f2519] p-8 sm:p-10 ring-1 ring-white/5 flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 <div className="flex-1">
                   <span className="inline-block rounded-full bg-[#c8a538]/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#c8a538] mb-3">
-                    {tp('badges.professional')}
+                    {tp('nutri.kicker')}
                   </span>
                   <h3 className="font-serif text-2xl sm:text-3xl italic text-white leading-tight">
-                    {tp('nutri.name')}
+                    {tp('nutri.headline')}
                   </h3>
-                  <p className="text-sm text-white/70 mt-2 max-w-md">{tp('nutri.tagline')}</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-baseline gap-1 justify-end">
-                    <span className="font-serif text-3xl italic text-white">{tp('nutri.price')}</span>
-                    <span className="text-white/50 text-sm">{tp('nutri.period')}</span>
+                  <p className="text-sm text-white/70 mt-2 max-w-lg">{tp('nutri.tagline')}</p>
+                  <div className="mt-4 grid grid-cols-2 gap-3 max-w-md text-xs text-white/60">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#c8a538]" />
+                      <span>{tp('nutri.bullet1')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#c8a538]" />
+                      <span>{tp('nutri.bullet2')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#c8a538]" />
+                      <span>{tp('nutri.bullet3')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#c8a538]" />
+                      <span>{tp('nutri.bullet4')}</span>
+                    </div>
                   </div>
+                </div>
+                <div className="text-left sm:text-right shrink-0">
+                  <p className="font-serif text-3xl sm:text-4xl italic text-[#c8a538]">{tp('nutri.commissionLabel')}</p>
+                  <p className="text-xs text-white/50 mt-1 max-w-[180px] sm:ml-auto">{tp('nutri.commissionNote')}</p>
                   <Link href="/onboarding-nutri">
-                    <Button className="mt-4 h-12 rounded-full bg-[#c8a538] font-semibold text-[#1a3a2a] hover:bg-[#c8a538]/90 px-6">
+                    <Button className="mt-5 h-12 rounded-full bg-[#c8a538] font-semibold text-[#1a3a2a] hover:bg-[#c8a538]/90 px-6">
                       {tPricing('nutri.cta')}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>

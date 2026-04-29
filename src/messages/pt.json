@@ -1028,10 +1028,18 @@
     },
     "nutri": {
       "name": "Salus para Nutricionistas",
-      "price": "R$ 249",
-      "period": "/mês",
-      "note": "Pacientes ilimitados + painel clínico",
-      "tagline": "Convites · protocolos · WhatsApp dos pacientes em um lugar"
+      "price": "Grátis",
+      "period": "ganhe comissão",
+      "note": "Pacientes ilimitados + painel + receita por indicação",
+      "tagline": "Use de graça com seus pacientes. Ganhe 30% do que eles pagam, todo mês, enquanto continuarem assinando.",
+      "kicker": "Para nutricionistas",
+      "headline": "Use de graça. Ganhe comissão dos seus pacientes.",
+      "bullet1": "Pacientes e painel ilimitados",
+      "bullet2": "30% recorrente por paciente assinante",
+      "bullet3": "Pagamento mensal via Pix (em breve)",
+      "bullet4": "Sem cobrança de mensalidade",
+      "commissionLabel": "30% recorrente",
+      "commissionNote": "R$ 8,70/mês por paciente Essencial · R$ 17,70/mês por Pro"
     },
     "badges": {
       "mostPopular": "Mais popular",
@@ -1047,8 +1055,8 @@
       "bodyEssencial": "Você atingiu o limite mensal de {limit} análises do Essencial. Faça upgrade para Pro ou aguarde o próximo mês."
     },
     "nutriPatientAdded": {
-      "title": "Plano de Nutricionista necessário",
-      "body": "Para adicionar pacientes, ative o plano Salus para Nutricionistas (R$ 249/mês)."
+      "title": "Cadastro de Nutricionista necessário",
+      "body": "Para adicionar pacientes, complete o cadastro como nutricionista. É grátis e você ganha comissão das assinaturas dos seus pacientes."
     },
     "appNote": "A assinatura é processada via App Store ou Google Play.",
     "ios": "iOS",

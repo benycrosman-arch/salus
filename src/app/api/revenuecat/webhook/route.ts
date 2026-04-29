@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { openCommission, closeCommission } from '@/lib/commissions'
 
 /**
  * RevenueCat webhook receiver.
@@ -102,5 +103,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
   }
 
-  return NextResponse.json({ received: true })
+  // Commission ledger: open a row when a sub activates, close when it ends.
+  // Failures here are logged but never fail the webhook (RC retries cause duplicates).
+  let commissionResult: { ok: boolean; reason?: string; closed?: number } = { ok: false, reason: 'not_attempted' }
+  try {
+    if (ACTIVE_EVENTS.has(event.type)) {
+      commissionResult = await openCommission({
+        supabase,
+        patientId: event.app_user_id,
+        productId: event.product_id,
+        sourceEvent: `rc:${event.type}`,
+      })
+    } else if (INACTIVE_EVENTS.has(event.type)) {
+      commissionResult = await closeCommission({ supabase, patientId: event.app_user_id })
+    }
+  } catch (err) {
+    console.error('RC webhook commission write error:', err)
+  }
+
+  return NextResponse.json({ received: true, commission: commissionResult })
 }
