@@ -144,15 +144,43 @@ export async function analyzeMealFromImage(
 
 // ───────────────────────────────────────────────────────────────────────────
 // Chatwoot attachment fetch — pulls image bytes server-side using the API token.
+//
+// The webhook payload's data_url is signed (HMAC-verified upstream), but as
+// defense-in-depth we still refuse to fetch any URL that isn't in the
+// configured Chatwoot host. This blocks SSRF if signature verification is
+// ever weakened or the secret leaks.
 // ───────────────────────────────────────────────────────────────────────────
 
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024 // 10 MB ceiling — Claude vision cap is well below this.
+
+function isAllowedAttachmentUrl(rawUrl: string): boolean {
+  try {
+    const u = new URL(rawUrl)
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return false
+    const baseUrl = process.env.CHATWOOT_BASE_URL
+    if (!baseUrl) {
+      // No base URL configured (mock / dev); refuse external fetches in prod.
+      return process.env.NODE_ENV !== 'production'
+    }
+    const base = new URL(baseUrl)
+    return u.host === base.host
+  } catch {
+    return false
+  }
+}
+
 export async function fetchChatwootImage(dataUrl: string): Promise<{ base64: string; mediaType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' } | null> {
+  if (!isAllowedAttachmentUrl(dataUrl)) {
+    console.warn('[whatsapp] refused attachment fetch — host not allowlisted', { url: dataUrl })
+    return null
+  }
   const apiToken = process.env.CHATWOOT_API_TOKEN
   const headers: Record<string, string> = apiToken ? { api_access_token: apiToken } : {}
   try {
     const res = await fetch(dataUrl, { headers, cache: 'no-store' })
     if (!res.ok) return null
     const contentType = res.headers.get('content-type') ?? 'image/jpeg'
+    if (!contentType.startsWith('image/')) return null
     const mediaType = ((): 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' => {
       if (contentType.includes('png')) return 'image/png'
       if (contentType.includes('webp')) return 'image/webp'
@@ -160,7 +188,7 @@ export async function fetchChatwootImage(dataUrl: string): Promise<{ base64: str
       return 'image/jpeg'
     })()
     const buf = Buffer.from(await res.arrayBuffer())
-    if (buf.length === 0) return null
+    if (buf.length === 0 || buf.length > MAX_IMAGE_BYTES) return null
     return { base64: buf.toString('base64'), mediaType }
   } catch {
     return null
