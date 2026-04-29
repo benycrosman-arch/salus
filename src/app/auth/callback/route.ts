@@ -122,7 +122,11 @@ export async function GET(request: NextRequest) {
     return ERR_REDIRECT(origin, 'no_auth_params', 'Sem code ou token_hash')
   }
 
-  // Ensure a profile row exists (safety net for cases where the signup trigger missed it)
+  // Ensure a profile row exists (safety net for cases where the signup trigger missed it).
+  // We also propagate role from metadata: signup form stores it in user_metadata.role
+  // so users hitting verification email links land on the right onboarding flow.
+  const metaRole = typeof userMeta?.role === 'string' ? userMeta.role : null
+  const desiredRole = metaRole === 'nutricionista' ? 'nutricionista' : 'user'
   await supabase.from('profiles').upsert(
     {
       id: userId,
@@ -131,13 +135,23 @@ export async function GET(request: NextRequest) {
         (typeof userMeta?.full_name === 'string' && userMeta.full_name) ||
         userEmail?.split('@')[0] ||
         '',
+      role: desiredRole,
     },
     { onConflict: 'id', ignoreDuplicates: true }
   )
+  // If profile already existed (e.g. trigger created it before metadata reached us),
+  // update role only if it's still the default and the user signed up as a nutri.
+  if (desiredRole === 'nutricionista') {
+    await supabase
+      .from('profiles')
+      .update({ role: 'nutricionista' })
+      .eq('id', userId)
+      .eq('role', 'user')
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('onboarding_completed, role')
+    .select('onboarding_completed, role, nutri_verification_status')
     .eq('id', userId)
     .single()
 
@@ -164,11 +178,17 @@ export async function GET(request: NextRequest) {
     cookieStore.set('salus_invite', '', { maxAge: 0, path: '/' })
   }
 
+  const isNutri = profile?.role === 'nutricionista'
+
   if (!profile?.onboarding_completed) {
-    return NextResponse.redirect(`${origin}/onboarding`)
+    return NextResponse.redirect(`${origin}${isNutri ? '/onboarding-nutri' : '/onboarding'}`)
   }
-  if (profile.role === 'nutricionista') {
-    return NextResponse.redirect(`${origin}/nutri`)
+  if (isNutri) {
+    const status = profile.nutri_verification_status
+    if (status === 'verified') {
+      return NextResponse.redirect(`${origin}/nutri`)
+    }
+    return NextResponse.redirect(`${origin}/nutri/aguardando-verificacao`)
   }
   return NextResponse.redirect(`${origin}${next}`)
 }

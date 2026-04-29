@@ -62,20 +62,42 @@ export async function middleware(request: NextRequest) {
     const onboardingDone = profile?.onboarding_completed === true
     const isNutri = profile?.role === 'nutricionista'
     const isNutriRoute = pathname === '/nutri' || pathname.startsWith('/nutri/')
+    const isNutriOnboardingRoute = pathname === '/onboarding-nutri' || pathname.startsWith('/onboarding-nutri/')
+    const isAnyOnboarding = isOnboardingRoute || isNutriOnboardingRoute
+
+    const nutriVerifyStatus = (profile as { nutri_verification_status?: string } | null | undefined)?.nutri_verification_status
+    const nutriVerified = nutriVerifyStatus === 'verified'
+    const nutriAwaiting = pathname === '/nutri/aguardando-verificacao'
 
     // Logged-in users hitting login/signup go to app (never skip onboarding)
     if (isAuthRoute) {
-      const destination = onboardingDone ? (isNutri ? '/nutri' : '/dashboard') : '/onboarding'
+      let destination: string
+      if (!onboardingDone) {
+        destination = isNutri ? '/onboarding-nutri' : '/onboarding'
+      } else if (isNutri) {
+        destination = nutriVerified ? '/nutri' : '/nutri/aguardando-verificacao'
+      } else {
+        destination = '/dashboard'
+      }
       return NextResponse.redirect(new URL(destination, request.url))
     }
 
-    if (isOnboardingRoute && onboardingDone) {
-      return NextResponse.redirect(new URL(isNutri ? '/nutri' : '/dashboard', request.url))
+    if (isAnyOnboarding && onboardingDone) {
+      const target = isNutri
+        ? (nutriVerified ? '/nutri' : '/nutri/aguardando-verificacao')
+        : '/dashboard'
+      return NextResponse.redirect(new URL(target, request.url))
     }
 
-    // Block the rest of the app until the onboarding quiz is completed and saved
-    if (!onboardingDone && !isPublicRoute && !isOnboardingRoute) {
-      return NextResponse.redirect(new URL('/onboarding', request.url))
+    // Block the rest of the app until the onboarding quiz is completed and saved.
+    // Pacientes vão para /onboarding; nutricionistas vão para /onboarding-nutri.
+    if (!onboardingDone && !isPublicRoute && !isAnyOnboarding) {
+      return NextResponse.redirect(new URL(isNutri ? '/onboarding-nutri' : '/onboarding', request.url))
+    }
+
+    // Nutri ainda não verificado só pode acessar a tela de aguardo + onboarding-nutri.
+    if (onboardingDone && isNutri && !nutriVerified && isNutriRoute && !nutriAwaiting) {
+      return NextResponse.redirect(new URL('/nutri/aguardando-verificacao', request.url))
     }
 
     // Role gate: nutricionistas don't belong on the patient app surface, and

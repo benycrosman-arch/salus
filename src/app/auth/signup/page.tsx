@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -8,13 +8,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
-import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Loader2, CheckCircle, User, Stethoscope, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { identify, track } from "@/lib/posthog"
 import { useTranslations } from "next-intl"
 import { LanguageSwitcher } from "@/components/language-switcher"
 
-export default function SignUpPage() {
+type Role = "user" | "nutricionista"
+
+function SignUpInner() {
   const router = useRouter()
   const params = useSearchParams()
   const supabase = createClient()
@@ -25,15 +27,28 @@ export default function SignUpPage() {
 
   const prefilledEmail = params.get('email') ?? ''
   const inviteToken = params.get('invite') ?? ''
+  const roleParam = params.get('role')
+  const role: Role | null = roleParam === 'user' || roleParam === 'nutricionista' ? roleParam : null
 
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState(prefilledEmail)
-  // Legacy `?invite=token` handoff from older links — drop the token in the
-  // same cookie /aceitar-convite uses so the auth callback can pick it up.
+  // Invited users (vindo de /aceitar-convite) são sempre pacientes — pula a tela de role.
+  useEffect(() => {
+    if (!role && (prefilledEmail || inviteToken)) {
+      const qs = new URLSearchParams()
+      qs.set('role', 'user')
+      if (prefilledEmail) qs.set('email', prefilledEmail)
+      if (inviteToken) qs.set('invite', inviteToken)
+      router.replace(`/auth/signup?${qs.toString()}`)
+    }
+  }, [role, prefilledEmail, inviteToken, router])
+
+  // Drop o invite token num cookie para o auth callback consumir.
   useEffect(() => {
     if (!inviteToken) return
     document.cookie = `salus_invite=${encodeURIComponent(inviteToken)}; path=/; max-age=${60 * 60 * 24}; samesite=lax`
   }, [inviteToken])
+
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState(prefilledEmail)
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -43,6 +58,13 @@ export default function SignUpPage() {
   const [acceptedAge, setAcceptedAge] = useState(false)
   const [resending, setResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+
+  // ─── Tela 1: seleção de papel ─────────────────────────────────────────────
+  if (!role) {
+    return <RolePicker />
+  }
+
+  const onboardingPath = role === 'nutricionista' ? '/onboarding-nutri' : '/onboarding'
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,32 +81,30 @@ export default function SignUpPage() {
       return
     }
     setLoading(true)
-    track("signup_started", { method: "password" })
+    track("signup_started", { method: "password", role })
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name },
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+          // role no user_metadata é lido pelo callback para preencher profiles.role
+          data: { name, role },
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(onboardingPath)}`,
         },
       })
       if (error) throw error
-      // If Supabase has email confirmation disabled, a session is returned immediately
       if (data.session && data.user) {
-        identify(data.user.id, { email: data.user.email })
-        track("signup_completed", { method: "password", needs_verification: false })
-        router.push('/onboarding')
+        identify(data.user.id, { email: data.user.email, role })
+        track("signup_completed", { method: "password", needs_verification: false, role })
+        router.push(onboardingPath)
         router.refresh()
       } else {
-        track("signup_completed", { method: "password", needs_verification: true })
+        track("signup_completed", { method: "password", needs_verification: true, role })
         setDone(true)
       }
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : t('errorGeneric')
       console.error("signUp error:", err)
-
-      // Friendly mapping for the most common failure modes
       let friendly = raw
       if (raw === "User already registered") {
         friendly = t('errorAlreadyRegistered')
@@ -101,7 +121,7 @@ export default function SignUpPage() {
     }
   }
 
-  const handleGoogleSignUp = async () => {
+  const oauthSignIn = async (provider: 'google' | 'apple', setBusy: (b: boolean) => void) => {
     if (!acceptedAge) {
       toast.error(t('ageRequired'))
       return
@@ -110,40 +130,19 @@ export default function SignUpPage() {
       toast.error(tErrors('notConfigured'))
       return
     }
-    setGoogleLoading(true)
+    setBusy(true)
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(onboardingPath)}&role=${role}`,
+        },
       })
       if (error) throw error
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : tOauth('googleError')
+      const message = err instanceof Error ? err.message : tOauth(provider === 'google' ? 'googleError' : 'appleError')
       toast.error(message)
-      setGoogleLoading(false)
-    }
-  }
-
-  const handleAppleSignUp = async () => {
-    if (!acceptedAge) {
-      toast.error(t('ageRequired'))
-      return
-    }
-    if (!isSupabaseConfigured()) {
-      toast.error(tErrors('notConfigured'))
-      return
-    }
-    setAppleLoading(true)
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "apple",
-        options: { redirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
-      })
-      if (error) throw error
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : tOauth('appleError')
-      toast.error(message)
-      setAppleLoading(false)
+      setBusy(false)
     }
   }
 
@@ -154,7 +153,7 @@ export default function SignUpPage() {
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(onboardingPath)}` },
       })
       if (error) {
         toast.error(error.message || t('resendError'))
@@ -218,12 +217,13 @@ export default function SignUpPage() {
     )
   }
 
+  // ─── Tela 2: formulário ──────────────────────────────────────────────────
   return (
     <div className="page-enter min-h-screen bg-[#faf8f4] flex items-center justify-center p-4">
       <div className="absolute top-4 right-4">
         <LanguageSwitcher />
       </div>
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-5">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-[#1a3a2a] flex items-center justify-center">
@@ -237,10 +237,21 @@ export default function SignUpPage() {
           <div className="text-center">
             <h1 className="font-serif text-3xl italic text-[#1a3a2a]">{t('heading')}</h1>
             <p className="mt-2 text-sm text-[#1a3a2a]/50">
-              {t('tagline')}
+              {role === 'nutricionista'
+                ? 'Conta de nutricionista — verificaremos seu CRN no próximo passo'
+                : t('tagline')}
             </p>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => router.push('/auth/signup')}
+          className="text-xs text-[#1a3a2a]/60 hover:text-[#1a3a2a] inline-flex items-center gap-1.5"
+        >
+          <ArrowLeft className="w-3 h-3" />
+          Trocar tipo de conta
+        </button>
 
         <div className="rounded-3xl bg-white ring-1 ring-black/[0.04] shadow-sm p-8 space-y-5">
           <form onSubmit={handleSignUp} className="space-y-4">
@@ -299,7 +310,7 @@ export default function SignUpPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-2.5">
-            <Button type="button" variant="outline" onClick={handleAppleSignUp} disabled={appleLoading}
+            <Button type="button" variant="outline" onClick={() => oauthSignIn('apple', setAppleLoading)} disabled={appleLoading}
               className="w-full h-12 rounded-full bg-black border-black text-white font-medium hover:bg-black/90">
               {appleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -310,7 +321,7 @@ export default function SignUpPage() {
               )}
               {tOauth('appleCta')}
             </Button>
-            <Button type="button" variant="outline" onClick={handleGoogleSignUp} disabled={googleLoading}
+            <Button type="button" variant="outline" onClick={() => oauthSignIn('google', setGoogleLoading)} disabled={googleLoading}
               className="w-full h-12 rounded-full border-[#e4ddd4] text-[#1a3a2a] font-medium hover:bg-[#1a3a2a]/5">
               {googleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -335,5 +346,85 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function RolePicker() {
+  return (
+    <div className="page-enter min-h-screen bg-[#faf8f4] flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+      <div className="w-full max-w-lg space-y-8">
+        <div className="flex flex-col items-center gap-5">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-[#1a3a2a] flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2 2 4.5c.5 2.5 0 4.5-1 6" />
+                <path d="M15.8 17a7 7 0 0 1-12.6-3" />
+              </svg>
+            </div>
+            <span className="font-serif text-2xl italic text-[#1a3a2a]">Salus</span>
+          </Link>
+          <div className="text-center">
+            <h1 className="font-serif text-3xl italic text-[#1a3a2a]">Como você vai usar o Salus?</h1>
+            <p className="mt-2 text-sm text-[#1a3a2a]/60 max-w-sm mx-auto">
+              Escolha o tipo de conta. Você poderá mudar depois entrando em contato com o suporte.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          <Link href="/auth/signup?role=user" className="group">
+            <div className="rounded-3xl bg-white ring-1 ring-black/[0.04] shadow-sm p-7 transition-all hover:ring-[#1a3a2a]/30 hover:shadow-md flex items-start gap-5">
+              <div className="w-12 h-12 rounded-2xl bg-[#1a3a2a]/8 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1a3a2a]/12 transition-colors">
+                <User className="w-6 h-6 text-[#1a3a2a]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-serif italic text-2xl text-[#1a3a2a]">Sou paciente</p>
+                <p className="text-sm text-[#1a3a2a]/60 mt-1.5 leading-relaxed">
+                  Quero registrar refeições, acompanhar metas baseadas em ciência e me conectar
+                  com meu nutricionista.
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/auth/signup?role=nutricionista" className="group">
+            <div className="rounded-3xl bg-white ring-1 ring-black/[0.04] shadow-sm p-7 transition-all hover:ring-[#c4614a]/30 hover:shadow-md flex items-start gap-5">
+              <div className="w-12 h-12 rounded-2xl bg-[#c4614a]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#c4614a]/15 transition-colors">
+                <Stethoscope className="w-6 h-6 text-[#c4614a]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-serif italic text-2xl text-[#1a3a2a]">Sou nutricionista</p>
+                <p className="text-sm text-[#1a3a2a]/60 mt-1.5 leading-relaxed">
+                  Acompanhe seus pacientes, defina seu protocolo e use a IA para reforçar suas
+                  recomendações. Verificamos seu CRN no próximo passo.
+                </p>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        <p className="text-center text-sm text-[#1a3a2a]/50">
+          Já tem conta?{" "}
+          <Link href="/auth/login" className="font-semibold text-[#1a3a2a] hover:underline">
+            Entrar
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#faf8f4] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-[#1a3a2a]" />
+      </div>
+    }>
+      <SignUpInner />
+    </Suspense>
   )
 }
