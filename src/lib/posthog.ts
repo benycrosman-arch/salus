@@ -45,6 +45,8 @@ export type SalusEvent =
   | "ai_report_submitted"
   | "paywall_viewed"
   | "paywall_cta_clicked"
+  | "feature_blocker_shown"
+  | "feature_blocker_cta_clicked"
   | "data_exported"
   | "account_deleted"
   | "nutri_invite_sent"

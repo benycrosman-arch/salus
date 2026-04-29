@@ -92,6 +92,8 @@ const testimonials = [
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const t = useTranslations('landing')
+  const tPricing = useTranslations('landing.plans')
+  const tp = useTranslations('pricing')
 
   return (
     <div className="grain-overlay min-h-screen bg-[#faf8f4] text-[#1a3a2a] overflow-hidden">
@@ -623,102 +625,132 @@ export default function LandingPage() {
       <section id="planos" className="relative py-24 sm:py-32 bg-[#f0ebe3]">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <FadeUp className="text-center mb-4">
-            <p className="text-xs font-semibold tracking-widest uppercase text-[#c4614a] mb-4">Planos</p>
+            <p className="text-xs font-semibold tracking-widest uppercase text-[#c4614a] mb-4">{tPricing('kicker')}</p>
             <h2 className="font-serif text-4xl sm:text-5xl italic leading-tight text-[#1a3a2a]">
-              Pague por uma cozinha,<br />não por um rastreador.
+              {tPricing('headline1')}<br />{tPricing('headline2')}
             </h2>
             <p className="mt-4 text-[#1a3a2a]/50 text-sm">{t('plans.subtitle')}</p>
           </FadeUp>
 
-          <div className="mt-14 mx-auto grid max-w-4xl gap-5 lg:grid-cols-2">
+          {/* Three consumer tiers */}
+          <div className="mt-14 mx-auto grid max-w-6xl gap-5 lg:grid-cols-3">
+            {/* FREE */}
             <ScaleIn delay={0.1}>
-              <div className="rounded-3xl bg-white p-10 ring-1 ring-black/[0.05] h-full">
-                <p className="text-xs font-semibold tracking-widest uppercase text-[#1a3a2a]/60 mb-1">Essencial</p>
-                <h3 className="font-serif text-3xl italic text-[#1a3a2a]">Grátis</h3>
-                <p className="text-sm text-[#1a3a2a]/50 mt-1">Para começar</p>
-                <div className="my-8 h-px bg-[#e4ddd4]" />
-                <ul className="space-y-3 mb-10">
-                  {[
-                    ["3 fotos por dia", true],
-                    ["Score nutricional básico", true],
-                    ["Detecção por IA", true],
-                    ["Planos personalizados", false],
-                    ["Lista de compras", false],
-                    ["Insights avançados", false],
-                  ].map(([text, active], j) => (
-                    <motion.li
-                      key={j}
-                      className="flex items-center gap-3"
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.3 + j * 0.06 }}
-                    >
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${active ? "bg-[#1a3a2a]" : "bg-[#e4ddd4]"}`}>
-                        <Check className={`w-3 h-3 ${active ? "text-white" : "text-[#e4ddd4]"}`} />
+              <div className="rounded-3xl bg-white p-8 ring-1 ring-black/[0.05] h-full flex flex-col">
+                <p className="text-xs font-semibold tracking-widest uppercase text-[#1a3a2a]/60 mb-1">{tp('free.name')}</p>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="font-serif text-3xl italic text-[#1a3a2a]">{tp('free.price')}</span>
+                  <span className="text-[#1a3a2a]/50 text-sm">{tp('free.period')}</span>
+                </div>
+                <p className="text-sm text-[#1a3a2a]/50 mt-1">{tp('free.note')}</p>
+                <div className="my-6 h-px bg-[#e4ddd4]" />
+                <ul className="space-y-3 mb-8 flex-1">
+                  {tPricing.raw('free.features').map((text: string, j: number) => (
+                    <li key={j} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#1a3a2a]">
+                        <Check className="w-3 h-3 text-white" />
                       </div>
-                      <span className={`text-sm ${active ? "text-[#1a3a2a]" : "text-[#1a3a2a]/50"}`}>{text as string}</span>
-                    </motion.li>
+                      <span className="text-sm text-[#1a3a2a]">{text}</span>
+                    </li>
                   ))}
                 </ul>
                 <Link href="/auth/signup">
-                  <Button variant="outline" className="w-full h-13 rounded-full border-2 border-[#1a3a2a]/20 font-semibold text-[#1a3a2a] hover:bg-[#1a3a2a]/5 py-4">
-                    {t('plans.freeCta')}
+                  <Button variant="outline" className="w-full h-12 rounded-full border-2 border-[#1a3a2a]/20 font-semibold text-[#1a3a2a] hover:bg-[#1a3a2a]/5">
+                    {tPricing('free.cta')}
                   </Button>
                 </Link>
               </div>
             </ScaleIn>
 
-            <ScaleIn delay={0.25}>
-              <div className="relative rounded-3xl bg-[#1a3a2a] p-10 h-full">
-                <motion.div
-                  className="absolute -top-3 left-1/2 -translate-x-1/2"
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <span className="rounded-full bg-[#c4614a] px-4 py-1 text-xs font-semibold text-white shadow-md">
-                    Mais popular
-                  </span>
-                </motion.div>
-                <p className="text-xs font-semibold tracking-widest uppercase text-white/60 mb-1">Pro</p>
+            {/* ESSENCIAL */}
+            <ScaleIn delay={0.18}>
+              <div className="relative rounded-3xl bg-white p-8 ring-1 ring-[#c4614a]/30 shadow-md h-full flex flex-col">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#c4614a] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                  {tp('badges.mostPopular')}
+                </span>
+                <p className="text-xs font-semibold tracking-widest uppercase text-[#c4614a] mb-1">{tp('essencial.name')}</p>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="font-serif text-3xl italic text-white">R$ 59</span>
-                  <span className="text-white/50 text-sm">/mês</span>
+                  <span className="font-serif text-3xl italic text-[#1a3a2a]">{tp('essencial.price')}</span>
+                  <span className="text-[#1a3a2a]/50 text-sm">{tp('essencial.period')}</span>
                 </div>
-                <p className="text-sm text-white/50 mt-1">Tudo que você precisa</p>
-                <div className="my-8 h-px bg-white/10" />
-                <ul className="space-y-3 mb-10">
-                  {[
-                    "Fotos ilimitadas",
-                    "Score nutricional avançado",
-                    "Detecção por IA",
-                    "Planos personalizados",
-                    "Lista de compras automática",
-                    "Insights e tendências",
-                  ].map((item, j) => (
-                    <motion.li
-                      key={j}
-                      className="flex items-center gap-3"
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.4 + j * 0.06 }}
-                    >
-                      <div className="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0">
+                <p className="text-sm text-[#1a3a2a]/60 mt-1">{tp('essencial.note')}</p>
+                <div className="my-6 h-px bg-[#e4ddd4]" />
+                <ul className="space-y-3 mb-8 flex-1">
+                  {tPricing.raw('essencial.features').map((text: string, j: number) => (
+                    <li key={j} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#c4614a]">
                         <Check className="w-3 h-3 text-white" />
                       </div>
-                      <span className="text-sm text-white/80">{item}</span>
-                    </motion.li>
+                      <span className="text-sm text-[#1a3a2a]">{text}</span>
+                    </li>
                   ))}
                 </ul>
                 <Link href="/auth/signup">
                   <MagneticHover>
-                    <Button className="w-full h-13 rounded-full bg-white font-semibold text-[#1a3a2a] hover:bg-white/90 transition-all py-4">
-                      {t('plans.proCta')}
+                    <Button className="w-full h-12 rounded-full bg-[#c4614a] font-semibold text-white hover:bg-[#c4614a]/90">
+                      {tPricing('essencial.cta')}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </MagneticHover>
                 </Link>
+              </div>
+            </ScaleIn>
+
+            {/* PRO */}
+            <ScaleIn delay={0.26}>
+              <div className="relative rounded-3xl bg-[#1a3a2a] p-8 h-full flex flex-col">
+                <p className="text-xs font-semibold tracking-widest uppercase text-white/60 mb-1">{tp('pro.name')}</p>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="font-serif text-3xl italic text-white">{tp('pro.price')}</span>
+                  <span className="text-white/50 text-sm">{tp('pro.period')}</span>
+                </div>
+                <p className="text-sm text-white/50 mt-1">{tp('pro.note')}</p>
+                <div className="my-6 h-px bg-white/10" />
+                <ul className="space-y-3 mb-8 flex-1">
+                  {tPricing.raw('pro.features').map((text: string, j: number) => (
+                    <li key={j} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-sm text-white/80">{text}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/signup">
+                  <Button variant="outline" className="w-full h-12 rounded-full border-2 border-white/20 bg-transparent font-semibold text-white hover:bg-white/10">
+                    {tPricing('pro.cta')}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </ScaleIn>
+          </div>
+
+          {/* NUTRI ROW (B2B) */}
+          <div className="mt-12 max-w-4xl mx-auto">
+            <ScaleIn delay={0.32}>
+              <div className="rounded-3xl bg-gradient-to-br from-[#1a3a2a] to-[#0f2519] p-8 sm:p-10 ring-1 ring-white/5 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                <div className="flex-1">
+                  <span className="inline-block rounded-full bg-[#c8a538]/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#c8a538] mb-3">
+                    {tp('badges.professional')}
+                  </span>
+                  <h3 className="font-serif text-2xl sm:text-3xl italic text-white leading-tight">
+                    {tp('nutri.name')}
+                  </h3>
+                  <p className="text-sm text-white/70 mt-2 max-w-md">{tp('nutri.tagline')}</p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-baseline gap-1 justify-end">
+                    <span className="font-serif text-3xl italic text-white">{tp('nutri.price')}</span>
+                    <span className="text-white/50 text-sm">{tp('nutri.period')}</span>
+                  </div>
+                  <Link href="/onboarding-nutri">
+                    <Button className="mt-4 h-12 rounded-full bg-[#c8a538] font-semibold text-[#1a3a2a] hover:bg-[#c8a538]/90 px-6">
+                      {tPricing('nutri.cta')}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </ScaleIn>
           </div>

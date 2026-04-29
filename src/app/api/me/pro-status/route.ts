@@ -23,7 +23,7 @@ export async function GET() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('created_at, plan, subscription_status, subscription_expires_at, role')
+    .select('created_at, plan, subscription_status, subscription_product_id, subscription_expires_at, role')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -31,6 +31,7 @@ export async function GET() {
   return NextResponse.json(
     {
       isPro: status.isPro,
+      tier: status.tier,
       source: status.source,
       trialActive: status.trialActive,
       trialEndsAt: status.trialEndsAt?.toISOString() ?? null,

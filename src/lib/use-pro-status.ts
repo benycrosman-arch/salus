@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import type { ProSource } from './pro'
+import type { ProSource, Tier } from './pro'
 
 export interface ProStatusClient {
   isPro: boolean
+  tier: Tier
   source: ProSource
   trialActive: boolean
   trialEndsAt: string | null
@@ -13,6 +14,7 @@ export interface ProStatusClient {
 
 const INITIAL: ProStatusClient = {
   isPro: false,
+  tier: 'free',
   source: 'none',
   trialActive: false,
   trialEndsAt: null,
@@ -30,6 +32,7 @@ export function useProStatus() {
       const data = await res.json()
       setStatus({
         isPro: !!data.isPro,
+        tier: (data.tier as Tier) ?? 'free',
         source: (data.source as ProSource) ?? 'none',
         trialActive: !!data.trialActive,
         trialEndsAt: data.trialEndsAt ?? null,

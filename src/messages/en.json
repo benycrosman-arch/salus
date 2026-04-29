@@ -227,6 +227,8 @@
     },
     "plans": {
       "kicker": "Pricing",
+      "headline1": "Pay for a kitchen,",
+      "headline2": "not a tracker.",
       "titleLine1": "Pay for a kitchen,",
       "titleLine2": "not a tracker.",
       "subtitle": "Sign up free. Pay only when the app earns it.",
@@ -240,7 +242,13 @@
         "f3": "AI food detection",
         "f4": "Personalized meal plans",
         "f5": "Grocery list",
-        "f6": "Advanced insights"
+        "f6": "Advanced insights",
+        "features": [
+          "3 photo analyses (lifetime)",
+          "Basic nutrition score",
+          "AI food detection"
+        ],
+        "cta": "Create free account"
       },
       "proBadge": "Most popular",
       "proKicker": "Pro",
@@ -254,7 +262,29 @@
         "f3": "AI food detection",
         "f4": "Personalized meal plans",
         "f5": "Automatic grocery list",
-        "f6": "Insights and trends"
+        "f6": "Insights and trends",
+        "features": [
+          "Unlimited analyses",
+          "Full nutrition score",
+          "Personalized meal plans",
+          "Automatic grocery list",
+          "Insights and trends",
+          "Priority support"
+        ],
+        "cta": "Subscribe to Pro"
+      },
+      "essencial": {
+        "features": [
+          "60 photo analyses per month",
+          "Full nutrition score",
+          "Personalized meal plans",
+          "Automatic grocery list",
+          "Insights and trends"
+        ],
+        "cta": "Start with Essential"
+      },
+      "nutri": {
+        "cta": "I'm a dietitian"
       }
     },
     "faqs": {
@@ -343,7 +373,11 @@
     "calories": "Calories: {kcal} kcal",
     "consumedToday": "Eaten today: {value} kcal ({pct}% of goal)",
     "consumedTodayG": "Eaten today: {value}g ({pct}% of goal)",
+    "consumedTodayMl": "Drunk today: {value} L ({pct}% of goal)",
     "proteinGoal": "Protein: {value}g",
+    "hydrationGoal": "Hydration: {value} L",
+    "hydrationNoData": "No fluid data yet today — log a glass below or connect a wearable",
+    "hydrationLogged": "Logged {value} ml",
     "personalizedPlan": "Personalized plan",
     "logNextMeal": "Log next meal"
   },
@@ -597,6 +631,82 @@
       "s1": "bag",
       "s2": "85%"
     }
+  },
+  "paywall": {
+    "srTitle": "Salus Pro — download the app",
+    "brand": "Salus",
+    "headline": "Smart nutrition",
+    "subline": "AI-guided analyses and plans at your pace",
+    "annualTitle": "Annual",
+    "annualPrice": "R$ 590/year",
+    "annualSubtitle": "Just R$ 49.17/month",
+    "annualBadge": "17% OFF",
+    "monthlyTitle": "Monthly",
+    "monthlyPrice": "R$ 59/month",
+    "appNote": "Subscriptions are managed in the iOS and Android apps",
+    "ios": "iOS",
+    "android": "Android",
+    "terms": "Terms",
+    "privacy": "Privacy"
+  },
+  "pricing": {
+    "free": {
+      "name": "Free",
+      "price": "R$ 0",
+      "period": "forever",
+      "note": "Try the app",
+      "tagline": "3 photo analyses · basic score · AI detection"
+    },
+    "essencial": {
+      "name": "Essential",
+      "price": "R$ 29",
+      "period": "/month",
+      "note": "Every feature, with monthly limits",
+      "tagline": "60 analyses/month · plans · grocery list · insights"
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "R$ 59",
+      "period": "/month",
+      "note": "Everything, unlimited",
+      "tagline": "Unlimited analyses and plans · priority support"
+    },
+    "nutri": {
+      "name": "Salus for Dietitians",
+      "price": "R$ 249",
+      "period": "/month",
+      "note": "Unlimited patients + clinical dashboard",
+      "tagline": "Invites · protocols · patient WhatsApp in one place"
+    },
+    "badges": {
+      "mostPopular": "Most popular",
+      "professional": "Professional",
+      "lifetime": "forever",
+      "perMonth": "/month"
+    }
+  },
+  "featureBlocker": {
+    "mealPhotoAnalysis": {
+      "title": "Limit reached",
+      "bodyFree": "You’ve used your {limit} free analyses. Upgrade to continue.",
+      "bodyEssencial": "You’ve hit the monthly limit of {limit} analyses on Essential. Upgrade to Pro or wait until next month."
+    },
+    "nutriPatientAdded": {
+      "title": "Dietitian plan required",
+      "body": "To add patients, activate the Salus for Dietitians plan (R$ 249/month)."
+    },
+    "appNote": "Subscriptions are processed via App Store or Google Play.",
+    "ios": "iOS",
+    "android": "Android",
+    "upgradeCta": "Upgrade"
+  },
+  "quota": {
+    "freeRemaining": "{remaining} of {limit} free analyses left",
+    "freeUsedAll": "You’ve used your {limit} free analyses",
+    "essencialRemaining": "{remaining} of {limit} analyses this month",
+    "essencialUsedAll": "Monthly limit reached",
+    "upgradeShort": "Subscribe to continue",
+    "lastOne": "Last analysis"
   }
 }
 

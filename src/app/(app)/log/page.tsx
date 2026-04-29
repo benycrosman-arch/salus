@@ -21,6 +21,9 @@ import { RestaurantMenuTab } from "@/components/log/restaurant-menu-tab"
 import { callEdgeFunction } from "@/lib/ai-client"
 import { useProStatus } from "@/lib/use-pro-status"
 import { PaywallModal } from "@/components/paywall-modal"
+import { FeatureBlockerModal } from "@/components/feature-blocker-modal"
+import { useFeatureQuota } from "@/lib/use-feature-quota"
+import { useTranslations } from "next-intl"
 
 // ─── Text mode ────────────────────────────────────────────────────────────────
 
@@ -467,7 +470,10 @@ function PhotoLogTab() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
+  const [blockerOpen, setBlockerOpen] = useState(false)
   const pro = useProStatus()
+  const quota = useFeatureQuota("meal_photo_analysis")
+  const tq = useTranslations("quota")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -481,7 +487,11 @@ function PhotoLogTab() {
 
   const analyzeMeal = async () => {
     if (!image) return
-    if (pro.loaded && !pro.isPro) {
+    if (quota.loaded && quota.blocked) {
+      setBlockerOpen(true)
+      return
+    }
+    if (pro.loaded && !pro.isPro && !quota.loaded) {
       setPaywallOpen(true)
       return
     }
@@ -497,6 +507,7 @@ function PhotoLogTab() {
       toast.error(err instanceof Error ? err.message : "Análise falhou")
     } finally {
       setAnalyzing(false)
+      void quota.refetch()
     }
   }
 
@@ -648,6 +659,26 @@ function PhotoLogTab() {
       )}
 
       {/* Results */}
+      {/* Quota indicator (gated tiers only — free + essencial) */}
+      {quota.loaded && !quota.isUnlimited && quota.limit > 0 && !result && !analyzing && (
+        <div className="flex items-center justify-between rounded-2xl bg-[#1a3a2a]/[0.04] px-4 py-2.5 text-xs">
+          <span className="font-medium text-[#1a3a2a]/70">
+            {quota.tier === 'essencial'
+              ? (quota.remaining > 0
+                ? tq('essencialRemaining', { remaining: quota.remaining, limit: quota.limit })
+                : tq('essencialUsedAll'))
+              : (quota.remaining > 0
+                ? tq('freeRemaining', { remaining: quota.remaining, limit: quota.limit })
+                : tq('freeUsedAll', { limit: quota.limit }))}
+          </span>
+          {quota.remaining <= 1 && (
+            <span className="font-semibold text-[#c4614a]">
+              {quota.remaining === 0 ? tq('upgradeShort') : tq('lastOne')}
+            </span>
+          )}
+        </div>
+      )}
+
       {result && (
         <div className="space-y-4 page-enter">
           {/* Score card */}
@@ -816,6 +847,13 @@ function PhotoLogTab() {
         </div>
       )}
       <PaywallModal isOpen={paywallOpen} onClose={() => setPaywallOpen(false)} />
+      <FeatureBlockerModal
+        isOpen={blockerOpen}
+        featureKey="meal_photo_analysis"
+        tier={quota.tier}
+        used={quota.used}
+        limit={quota.limit}
+      />
     </div>
   )
 }

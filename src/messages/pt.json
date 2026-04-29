@@ -126,9 +126,44 @@
       "primaryCta": "Criar conta"
     },
     "plans": {
+      "kicker": "Planos",
+      "headline1": "Pague por uma cozinha,",
+      "headline2": "não por um rastreador.",
       "subtitle": "Comece grátis. Pague quando o app provar valor.",
       "freeCta": "Criar conta",
-      "proCta": "Assinar Pro"
+      "proCta": "Assinar Pro",
+      "free": {
+        "features": [
+          "3 análises de foto (sempre)",
+          "Score nutricional básico",
+          "IA de detecção de alimentos"
+        ],
+        "cta": "Criar conta grátis"
+      },
+      "essencial": {
+        "features": [
+          "60 análises de foto por mês",
+          "Score nutricional completo",
+          "Planos personalizados",
+          "Lista de compras automática",
+          "Insights e tendências"
+        ],
+        "cta": "Começar com Essencial"
+      },
+      "pro": {
+        "features": [
+          "Análises ilimitadas",
+          "Score nutricional completo",
+          "Planos personalizados",
+          "Lista de compras automática",
+          "Insights e tendências",
+          "Suporte prioritário"
+        ],
+        "cta": "Assinar Pro"
+      },
+      "nutri": {
+        "cta": "Sou nutricionista"
+      }
     },
     "bottomCta": {
       "title": "Comece a comer com inteligência.",
@@ -187,7 +222,11 @@
     "calories": "Calorias: {kcal} kcal",
     "consumedToday": "Consumido hoje: {value} kcal ({pct}% da meta)",
     "consumedTodayG": "Consumido hoje: {value}g ({pct}% da meta)",
+    "consumedTodayMl": "Hidratação hoje: {value} L ({pct}% da meta)",
     "proteinGoal": "Proteína: {value}g",
+    "hydrationGoal": "Hidratação: {value} L",
+    "hydrationNoData": "Sem dados de hidratação hoje — registre um copo abaixo ou conecte um wearable",
+    "hydrationLogged": "Registrado: {value} ml",
     "personalizedPlan": "Plano personalizado",
     "logNextMeal": "Registrar próxima refeição"
   },
@@ -964,5 +1003,64 @@
     "android": "Android",
     "terms": "Termos",
     "privacy": "Privacidade"
+  },
+  "pricing": {
+    "free": {
+      "name": "Grátis",
+      "price": "R$ 0",
+      "period": "para sempre",
+      "note": "Para conhecer o app",
+      "tagline": "3 análises de foto · score básico · IA de detecção"
+    },
+    "essencial": {
+      "name": "Essencial",
+      "price": "R$ 29",
+      "period": "/mês",
+      "note": "Todas as funcionalidades, com limites mensais",
+      "tagline": "60 análises por mês · planos · lista de compras · insights"
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "R$ 59",
+      "period": "/mês",
+      "note": "Tudo ilimitado",
+      "tagline": "Análises e planos sem limite · suporte prioritário"
+    },
+    "nutri": {
+      "name": "Salus para Nutricionistas",
+      "price": "R$ 249",
+      "period": "/mês",
+      "note": "Pacientes ilimitados + painel clínico",
+      "tagline": "Convites · protocolos · WhatsApp dos pacientes em um lugar"
+    },
+    "badges": {
+      "mostPopular": "Mais popular",
+      "professional": "Profissional",
+      "lifetime": "para sempre",
+      "perMonth": "/mês"
+    }
+  },
+  "featureBlocker": {
+    "mealPhotoAnalysis": {
+      "title": "Limite atingido",
+      "bodyFree": "Você usou suas {limit} análises grátis. Faça upgrade para continuar.",
+      "bodyEssencial": "Você atingiu o limite mensal de {limit} análises do Essencial. Faça upgrade para Pro ou aguarde o próximo mês."
+    },
+    "nutriPatientAdded": {
+      "title": "Plano de Nutricionista necessário",
+      "body": "Para adicionar pacientes, ative o plano Salus para Nutricionistas (R$ 249/mês)."
+    },
+    "appNote": "A assinatura é processada via App Store ou Google Play.",
+    "ios": "iOS",
+    "android": "Android",
+    "upgradeCta": "Fazer upgrade"
+  },
+  "quota": {
+    "freeRemaining": "{remaining} de {limit} análises grátis restantes",
+    "freeUsedAll": "Você usou suas {limit} análises grátis",
+    "essencialRemaining": "{remaining} de {limit} análises este mês",
+    "essencialUsedAll": "Limite mensal atingido",
+    "upgradeShort": "Assine para continuar",
+    "lastOne": "Última análise"
   }
 }
