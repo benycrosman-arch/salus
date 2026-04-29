@@ -1031,15 +1031,16 @@
       "price": "Grátis",
       "period": "ganhe comissão",
       "note": "Pacientes ilimitados + painel + receita por indicação",
-      "tagline": "Use de graça com seus pacientes. Ganhe 30% do que eles pagam, todo mês, enquanto continuarem assinando.",
+      "tagline": "Use de graça com seus pacientes. A cada paciente que assina, sua comissão sobe — começa em 5% e chega a 12%.",
       "kicker": "Para nutricionistas",
-      "headline": "Use de graça. Ganhe comissão dos seus pacientes.",
+      "headline": "Quanto mais pacientes assinam, mais você ganha.",
       "bullet1": "Pacientes e painel ilimitados",
-      "bullet2": "30% recorrente por paciente assinante",
+      "bullet2": "Comissão escalonada de 5% a 12%",
       "bullet3": "Pagamento mensal via Pix (em breve)",
       "bullet4": "Sem cobrança de mensalidade",
-      "commissionLabel": "30% recorrente",
-      "commissionNote": "R$ 8,70/mês por paciente Essencial · R$ 17,70/mês por Pro"
+      "ladderTitle": "Tabela de comissão",
+      "ladderPatients": "{count} {count, plural, one {paciente} other {pacientes}}",
+      "ladderNote": "Aplicada sobre todos os pacientes ativos a cada mês. Sobe automaticamente conforme seu painel cresce."
     },
     "badges": {
       "mostPopular": "Mais popular",

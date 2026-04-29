@@ -676,15 +676,16 @@
       "price": "Free",
       "period": "earn commission",
       "note": "Unlimited patients + dashboard + referral revenue",
-      "tagline": "Use it free with your patients. Earn 30% of what they pay, every month, for as long as they stay subscribed.",
+      "tagline": "Use Salus free with your patients. Every new subscriber bumps your commission rate — starts at 5%, climbs to 12%.",
       "kicker": "For dietitians",
-      "headline": "Free for you. Commission on every patient.",
+      "headline": "The more patients subscribe, the more you earn.",
       "bullet1": "Unlimited patients and dashboard",
-      "bullet2": "30% recurring per subscribed patient",
+      "bullet2": "Tiered commission from 5% to 12%",
       "bullet3": "Monthly payouts via Pix (coming soon)",
       "bullet4": "Zero monthly fee",
-      "commissionLabel": "30% recurring",
-      "commissionNote": "R$ 8.70/mo per Essential patient · R$ 17.70/mo per Pro"
+      "ladderTitle": "Commission ladder",
+      "ladderPatients": "{count} {count, plural, one {patient} other {patients}}",
+      "ladderNote": "Applies to every active patient each month. Auto-bumps as your panel grows."
     },
     "badges": {
       "mostPopular": "Most popular",
