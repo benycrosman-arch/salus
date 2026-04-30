@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
+import { guardRequest } from "@/lib/api-guard"
 
 /** Google Places API Nearby Search (legacy JSON). Key must be server-only (GOOGLE_PLACES_API_KEY). */
 export async function POST(request: NextRequest) {
+  // Guard: require auth + per-user rate limit. Without this an attacker can
+  // burn the GOOGLE_PLACES_API_KEY quota (real money).
+  const guard = await guardRequest()
+  if (!guard.ok) return guard.response
+
   const key = process.env.GOOGLE_PLACES_API_KEY
   if (!key) {
     return NextResponse.json(
