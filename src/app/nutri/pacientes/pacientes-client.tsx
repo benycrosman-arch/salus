@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Loader2, Mail, Copy, Check, Users } from "lucide-react"
+import { Loader2, Mail, Copy, Check, Users, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { track } from "@/lib/posthog"
@@ -30,25 +30,42 @@ export function PacientesClient({
 }) {
   const router = useRouter()
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [sending, setSending] = useState(false)
+  const [sendingWa, setSendingWa] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
-  const sendInvite = async () => {
+  const sendInvite = async (channel: "email" | "whatsapp") => {
     if (!email.trim()) return
-    setSending(true)
+    if (channel === "whatsapp" && !phone.trim()) {
+      toast.error("Telefone obrigatório para enviar via WhatsApp.")
+      return
+    }
+    if (channel === "whatsapp") setSendingWa(true)
+    else setSending(true)
     try {
       const res = await fetch("/api/nutri/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email,
+          phone: channel === "whatsapp" ? phone : undefined,
+        }),
       })
       const body = await res.json()
       if (!res.ok) {
         toast.error(body.error || "Falha ao convidar")
         return
       }
-      track("nutri_invite_sent", { method: "email", delivered: !!body.emailSent })
-      if (body.emailSent) {
+      track("nutri_invite_sent", {
+        method: channel,
+        delivered: channel === "whatsapp" ? !!body.waMeUrl : !!body.emailSent,
+      })
+      if (channel === "whatsapp" && body.waMeUrl) {
+        // Open WhatsApp pre-filled with the message + invite link.
+        window.open(body.waMeUrl, "_blank", "noopener,noreferrer")
+        toast.success(`WhatsApp aberto para ${phone}. Confirme o envio.`)
+      } else if (body.emailSent) {
         toast.success(`Convite enviado para ${email}`)
       } else {
         toast.success(
@@ -56,11 +73,13 @@ export function PacientesClient({
         )
       }
       setEmail("")
+      setPhone("")
       router.refresh()
     } catch {
       toast.error("Erro de rede")
     } finally {
       setSending(false)
+      setSendingWa(false)
     }
   }
 
@@ -82,23 +101,67 @@ export function PacientesClient({
           <Mail className="w-4 h-4" />
           Convidar paciente
         </h2>
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Label htmlFor="invite-email" className="sr-only">E-mail</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <Label htmlFor="invite-email" className="text-xs text-[#1a3a2a]/70">E-mail</Label>
             <Input
               id="invite-email"
               type="email"
               placeholder="paciente@exemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="mt-1"
             />
           </div>
-          <Button onClick={sendInvite} disabled={sending || !email.trim()}>
-            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar convite"}
+          <div>
+            <Label htmlFor="invite-phone" className="text-xs text-[#1a3a2a]/70">
+              Celular <span className="text-[#1a3a2a]/40">(opcional, para WhatsApp)</span>
+            </Label>
+            <Input
+              id="invite-phone"
+              type="tel"
+              inputMode="tel"
+              placeholder="(11) 99999-9999"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="mt-1"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 mt-3">
+          <Button
+            onClick={() => sendInvite("whatsapp")}
+            disabled={sendingWa || sending || !email.trim() || !phone.trim()}
+            className="bg-[#25D366] hover:bg-[#20bf5a] text-white flex-1 sm:flex-initial"
+          >
+            {sendingWa ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Enviar via WhatsApp
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={() => sendInvite("email")}
+            disabled={sending || sendingWa || !email.trim()}
+            variant="outline"
+            className="flex-1 sm:flex-initial"
+          >
+            {sending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Mail className="w-4 h-4 mr-2" />
+                Enviar por e-mail
+              </>
+            )}
           </Button>
         </div>
-        <p className="text-xs text-[#1a3a2a]/50 mt-2 font-body">
-          Vamos gerar um link único. Você pode copiar e enviar por WhatsApp ou e-mail.
+        <p className="text-xs text-[#1a3a2a]/50 mt-3 font-body">
+          O WhatsApp abre com a mensagem pronta — basta confirmar o envio.
+          Sem celular, mandamos um e-mail (e você ainda pode copiar o link abaixo).
         </p>
       </Card>
 
