@@ -142,5 +142,14 @@ export async function POST(request: NextRequest) {
     last_logged_date: today,
   })
 
-  return NextResponse.json({ ok: true, meal_id: meal.id, score })
+  // is_first_meal lets the client fire `first_meal_logged` exactly once for
+  // analytics; computed cheaply with head:true since RLS already restricts to
+  // this user's rows.
+  const { count: totalMealsCount } = await supabase
+    .from('meals')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+  const isFirstMeal = (totalMealsCount ?? 0) <= 1
+
+  return NextResponse.json({ ok: true, meal_id: meal.id, score, is_first_meal: isFirstMeal })
 }

@@ -25,6 +25,7 @@ import { PaywallModal } from "@/components/paywall-modal"
 import { FeatureBlockerModal } from "@/components/feature-blocker-modal"
 import { useFeatureQuota } from "@/lib/use-feature-quota"
 import { useTranslations } from "next-intl"
+import { track } from "@/lib/posthog"
 
 // ─── Text mode ────────────────────────────────────────────────────────────────
 
@@ -313,6 +314,15 @@ function TextLogTab() {
       }
       const data = await res.json().catch(() => ({}))
       setSaved(true)
+      track("meal_logged", {
+        source: "text",
+        score: data?.score,
+        items: result.items.length,
+        kcal: result.totals.kcal,
+      })
+      if (data?.is_first_meal) {
+        track("first_meal_logged", { source: "text" })
+      }
       if (data?.meal_id) {
         router.push(`/meal-result?id=${data.meal_id}`)
       } else {
@@ -551,6 +561,15 @@ function PhotoLogTab() {
       }
       const data = await res.json().catch(() => ({}))
       setSaved(true)
+      track("meal_logged", {
+        source: "photo",
+        score: data?.score,
+        items: result.foods.length,
+        kcal: totals.kcal,
+      })
+      if (data?.is_first_meal) {
+        track("first_meal_logged", { source: "photo" })
+      }
       if (data?.meal_id) {
         router.push(`/meal-result?id=${data.meal_id}`)
       } else {

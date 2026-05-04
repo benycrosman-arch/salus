@@ -43,6 +43,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { callEdgeFunction } from "@/lib/ai-client"
 import { createClient } from "@/lib/supabase/client"
+import { track } from "@/lib/posthog"
 import { PdfExamUpload, type ParsedPdfResult, type ExtraLab } from "./pdf-exam-upload"
 
 type Sex = "male" | "female" | "non-binary" | "prefer-not-to-say"
@@ -204,6 +205,11 @@ export default function OnboardingPage() {
         if (draftKey) {
           try { window.localStorage.removeItem(draftKey) } catch {}
         }
+        track("onboarding_completed", {
+          role: isNutri ? "nutricionista" : "user",
+          uploaded_pdf: Boolean(data.labUploadId),
+          extra_labs: data.extraLabs.length,
+        })
         if (isNutri) {
           toast.success("Painel do nutricionista pronto.")
           router.push("/nutri")
