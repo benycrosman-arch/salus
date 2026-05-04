@@ -1,9 +1,11 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, Lightbulb, Activity, Sparkles } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { TrendingUp, Lightbulb, Activity, Sparkles, Camera, ArrowRight } from "lucide-react"
 import { InsightsCharts } from "./insights-client"
 
 async function getInsightsData() {
@@ -84,12 +86,38 @@ export default async function InsightsPage() {
 
   const hasData = totalMeals > 0
 
+  if (!hasData) {
+    return (
+      <div className="page-enter min-h-[60vh] flex items-center justify-center px-4 py-12">
+        <Card className="border-0 shadow-md max-w-md w-full p-8 text-center space-y-5 bg-white">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+            <Sparkles className="w-7 h-7 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="font-serif text-3xl italic text-[#1a3a2a]">Insights</h1>
+            <p className="text-sm text-[#1a3a2a]/60 font-body leading-relaxed">
+              Seus padrões e tendências aparecem aqui depois das primeiras refeições registradas.
+              Bora começar?
+            </p>
+          </div>
+          <Button asChild className="gap-2 rounded-xl">
+            <Link href="/log">
+              <Camera className="w-4 h-4" />
+              Registrar primeira refeição
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="page-enter space-y-8">
       <div>
         <h1 className="font-serif text-4xl italic text-[#1a3a2a]">Insights</h1>
         <p className="mt-1 text-sm text-[#1a3a2a]/50">
-          {hasData ? "Tendências da sua nutrição ao longo do tempo" : "Registre refeições para ver seus insights"}
+          Tendências da sua nutrição ao longo do tempo
         </p>
       </div>
 
