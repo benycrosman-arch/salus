@@ -17,7 +17,7 @@ interface TierQuota {
 export const FEATURE_QUOTAS: Record<FeatureKey, Record<Tier, TierQuota>> = {
   meal_photo_analysis: {
     free:      { limit: 3,  window: 'lifetime' },
-    essencial: { limit: 60, window: 'monthly'  },
+    essencial: { limit: 30, window: 'monthly'  },
     pro:       { limit: -1, window: 'monthly'  },
     nutri:     { limit: -1, window: 'monthly'  },
   },

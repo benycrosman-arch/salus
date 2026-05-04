@@ -144,7 +144,7 @@
       },
       "essencial": {
         "features": [
-          "60 análises de foto por mês",
+          "30 análises de foto por mês",
           "Score nutricional completo",
           "Planos personalizados",
           "Lista de compras automática",
@@ -1019,7 +1019,7 @@
       "price": "R$ 29",
       "period": "/mês",
       "note": "Todas as funcionalidades, com limites mensais",
-      "tagline": "60 análises por mês · planos · lista de compras · insights"
+      "tagline": "30 análises por mês · planos · lista de compras · insights"
     },
     "pro": {
       "name": "Pro",

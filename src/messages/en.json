@@ -277,7 +277,7 @@
       },
       "essencial": {
         "features": [
-          "60 photo analyses per month",
+          "30 photo analyses per month",
           "Full nutrition score",
           "Personalized meal plans",
           "Automatic grocery list",
@@ -664,7 +664,7 @@
       "price": "R$ 29",
       "period": "/month",
       "note": "Every feature, with monthly limits",
-      "tagline": "60 analyses/month · plans · grocery list · insights"
+      "tagline": "30 analyses/month · plans · grocery list · insights"
     },
     "pro": {
       "name": "Pro",
