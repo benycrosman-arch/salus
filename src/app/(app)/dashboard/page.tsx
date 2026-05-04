@@ -6,6 +6,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { getLocale, getTranslations } from "next-intl/server"
 import { DashboardCharts } from "./dashboard-client"
+import { DashboardEngagement } from "./dashboard-engagement"
 import { MicronutrientPanel } from "@/components/dashboard/micronutrient-panel"
 import { calculateGoals } from "@/lib/goals"
 import type { UserGoalProfile } from "@/lib/goals"
@@ -197,6 +198,14 @@ async function getDashboardData() {
   const greetingKey: 'morning' | 'afternoon' | 'evening' =
     hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
 
+  const profileComplete = Boolean(
+    profile?.age &&
+    profile?.biological_sex &&
+    profile?.height_cm &&
+    profile?.weight_kg &&
+    profile?.activity_level,
+  )
+
   return {
     firstName,
     greetingKey,
@@ -213,6 +222,10 @@ async function getDashboardData() {
     lastMeal,
     weeklyScores,
     mealsToday: todayMeals.length,
+    userId: user.id,
+    userCreatedAt: user.created_at ?? null,
+    aiGoalsGeneratedAt: profile?.ai_goals_generated_at ?? null,
+    profileComplete,
   }
 }
 
@@ -286,6 +299,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="page-enter space-y-8">
+      <DashboardEngagement
+        userId={data.userId}
+        userCreatedAt={data.userCreatedAt}
+        aiGoalsGeneratedAt={data.aiGoalsGeneratedAt}
+        profileComplete={data.profileComplete}
+      />
+
       {/* ── Header ─────────────────────────────────────── */}
       <div className="flex items-start justify-between">
         <div>
