@@ -101,6 +101,7 @@
   "nav": {
     "dashboard": "Home",
     "log": "Log meal",
+    "messages": "Messages",
     "insights": "Insights",
     "exams": "Lab tests",
     "plan": "Meal plan",

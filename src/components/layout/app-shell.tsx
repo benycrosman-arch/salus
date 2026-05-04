@@ -12,6 +12,7 @@ import {
   Sparkles,
   Settings,
   FlaskConical,
+  MessageCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -24,14 +25,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const mobileNavItems = [
     { href: "/dashboard", icon: Home, label: t('dashboard') },
     { href: "/log", icon: Camera, label: t('log') },
+    { href: "/mensagens", icon: MessageCircle, label: t('messages') },
     { href: "/insights", icon: Sparkles, label: t('insights') },
-    { href: "/health-data", icon: FlaskConical, label: t('exams') },
     { href: "/profile", icon: User, label: t('profile') },
   ]
 
   const desktopNavItems = [
     { href: "/dashboard", icon: Home, label: t('dashboard') },
     { href: "/log", icon: Camera, label: t('log') },
+    { href: "/mensagens", icon: MessageCircle, label: t('messages') },
     { href: "/insights", icon: Sparkles, label: t('insights') },
     { href: "/progress", icon: BarChart3, label: t('progress') },
     { href: "/health-data", icon: FlaskConical, label: t('exams') },
