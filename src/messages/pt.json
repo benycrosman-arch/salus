@@ -101,7 +101,8 @@
   "nav": {
     "dashboard": "Início",
     "log": "Registrar",
-    "insights": "Dados de Saúde",
+    "insights": "Insights",
+    "exams": "Exames",
     "plan": "Plano",
     "grocery": "Compras",
     "progress": "Progresso",

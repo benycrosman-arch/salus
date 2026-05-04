@@ -101,7 +101,8 @@
   "nav": {
     "dashboard": "Home",
     "log": "Log meal",
-    "insights": "Health data",
+    "insights": "Insights",
+    "exams": "Lab tests",
     "plan": "Meal plan",
     "grocery": "Grocery",
     "progress": "Progress",

@@ -7,12 +7,11 @@ import { useTranslations } from "next-intl"
 import {
   Home,
   Camera,
-  CalendarDays,
-  ShoppingCart,
   User,
   BarChart3,
-  Activity,
+  Sparkles,
   Settings,
+  FlaskConical,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -25,18 +24,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const mobileNavItems = [
     { href: "/dashboard", icon: Home, label: t('dashboard') },
     { href: "/log", icon: Camera, label: t('log') },
-    { href: "/plan", icon: CalendarDays, label: t('plan') },
-    { href: "/grocery", icon: ShoppingCart, label: t('grocery') },
+    { href: "/insights", icon: Sparkles, label: t('insights') },
+    { href: "/health-data", icon: FlaskConical, label: t('exams') },
     { href: "/profile", icon: User, label: t('profile') },
   ]
 
   const desktopNavItems = [
     { href: "/dashboard", icon: Home, label: t('dashboard') },
     { href: "/log", icon: Camera, label: t('log') },
-    { href: "/plan", icon: CalendarDays, label: t('plan') },
-    { href: "/grocery", icon: ShoppingCart, label: t('grocery') },
+    { href: "/insights", icon: Sparkles, label: t('insights') },
     { href: "/progress", icon: BarChart3, label: t('progress') },
-    { href: "/health-data", icon: Activity, label: t('insights') },
+    { href: "/health-data", icon: FlaskConical, label: t('exams') },
     { href: "/profile", icon: User, label: t('profile') },
     { href: "/settings", icon: Settings, label: t('settings') },
   ]
