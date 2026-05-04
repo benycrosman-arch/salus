@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     nutriProtocol,
     age, sex, height, weight, activityLevel, city, phone,
     goals, dietType, allergies, labs,
+    labUploadId, labMeasuredAt, extraLabs,
   } = body
 
   const role: 'user' | 'nutricionista' = roleInput === 'nutricionista' ? 'nutricionista' : 'user'
@@ -129,7 +130,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: prefError.message }, { status: 500 })
   }
 
-  // Insert lab results (only provided values)
+  // Insert lab results (only provided values).
+  // If a labUploadId is present the user uploaded a PDF — every row gets
+  // tagged with source='pdf_upload' and upload_id so the nutri can trace it
+  // back to the original file. Extras parsed from the PDF (TSH, etc.) are
+  // appended below.
   const labMarkers: { key: string; label: string; unit: string }[] = [
     { key: 'glucose', label: 'Glicose em jejum', unit: 'mg/dL' },
     { key: 'hba1c', label: 'HbA1c', unit: '%' },
@@ -141,16 +146,51 @@ export async function POST(request: NextRequest) {
     { key: 'b12', label: 'Vitamina B12', unit: 'pg/mL' },
   ]
 
-  const labRows = labMarkers
-    .filter(({ key }) => labs[key] !== '' && labs[key] != null)
+  const today = new Date().toISOString().split('T')[0]
+  const measuredAt =
+    typeof labMeasuredAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(labMeasuredAt)
+      ? labMeasuredAt
+      : today
+  const uploadId = typeof labUploadId === 'string' && labUploadId ? labUploadId : null
+  const source = uploadId ? 'pdf_upload' : 'manual'
+
+  const labRows: Array<Record<string, unknown>> = labMarkers
+    .filter(({ key }) => labs?.[key] !== '' && labs?.[key] != null)
     .map(({ key, label, unit }) => ({
       user_id: user.id,
       marker: label,
       value: labs[key],
       unit,
-      measured_at: new Date().toISOString().split('T')[0],
-      source: 'manual',
+      measured_at: measuredAt,
+      source,
+      upload_id: uploadId,
     }))
+
+  if (Array.isArray(extraLabs)) {
+    for (const row of extraLabs) {
+      if (!row || typeof row !== 'object') continue
+      const r = row as Record<string, unknown>
+      const marker = typeof r.marker === 'string' ? r.marker.trim().slice(0, 200) : ''
+      const value = typeof r.value === 'number' && Number.isFinite(r.value) ? r.value : null
+      const unit = typeof r.unit === 'string' ? r.unit.trim().slice(0, 32) : ''
+      if (!marker || value === null || !unit) continue
+      const refMin =
+        typeof r.reference_min === 'number' && Number.isFinite(r.reference_min) ? r.reference_min : null
+      const refMax =
+        typeof r.reference_max === 'number' && Number.isFinite(r.reference_max) ? r.reference_max : null
+      labRows.push({
+        user_id: user.id,
+        marker,
+        value,
+        unit,
+        reference_min: refMin,
+        reference_max: refMax,
+        measured_at: measuredAt,
+        source: 'pdf_upload',
+        upload_id: uploadId,
+      })
+    }
+  }
 
   if (labRows.length > 0) {
     const { error: labError } = await supabase.from('lab_results').insert(labRows)

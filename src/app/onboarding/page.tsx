@@ -43,6 +43,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { callEdgeFunction } from "@/lib/ai-client"
 import { createClient } from "@/lib/supabase/client"
+import { PdfExamUpload, type ParsedPdfResult, type ExtraLab } from "./pdf-exam-upload"
 
 type Sex = "male" | "female" | "non-binary" | "prefer-not-to-say"
 type ActivityLevel = "sedentary" | "moderate" | "active" | "athlete"
@@ -72,6 +73,9 @@ interface OnboardingData {
     ferritin: number | ""
     b12: number | ""
   }
+  labUploadId: string | null
+  labMeasuredAt: string | null
+  extraLabs: ExtraLab[]
 }
 
 export default function OnboardingPage() {
@@ -93,12 +97,18 @@ export default function OnboardingPage() {
     dietType: "",
     allergies: [],
     labs: { glucose: "", hba1c: "", hdl: "", ldl: "", triglycerides: "", vitaminD: "", ferritin: "", b12: "" },
+    labUploadId: null,
+    labMeasuredAt: null,
+    extraLabs: [],
   })
   const [saving, setSaving] = useState(false)
+  const [draftKey, setDraftKey] = useState<string | null>(null)
 
   // Recognise the existing account on mount: if onboarding is already done, skip
   // straight to the destination. If the role is already set on the profile (from
   // signup or a prior partial run), pre-fill it and skip the role-picker step.
+  // Also restore any in-progress draft from localStorage so a reload mid-quiz
+  // doesn't burn the user's answers.
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -120,13 +130,35 @@ export default function OnboardingPage() {
           return
         }
 
-        if (profile?.role === 'nutricionista') {
-          // They picked nutri at signup — jump straight to the protocol step.
-          setData((prev) => ({ ...prev, role: 'nutricionista' }))
-          setCurrentStep(1)
-        } else if (profile?.role === 'user') {
-          setData((prev) => ({ ...prev, role: 'user' }))
-          setCurrentStep(1)
+        const key = `salus_onboarding_draft_${user.id}`
+        setDraftKey(key)
+
+        let restored = false
+        try {
+          const raw = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null
+          if (raw) {
+            const parsed = JSON.parse(raw) as { data?: OnboardingData; step?: number }
+            if (parsed?.data && typeof parsed.data === 'object') {
+              setData((prev) => ({ ...prev, ...parsed.data! }))
+              if (typeof parsed.step === 'number' && parsed.step >= 0) {
+                setCurrentStep(parsed.step)
+              }
+              restored = true
+            }
+          }
+        } catch {
+          // Corrupted draft — drop it silently.
+          try { window.localStorage.removeItem(key) } catch {}
+        }
+
+        if (!restored) {
+          if (profile?.role === 'nutricionista') {
+            setData((prev) => ({ ...prev, role: 'nutricionista' }))
+            setCurrentStep(1)
+          } else if (profile?.role === 'user') {
+            setData((prev) => ({ ...prev, role: 'user' }))
+            setCurrentStep(1)
+          }
         }
       } finally {
         if (!cancelled) setBootstrapping(false)
@@ -134,6 +166,16 @@ export default function OnboardingPage() {
     })()
     return () => { cancelled = true }
   }, [router, supabase])
+
+  // Persist draft on every change while in progress.
+  useEffect(() => {
+    if (!draftKey || bootstrapping || saving) return
+    try {
+      window.localStorage.setItem(draftKey, JSON.stringify({ data, step: currentStep }))
+    } catch {
+      // localStorage full or disabled — silently skip.
+    }
+  }, [draftKey, data, currentStep, bootstrapping, saving])
 
   // Step 0 = role picker (only when role isn't set on the profile yet)
   // Nutri flow:    step 0 → step 1 (protocol) → save
@@ -158,6 +200,9 @@ export default function OnboardingPage() {
           const msg = typeof payload?.error === "string" ? payload.error : "Não foi possível salvar. Tente novamente."
           toast.error(msg)
           return
+        }
+        if (draftKey) {
+          try { window.localStorage.removeItem(draftKey) } catch {}
         }
         if (isNutri) {
           toast.success("Painel do nutricionista pronto.")
@@ -545,6 +590,36 @@ export default function OnboardingPage() {
                   <CardTitle className="text-2xl mb-1">Seus exames</CardTitle>
                   <CardDescription className="font-body">Opcional — seus resultados personalizam ainda mais o seu score</CardDescription>
                 </div>
+
+                <PdfExamUpload
+                  onParsed={(result: ParsedPdfResult) => {
+                    setData((prev) => ({
+                      ...prev,
+                      labs: {
+                        glucose: result.knownLabs.glucose ?? prev.labs.glucose,
+                        hba1c: result.knownLabs.hba1c ?? prev.labs.hba1c,
+                        hdl: result.knownLabs.hdl ?? prev.labs.hdl,
+                        ldl: result.knownLabs.ldl ?? prev.labs.ldl,
+                        triglycerides: result.knownLabs.triglycerides ?? prev.labs.triglycerides,
+                        vitaminD: result.knownLabs.vitaminD ?? prev.labs.vitaminD,
+                        ferritin: result.knownLabs.ferritin ?? prev.labs.ferritin,
+                        b12: result.knownLabs.b12 ?? prev.labs.b12,
+                      },
+                      labUploadId: result.uploadId,
+                      labMeasuredAt: result.measuredAt,
+                      extraLabs: result.extraLabs,
+                    }))
+                  }}
+                  onReset={() => {
+                    setData((prev) => ({
+                      ...prev,
+                      labUploadId: null,
+                      labMeasuredAt: null,
+                      extraLabs: [],
+                    }))
+                  }}
+                />
+
                 <div className="space-y-4">
                   {[
                     { key: "glucose", label: "Glicose em jejum (mg/dL)", tooltip: "Mede o açúcar no sangue em jejum" },
