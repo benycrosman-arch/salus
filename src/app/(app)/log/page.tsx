@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   Camera, Upload, Loader2, ArrowRight, Zap, Leaf, AlertTriangle,
   RotateCcw, ChevronRight, CheckCircle2, AlertCircle, HelpCircle,
@@ -228,6 +229,7 @@ async function detectNearbyRestaurant(lat: number, lon: number): Promise<string 
 }
 
 function TextLogTab() {
+  const router = useRouter()
   const [text, setText] = useState("")
   const [bias, setBias] = useState<CalorieBias>("balanced")
   const [parsing, setParsing] = useState(false)
@@ -306,17 +308,24 @@ function TextLogTab() {
         body: JSON.stringify({ items: result.items, totals: result.totals }),
       })
       if (!res.ok) {
-        const err = await res.json()
+        const err = await res.json().catch(() => ({}))
         throw new Error(err.error || "Falha ao salvar")
       }
+      const data = await res.json().catch(() => ({}))
       setSaved(true)
-      setTimeout(() => reset(), 2500)
+      if (data?.meal_id) {
+        router.push(`/meal-result?id=${data.meal_id}`)
+      } else {
+        setTimeout(() => reset(), 2500)
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar refeição")
+      const msg = err instanceof Error ? err.message : "Erro ao salvar refeição"
+      setError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
-  }, [result])
+  }, [result, router])
 
   const reset = () => {
     setText("")
@@ -463,6 +472,7 @@ function TextLogTab() {
 // ─── Photo mode (unchanged logic) ─────────────────────────────────────────────
 
 function PhotoLogTab() {
+  const router = useRouter()
   const [image, setImage] = useState<string | null>(null)
   const [photoText, setPhotoText] = useState("")
   const [analyzing, setAnalyzing] = useState(false)
@@ -522,19 +532,33 @@ function PhotoLogTab() {
         fat: result.totalMacros.fat,
         fiber: result.totalMacros.fiber
       }
+      const ai_analysis = {
+        feedback: result.feedback,
+        swapSuggestions: result.swapSuggestions ?? [],
+        glycemicImpact: result.glycemicImpact,
+        fiberDiversityCount: result.fiberDiversityCount,
+        processedFoodRatio: result.processedFoodRatio,
+        mealScore: result.mealScore,
+      }
       const res = await fetch("/api/meals/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: result.foods, totals }),
+        body: JSON.stringify({ items: result.foods, totals, ai_analysis }),
       })
       if (!res.ok) {
-        const err = await res.json()
+        const err = await res.json().catch(() => ({}))
         throw new Error(err.error || "Falha ao salvar")
       }
+      const data = await res.json().catch(() => ({}))
       setSaved(true)
-      setTimeout(() => resetLog(), 2500)
+      if (data?.meal_id) {
+        router.push(`/meal-result?id=${data.meal_id}`)
+      } else {
+        setTimeout(() => resetLog(), 2500)
+      }
     } catch (err) {
-      console.error("Save failed", err)
+      const msg = err instanceof Error ? err.message : "Não consegui salvar a refeição."
+      toast.error(msg)
     } finally {
       setSaving(false)
     }

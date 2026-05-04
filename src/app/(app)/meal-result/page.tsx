@@ -1,24 +1,24 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import {
   ArrowLeft, TrendingUp, TrendingDown, RefreshCw,
-  CheckCircle2, AlertCircle, ArrowRight, Save, X, Loader2, Flag
+  CheckCircle2, ArrowRight, Loader2, Flag, Camera,
 } from "lucide-react"
 import { toast } from "sonner"
 import { track } from "@/lib/posthog"
+import { createClient } from "@/lib/supabase/client"
 
-// Score color helper
 function scoreColor(score: number) {
-  if (score >= 90) return { stroke: "#4a6b4a", bg: "bg-score-excellent/10", text: "text-score-excellent", label: "Excelente" }
-  if (score >= 75) return { stroke: "#6b8e4e", bg: "bg-score-great/10", text: "text-score-great", label: "Ótimo" }
-  if (score >= 60) return { stroke: "#c8a538", bg: "bg-score-good/10", text: "text-score-good", label: "Bom" }
-  if (score >= 40) return { stroke: "#d97742", bg: "bg-score-warning/10", text: "text-score-warning", label: "Atenção" }
-  return { stroke: "#c0544d", bg: "bg-score-danger/10", text: "text-score-danger", label: "Evitar" }
+  if (score >= 90) return { stroke: "#4a6b4a", text: "text-score-excellent", label: "Excelente" }
+  if (score >= 75) return { stroke: "#6b8e4e", text: "text-score-great", label: "Ótimo" }
+  if (score >= 60) return { stroke: "#c8a538", text: "text-score-good", label: "Bom" }
+  if (score >= 40) return { stroke: "#d97742", text: "text-score-warning", label: "Atenção" }
+  return { stroke: "#c0544d", text: "text-score-danger", label: "Evitar" }
 }
 
 function AnimatedScoreCircle({ score, size = 160 }: { score: number; size?: number }) {
@@ -54,84 +54,106 @@ function AnimatedScoreCircle({ score, size = 160 }: { score: number; size?: numb
   )
 }
 
-// Mock result data — will come from API in production
-const mockResult = {
-  score: 84,
-  delta: +5,
-  foods: [
-    { name: "Salmão", quantity: "150g", confidence: 0.95 },
-    { name: "Quinoa", quantity: "80g", confidence: 0.92 },
-    { name: "Espinafre", quantity: "60g", confidence: 0.88 },
-    { name: "Azeite de oliva", quantity: "10ml", confidence: 0.85 },
-    { name: "Limão", quantity: "¼ unid.", confidence: 0.79 },
-  ],
-  macros: { protein_g: 42, carbs_g: 38, fat_g: 18, fiber_g: 6, calories: 478 },
-  analysis: {
-    positives: [
-      "Excelente fonte de ômega-3 com o salmão",
-      "Alta diversidade vegetal — espinafre + quinoa",
-      "Fibras acima da média da sua dieta",
-    ],
-    improvements: [
-      "Adicione mais variedade de vegetais coloridos",
-      "Considere incluir leguminosas para mais fibra",
-      "Sódio um pouco elevado — menos shoyu na próxima",
-    ],
-  },
-  swaps: [
-    { from: "Arroz branco", to: "Quinoa ou arroz integral", delta: +8, reason: "Sobe menos o açúcar no sangue e tem mais fibras" },
-    { from: "Óleo de girassol", to: "Azeite extra virgem", delta: +5, reason: "Mais antioxidantes e ômega-9" },
-  ],
+interface FoodItemView {
+  name: string
+  quantity?: string
+  quantity_g?: number
+}
+
+interface MealRow {
+  id: string
+  meal_type: string | null
+  logged_at: string
+  foods_detected: FoodItemView[] | null
+  macros: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number } | null
+  score: number
+  score_band: string | null
+  ai_analysis: {
+    feedback?: string
+    swapSuggestions?: string[]
+    positives?: string[]
+    improvements?: string[]
+    swaps?: Array<{ from: string; to: string; delta?: number; reason?: string }>
+  } | null
+}
+
+const MEAL_TYPE_LABEL: Record<string, string> = {
+  breakfast: "Café da manhã",
+  snack1: "Lanche da manhã",
+  lunch: "Almoço",
+  snack2: "Lanche da tarde",
+  dinner: "Jantar",
+  other: "Refeição",
+}
+
+function formatTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+  } catch {
+    return ""
+  }
+}
+
+function formatQuantity(item: FoodItemView): string {
+  if (item.quantity) return item.quantity
+  if (typeof item.quantity_g === "number" && item.quantity_g > 0) return `${Math.round(item.quantity_g)}g`
+  return ""
 }
 
 export default function MealResultPage() {
   const router = useRouter()
-  const [foods, setFoods] = useState(mockResult.foods)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const { macros, analysis, swaps, score, delta } = mockResult
+  const search = useSearchParams()
+  const supabase = createClient()
+  const mealId = search.get("id")
 
-  const handleSave = async () => {
-    if (saved) return
-    setSaving(true)
-    try {
-      const res = await fetch("/api/meals/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: foods,
-          totals: {
-            kcal: macros.calories,
-            protein: macros.protein_g,
-            carbs: macros.carbs_g,
-            fat: macros.fat_g,
-            fiber: macros.fiber_g,
-          },
-          meal_type: "other",
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error || "Não foi possível salvar a refeição.")
+  const [meal, setMeal] = useState<MealRow | null>(null)
+  const [delta, setDelta] = useState<number | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    if (!mealId) {
+      setError("Refeição não encontrada.")
+      setLoading(false)
+      return
+    }
+    ;(async () => {
+      const { data, error } = await supabase
+        .from("meals")
+        .select("id,meal_type,logged_at,foods_detected,macros,score,score_band,ai_analysis")
+        .eq("id", mealId)
+        .maybeSingle<MealRow>()
+
+      if (cancelled) return
+
+      if (error || !data) {
+        setError("Não conseguimos carregar essa refeição.")
+        setLoading(false)
         return
       }
-      setSaved(true)
-      track("meal_logged", { source: "photo", calories: macros.calories, score, items: foods.length })
-      toast.success("Refeição salva!")
-      setTimeout(() => router.push("/dashboard"), 800)
-    } catch (err) {
-      console.error(err)
-      toast.error("Erro ao salvar a refeição.")
-    } finally {
-      setSaving(false)
-    }
-  }
+      setMeal(data)
 
-  const handleAddNote = () => {
-    toast.info("Notas por refeição em breve.")
-  }
+      // Compare to user's avg score over last 14 days, excluding this meal.
+      const fourteenDaysAgo = new Date()
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+      const { data: history } = await supabase
+        .from("meals")
+        .select("score")
+        .gte("logged_at", fourteenDaysAgo.toISOString())
+        .neq("id", data.id)
+      if (cancelled) return
+      if (history && history.length > 0) {
+        const avg = history.reduce((acc, m) => acc + (m.score ?? 0), 0) / history.length
+        setDelta(Math.round(data.score - avg))
+      }
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [mealId, supabase])
 
   const handleReportAI = async () => {
+    if (!meal) return
     const reason = window.prompt(
       "O que está errado com esta análise?\n\n1 = Informação incorreta\n2 = Pode ser prejudicial\n3 = Enganosa\n4 = Ofensiva\n5 = Outro\n\nDigite o número:"
     )
@@ -141,68 +163,121 @@ export default function MealResultPage() {
     const mapped = reason ? map[reason.trim()] : null
     if (!mapped) return
     const note = window.prompt("Quer adicionar um comentário? (opcional)") ?? ""
-    await fetch("/api/ai/report", {
+    const res = await fetch("/api/ai/report", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         reason: mapped,
         note,
-        context: { surface: "meal-result", content: JSON.stringify({ foods, score }) },
+        context: { surface: "meal-result", meal_id: meal.id, score: meal.score },
       }),
     })
+    if (!res.ok) {
+      toast.error("Não consegui enviar seu reporte. Tenta de novo.")
+      return
+    }
     track("ai_report_submitted", { reason: mapped, surface: "meal-result" })
     toast.success("Obrigado. Vamos revisar essa análise.")
   }
 
+  if (loading) {
+    return (
+      <div className="page-enter flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error || !meal) {
+    return (
+      <div className="page-enter space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")} className="rounded-xl">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-foreground font-sans">Refeição</h1>
+        </div>
+        <Card className="border-0 shadow-md p-8 text-center space-y-4">
+          <p className="text-sm text-muted-foreground font-body">{error || "Refeição não encontrada."}</p>
+          <Button onClick={() => router.push("/log")} className="gap-2">
+            <Camera className="w-4 h-4" />
+            Registrar nova refeição
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+
+  const macros = meal.macros ?? {}
+  const calories = macros.calories ?? 0
+  const protein_g = macros.protein ?? 0
+  const carbs_g = macros.carbs ?? 0
+  const fat_g = macros.fat ?? 0
+  const fiber_g = macros.fiber ?? 0
+  const foods = meal.foods_detected ?? []
+  const a = meal.ai_analysis ?? {}
+  const feedback = typeof a.feedback === "string" ? a.feedback.trim() : ""
+  const positives = Array.isArray(a.positives) ? a.positives : []
+  const improvements = Array.isArray(a.improvements) ? a.improvements : []
+  // Tolerate either pre-structured swaps or the simpler swapSuggestions array
+  const swaps = Array.isArray(a.swaps)
+    ? a.swaps
+    : Array.isArray(a.swapSuggestions)
+      ? a.swapSuggestions.map((s) => ({ from: "", to: s, delta: undefined, reason: undefined }))
+      : []
+
   const macroItems = [
-    { label: "Proteína", value: macros.protein_g, unit: "g", max: 60, color: "bg-primary" },
-    { label: "Carboidratos", value: macros.carbs_g, unit: "g", max: 100, color: "bg-accent" },
-    { label: "Gordura", value: macros.fat_g, unit: "g", max: 60, color: "bg-warning" },
-    { label: "Fibras", value: macros.fiber_g, unit: "g", max: 25, color: "bg-success" },
+    { label: "Proteína", value: protein_g, unit: "g", max: 60, color: "bg-primary" },
+    { label: "Carboidratos", value: carbs_g, unit: "g", max: 100, color: "bg-accent" },
+    { label: "Gordura", value: fat_g, unit: "g", max: 60, color: "bg-warning" },
+    { label: "Fibras", value: fiber_g, unit: "g", max: 25, color: "bg-success" },
   ]
+
+  const mealTypeLabel = MEAL_TYPE_LABEL[meal.meal_type ?? "other"] ?? "Refeição"
 
   return (
     <div className="page-enter space-y-6 pb-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-xl">
+        <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")} className="rounded-xl">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-xl font-bold text-foreground font-sans">Resultado da Refeição</h1>
-          <p className="text-sm text-muted-foreground font-body">Hoje às 12:34</p>
+          <h1 className="text-xl font-bold text-foreground font-sans">{mealTypeLabel} salvo</h1>
+          <p className="text-sm text-muted-foreground font-body">Hoje às {formatTime(meal.logged_at)}</p>
         </div>
       </div>
 
       {/* Score + delta */}
       <Card className="border-0 shadow-md p-6 flex flex-col items-center gap-4">
-        <AnimatedScoreCircle score={score} size={160} />
-        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${delta >= 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-          {delta >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-          {delta >= 0 ? "+" : ""}{delta} vs. sua média
-        </div>
+        <AnimatedScoreCircle score={meal.score} size={160} />
+        {delta !== null && delta !== 0 && (
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${delta > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+            {delta > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+            {delta > 0 ? "+" : ""}{delta} vs. sua média
+          </div>
+        )}
         <div className="text-center">
-          <p className="text-sm font-semibold text-foreground">Bowl de Salmão e Quinoa</p>
-          <p className="text-xs text-muted-foreground font-body mt-0.5">{macros.calories} kcal</p>
+          <p className="text-xs text-muted-foreground font-body">{calories} kcal</p>
         </div>
       </Card>
 
       {/* Foods detected */}
-      <Card className="border-0 shadow-md p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Alimentos Detectados</h2>
-        <div className="flex flex-wrap gap-2">
-          {foods.map((food, i) => (
-            <div key={i} className="flex items-center gap-1.5 bg-muted rounded-full pl-3 pr-2 py-1.5">
-              <span className="text-sm font-medium text-foreground">{food.name}</span>
-              <span className="text-xs text-muted-foreground font-body">{food.quantity}</span>
-              <button onClick={() => setFoods(foods.filter((_, fi) => fi !== i))}
-                className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center hover:bg-destructive/20 hover:text-destructive transition-colors ml-1">
-                <X className="w-2.5 h-2.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </Card>
+      {foods.length > 0 && (
+        <Card className="border-0 shadow-md p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Alimentos</h2>
+          <div className="flex flex-wrap gap-2">
+            {foods.map((food, i) => (
+              <div key={i} className="flex items-center gap-1.5 bg-muted rounded-full pl-3 pr-3 py-1.5">
+                <span className="text-sm font-medium text-foreground">{food.name}</span>
+                {formatQuantity(food) && (
+                  <span className="text-xs text-muted-foreground font-body">{formatQuantity(food)}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Macros */}
       <Card className="border-0 shadow-md p-5 space-y-4">
@@ -221,92 +296,93 @@ export default function MealResultPage() {
         ))}
       </Card>
 
-      {/* Analysis */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Feedback (single-sentence) */}
+      {feedback && (
         <Card className="border-0 shadow-md p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <CheckCircle2 className="w-4 h-4 text-success" />
-            <h2 className="text-sm font-semibold text-foreground">Pontos positivos</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle2 className="w-4 h-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">Comentário</h2>
           </div>
-          <ul className="space-y-2">
-            {analysis.positives.map((p, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-success mt-2 shrink-0" />
-                <p className="text-sm text-muted-foreground font-body leading-relaxed">{p}</p>
-              </li>
-            ))}
-          </ul>
+          <p className="text-sm text-muted-foreground font-body leading-relaxed">{feedback}</p>
         </Card>
-        <Card className="border-0 shadow-md p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertCircle className="w-4 h-4 text-warning" />
-            <h2 className="text-sm font-semibold text-foreground">A melhorar</h2>
-          </div>
-          <ul className="space-y-2">
-            {analysis.improvements.map((imp, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-warning mt-2 shrink-0" />
-                <p className="text-sm text-muted-foreground font-body leading-relaxed">{imp}</p>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </div>
+      )}
+
+      {/* Pros / Cons (only if the analysis returned them) */}
+      {(positives.length > 0 || improvements.length > 0) && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {positives.length > 0 && (
+            <Card className="border-0 shadow-md p-5">
+              <h2 className="text-sm font-semibold text-foreground mb-3">Pontos positivos</h2>
+              <ul className="space-y-2">
+                {positives.map((p, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-success mt-2 shrink-0" />
+                    <p className="text-sm text-muted-foreground font-body leading-relaxed">{p}</p>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+          {improvements.length > 0 && (
+            <Card className="border-0 shadow-md p-5">
+              <h2 className="text-sm font-semibold text-foreground mb-3">A melhorar</h2>
+              <ul className="space-y-2">
+                {improvements.map((imp, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-warning mt-2 shrink-0" />
+                    <p className="text-sm text-muted-foreground font-body leading-relaxed">{imp}</p>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Swaps */}
-      <Card className="border-0 shadow-md p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <RefreshCw className="w-4 h-4 text-primary" />
-          <h2 className="text-sm font-semibold text-foreground">Trocas Sugeridas</h2>
-        </div>
-        <div className="space-y-3">
-          {swaps.map((swap, i) => (
-            <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/60">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-muted-foreground line-through font-body">{swap.from}</span>
-                  <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-sm font-semibold text-foreground font-body">{swap.to}</span>
-                  <Badge className="bg-success/10 text-success text-xs rounded-full border-0">+{swap.delta}</Badge>
+      {swaps.length > 0 && (
+        <Card className="border-0 shadow-md p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <RefreshCw className="w-4 h-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">Trocas sugeridas</h2>
+          </div>
+          <div className="space-y-3">
+            {swaps.map((swap, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/60">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {swap.from && (
+                      <>
+                        <span className="text-sm font-medium text-muted-foreground line-through font-body">{swap.from}</span>
+                        <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                      </>
+                    )}
+                    <span className="text-sm font-semibold text-foreground font-body">{swap.to}</span>
+                    {typeof swap.delta === "number" && swap.delta !== 0 && (
+                      <Badge className="bg-success/10 text-success text-xs rounded-full border-0">{swap.delta > 0 ? "+" : ""}{swap.delta}</Badge>
+                    )}
+                  </div>
+                  {swap.reason && <p className="text-xs text-muted-foreground mt-1 font-body">{swap.reason}</p>}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 font-body">{swap.reason}</p>
               </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <Button
-          onClick={handleSave}
-          disabled={saving || saved}
-          className="flex-1 h-12 rounded-xl bg-primary font-semibold hover:bg-primary-hover transition-all gap-2"
-        >
-          {saving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : saved ? (
-            <>
-              <CheckCircle2 className="w-4 h-4" />
-              Salvo
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              Salvar refeição
-            </>
-          )}
+        <Button onClick={() => router.push("/dashboard")} className="flex-1 h-12 rounded-xl bg-primary font-semibold hover:bg-primary-hover gap-2">
+          <CheckCircle2 className="w-4 h-4" />
+          Ir para o dashboard
         </Button>
-        <Button
-          onClick={handleAddNote}
-          variant="outline"
-          className="h-12 rounded-xl border-2 font-medium font-body px-5"
-        >
-          Adicionar nota
+        <Button onClick={() => router.push("/log")} variant="outline" className="h-12 rounded-xl border-2 font-medium font-body px-5 gap-2">
+          <Camera className="w-4 h-4" />
+          Outra refeição
         </Button>
       </div>
 
-      {/* AI + health disclaimer (required for App Store / Play Store health categories) */}
+      {/* AI + health disclaimer */}
       <div className="pt-3 text-center">
         <p className="text-[11px] leading-relaxed text-muted-foreground font-body">
           Análise gerada por IA — valores são estimativas. Não substitui aconselhamento médico ou

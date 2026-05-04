@@ -58,7 +58,14 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { items, totals, meal_type = 'other', photo_url = null, notes = null } = body
+  const {
+    items,
+    totals,
+    meal_type = 'other',
+    photo_url = null,
+    notes = null,
+    ai_analysis = null,
+  } = body
 
   const score = scoreMeal(totals.kcal, totals.protein, totals.fiber, totals.fat, totals.carbs)
   const band = scoreBand(score)
@@ -75,6 +82,7 @@ export async function POST(request: NextRequest) {
       macros: { calories: totals.kcal, protein: totals.protein, carbs: totals.carbs, fat: totals.fat, fiber: totals.fiber },
       score,
       score_band: band,
+      ai_analysis: ai_analysis && typeof ai_analysis === 'object' ? ai_analysis : null,
       user_notes: notes,
     })
     .select('id')
