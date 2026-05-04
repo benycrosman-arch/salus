@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 import { redirect } from "next/navigation"
 import { Card } from "@/components/ui/card"
+import { isAdminEmail } from "@/lib/admin"
 import {
   Clock,
   ShieldCheck,
@@ -30,6 +31,9 @@ export default async function AwaitingVerificationPage() {
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/auth/login")
+
+  // Admins skip the CRN gate entirely — straight to the nutri panel.
+  if (isAdminEmail(user.email)) redirect("/nutri")
 
   const { data: profile } = await supabase
     .from("profiles")

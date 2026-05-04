@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { isAdminEmail } from '@/lib/admin'
 
 const PUBLIC_ROUTES = ['/', '/auth/login', '/auth/signup', '/aceitar-convite']
 const AUTH_ROUTES = ['/auth/login', '/auth/signup']
@@ -60,13 +61,16 @@ export async function middleware(request: NextRequest) {
       .maybeSingle()
 
     const onboardingDone = profile?.onboarding_completed === true
+    const isAdmin = isAdminEmail(user.email)
     const isNutri = profile?.role === 'nutricionista'
     const isNutriRoute = pathname === '/nutri' || pathname.startsWith('/nutri/')
     const isNutriOnboardingRoute = pathname === '/onboarding-nutri' || pathname.startsWith('/onboarding-nutri/')
     const isAnyOnboarding = isOnboardingRoute || isNutriOnboardingRoute
 
     const nutriVerifyStatus = (profile as { nutri_verification_status?: string } | null | undefined)?.nutri_verification_status
-    const nutriVerified = nutriVerifyStatus === 'verified'
+    // Admins skip the CRN-credential gate so the founder/team can preview the
+    // nutri dashboard without submitting registration paperwork.
+    const nutriVerified = isAdmin || nutriVerifyStatus === 'verified'
     const nutriAwaiting = pathname === '/nutri/aguardando-verificacao'
 
     // Logged-in users hitting login/signup go to app (never skip onboarding)
@@ -103,7 +107,8 @@ export async function middleware(request: NextRequest) {
     // Role gate: nutricionistas don't belong on the patient app surface, and
     // patients don't belong on the nutri panel. Shared routes (settings, profile,
     // auth, public) fall through.
-    if (onboardingDone) {
+    // Admins bypass both directions so they can preview either dashboard.
+    if (onboardingDone && !isAdmin) {
       const PATIENT_ONLY = ['/dashboard', '/log', '/plan', '/grocery', '/progress', '/health-data', '/insights', '/meal-result', '/mensagens']
       const onPatientArea = PATIENT_ONLY.some((p) => pathname === p || pathname.startsWith(p + '/'))
       if (isNutri && onPatientArea) {

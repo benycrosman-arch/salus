@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { isAdminEmail } from '@/lib/admin'
 
 type EmailOtpType = 'signup' | 'email' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
 
@@ -185,7 +186,7 @@ export async function GET(request: NextRequest) {
   }
   if (isNutri) {
     const status = profile.nutri_verification_status
-    if (status === 'verified') {
+    if (status === 'verified' || isAdminEmail(userEmail)) {
       return NextResponse.redirect(`${origin}/nutri`)
     }
     return NextResponse.redirect(`${origin}/nutri/aguardando-verificacao`)
