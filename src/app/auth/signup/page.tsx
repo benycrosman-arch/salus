@@ -59,7 +59,9 @@ function SignUpInner() {
     return <RolePicker />
   }
 
-  const onboardingPath = role === 'nutricionista' ? '/onboarding-nutri' : '/onboarding'
+  // Nutri pula onboarding intermediário e vai direto pro painel. Paciente
+  // continua passando pelo quiz inicial de /onboarding.
+  const onboardingPath = role === 'nutricionista' ? '/nutri' : '/onboarding'
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,15 +93,18 @@ function SignUpInner() {
       if (data.session && data.user) {
         identify(data.user.id, { email: data.user.email, role })
         track("signup_completed", { method: "password", needs_verification: false, role })
-        // Propagate role to profiles immediately. Without this, a nutri whose
-        // signup doesn't require email confirmation lands on /onboarding-nutri
-        // with role='user' (the trigger default), and the middleware can route
-        // them to the wrong onboarding flow. /auth/callback does this too, but
-        // it never runs on this path.
+        // Nutri: marca role + onboarding_completed imediatamente, então o
+        // middleware nunca redireciona para /onboarding-nutri (que foi
+        // removido do fluxo). /auth/callback faz o mesmo, mas não roda
+        // quando o signup já devolve sessão (sem confirmação de e-mail).
         if (role === "nutricionista") {
           await supabase
             .from("profiles")
-            .update({ role: "nutricionista" })
+            .update({
+              role: "nutricionista",
+              onboarding_completed: true,
+              onboarding_completed_at: new Date().toISOString(),
+            })
             .eq("id", data.user.id)
         }
         router.push(onboardingPath)

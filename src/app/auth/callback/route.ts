@@ -139,14 +139,19 @@ export async function GET(request: NextRequest) {
     },
     { onConflict: 'id', ignoreDuplicates: true }
   )
-  // If profile already existed (e.g. trigger created it before metadata reached us),
-  // update role only if it's still the default and the user signed up as a nutri.
+  // Nutri pula a etapa de onboarding intermediário — marcamos role +
+  // onboarding_completed imediatamente. Update condicional para não
+  // mexer em nutris que já estavam onboarded.
   if (desiredRole === 'nutricionista') {
     await supabase
       .from('profiles')
-      .update({ role: 'nutricionista' })
+      .update({
+        role: 'nutricionista',
+        onboarding_completed: true,
+        onboarding_completed_at: new Date().toISOString(),
+      })
       .eq('id', userId)
-      .eq('role', 'user')
+      .or('role.eq.user,onboarding_completed.is.false,onboarding_completed.is.null')
   }
 
   const { data: profile } = await supabase
@@ -198,17 +203,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/aceitar-convite/confirmar`)
   }
 
-  const isNutri = profile?.role === 'nutricionista'
+  const isNutri = profile?.role === 'nutricionista' || desiredRole === 'nutricionista'
+
+  // Nutri sempre vai pro painel — pulou onboarding intermediário acima.
+  // Paciente continua passando pelo quiz quando ainda não completou.
+  if (isNutri) {
+    // CRN verification gate removido — todo nutri vai direto pro painel.
+    return NextResponse.redirect(`${origin}/nutri`)
+  }
 
   if (!profile?.onboarding_completed) {
-    return NextResponse.redirect(`${origin}${isNutri ? '/onboarding-nutri' : '/onboarding'}`)
-  }
-  if (isNutri) {
-    // CRN verification gate temporariamente desativado — todo nutri vai direto
-    // para o painel. Para reativar, restaurar o branch para /aguardando-verificacao
-    // baseado em profile.nutri_verification_status (e re-importar isAdminEmail).
-    void profile.nutri_verification_status
-    return NextResponse.redirect(`${origin}/nutri`)
+    return NextResponse.redirect(`${origin}/onboarding`)
   }
   return NextResponse.redirect(`${origin}${next}`)
 }

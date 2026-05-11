@@ -65,32 +65,36 @@ export async function middleware(request: NextRequest) {
     const isNutri = profile?.role === 'nutricionista'
     const isNutriRoute = pathname === '/nutri' || pathname.startsWith('/nutri/')
     const isNutriOnboardingRoute = pathname === '/onboarding-nutri' || pathname.startsWith('/onboarding-nutri/')
-    const isAnyOnboarding = isOnboardingRoute || isNutriOnboardingRoute
 
-    // Logged-in users hitting login/signup go to app (never skip onboarding)
+    // Nutri pula a etapa /onboarding-nutri inteira (removida do fluxo) e sempre
+    // vai pro painel. O quiz de /onboarding continua valendo só para pacientes.
+    // Logged-in hitting login/signup → app surface correspondente.
     if (isAuthRoute) {
-      const destination = !onboardingDone
-        ? (isNutri ? '/onboarding-nutri' : '/onboarding')
-        : (isNutri ? '/nutri' : '/dashboard')
+      const destination = isNutri
+        ? '/nutri'
+        : (onboardingDone ? '/dashboard' : '/onboarding')
       return NextResponse.redirect(new URL(destination, request.url))
     }
 
-    if (isAnyOnboarding && onboardingDone) {
-      return NextResponse.redirect(new URL(isNutri ? '/nutri' : '/dashboard', request.url))
+    // Qualquer um (paciente ou nutri) caindo em /onboarding-nutri vai pro painel
+    // do nutri se for nutri, ou pro próprio onboarding de paciente caso contrário.
+    if (isNutriOnboardingRoute) {
+      return NextResponse.redirect(new URL(isNutri ? '/nutri' : '/onboarding', request.url))
     }
 
-    // Nutri logado nunca cai no quiz de paciente: se já tem role='nutricionista'
-    // e bateu em /onboarding, manda pro /onboarding-nutri. Não fazemos o reverso
-    // (mandar role='user' fora de /onboarding-nutri) porque um nutri recém-criado
-    // ainda pode ter role='user' (a propagação acontece no /auth/callback ou no
-    // submit do formulário) — bloqueá-lo em /onboarding-nutri quebraria o signup.
-    if (!onboardingDone && isNutri && isOnboardingRoute) {
-      return NextResponse.redirect(new URL('/onboarding-nutri', request.url))
+    // Nutri batendo em /onboarding (quiz de paciente) → painel.
+    if (isNutri && isOnboardingRoute) {
+      return NextResponse.redirect(new URL('/nutri', request.url))
     }
 
-    // Block the rest of the app until the onboarding quiz is completed and saved.
-    if (!onboardingDone && !isPublicRoute && !isAnyOnboarding) {
-      return NextResponse.redirect(new URL(isNutri ? '/onboarding-nutri' : '/onboarding', request.url))
+    // Paciente não-onboarded fica bloqueado fora do quiz.
+    if (!isNutri && !onboardingDone && !isPublicRoute && !isOnboardingRoute) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
+
+    // Paciente já onboarded batendo em /onboarding vai pro dashboard.
+    if (!isNutri && onboardingDone && isOnboardingRoute) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     // Role gate: nutricionistas don't belong on the patient app surface, and
