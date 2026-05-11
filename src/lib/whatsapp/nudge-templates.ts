@@ -4,34 +4,8 @@ export type NudgeSlot = 'lunch' | 'dinner' | 'recap' | 'hydration'
 
 export interface NudgeDecision {
   slot: NudgeSlot
-  /** Within the 24h Meta service window the agent can send free-form text. */
-  withinServiceWindow: boolean
-  /** Approved Meta template name to use when outside the service window. */
-  templateName: string
-  /** Pre-computed template variables. The same numbers go to the LLM in-context. */
-  templateParams: Record<string, string>
-  /** Localized fallback text for use when the LLM is unavailable. */
+  /** Localized fallback text when the LLM is unavailable. */
   fallbackText: string
-}
-
-const SERVICE_WINDOW_MS = 24 * 60 * 60 * 1000
-
-export function isWithinServiceWindow(conn: Pick<WhatsAppConnection, 'last_message_at'>, now: Date = new Date()): boolean {
-  if (!conn.last_message_at) return false
-  const last = new Date(conn.last_message_at).getTime()
-  return now.getTime() - last < SERVICE_WINDOW_MS
-}
-
-function templateName(slot: NudgeSlot): string {
-  switch (slot) {
-    case 'recap':
-      return process.env.CHATWOOT_TEMPLATE_DAILY_RECAP || 'salus_daily_recap'
-    case 'lunch':
-    case 'dinner':
-    case 'hydration':
-    default:
-      return process.env.CHATWOOT_TEMPLATE_MEAL_NUDGE || 'salus_meal_nudge'
-  }
 }
 
 function fallbackPt(ctx: UserContext, slot: NudgeSlot): string {
@@ -72,29 +46,11 @@ function fallbackEn(ctx: UserContext, slot: NudgeSlot): string {
   }
 }
 
-export function buildDecision(
-  ctx: UserContext,
-  conn: Pick<WhatsAppConnection, 'last_message_at'>,
-  slot: NudgeSlot,
-): NudgeDecision {
+export function buildDecision(ctx: UserContext, slot: NudgeSlot): NudgeDecision {
   const isPt = ctx.locale !== 'en'
-  const fallback = isPt ? fallbackPt(ctx, slot) : fallbackEn(ctx, slot)
   return {
     slot,
-    withinServiceWindow: isWithinServiceWindow(conn),
-    templateName: templateName(slot),
-    templateParams: {
-      name: ctx.name,
-      meal_window: ctx.mealWindow,
-      protein_remaining_g: String(ctx.delta.protein_remaining_g),
-      fiber_remaining_g: String(ctx.delta.fiber_remaining_g),
-      water_remaining_ml: String(ctx.delta.water_remaining_ml),
-      kcal_remaining: String(ctx.delta.kcal_remaining),
-      score: String(ctx.todayTotals.avg_score ?? 0),
-      meals_logged: String(ctx.todayTotals.meals_count),
-      streak_days: String(ctx.streak.current),
-    },
-    fallbackText: fallback,
+    fallbackText: isPt ? fallbackPt(ctx, slot) : fallbackEn(ctx, slot),
   }
 }
 

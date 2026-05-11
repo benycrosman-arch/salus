@@ -38,6 +38,15 @@
  *   "gut-health" goal raises the floor to 35 g (American Gut Project; Sonnenburg
  *   & Sonnenburg 2014, Cell Metab).
  *
+ * Hydration: 35 ml/kg baseline (EFSA 2010 Adequate Intake derivation;
+ *   IOM/NAM 2005 DRI Water & Electrolytes — 2.7 L women, 3.7 L men total
+ *   water from food + drinks, ~80 % from beverages). Adds 12 ml/kg per hour
+ *   of exercise above ~30 min and ~13 ml per kcal of measured active burn
+ *   (Sawka et al. 2007 ACSM Position Stand on Exercise & Fluid Replacement;
+ *   Maughan & Shirreffs 2010). Older adults floor at 1.6 L (women) / 2.0 L
+ *   (men) — thirst response declines with age (Kenney & Chiu 2001 Am J Clin
+ *   Nutr; Volkert et al. 2019 ESPEN guideline on hydration in geriatrics).
+ *
  * Calorie floors follow Trexler/Smith-Ryan/Norton 2014 (J Int Soc Sports Nutr)
  *   and Helms et al. 2014: never below BMR × 1.1, with a hard floor of
  *   1500 kcal (men) / 1200 kcal (women) to avoid metabolic adaptation.
@@ -66,6 +75,7 @@ export interface DailyGoals {
   carbs_g: number
   fat_g: number
   fiber_g: number
+  water_ml: number
   protein_per_kg: number
   rationale: string
   sources: string[]
@@ -261,6 +271,42 @@ export function calculateGoals(p: UserGoalProfile): DailyGoals {
   if (shortSleep) fiber_g += 3
   fiber_g = Math.max(25, Math.min(40, fiber_g))
 
+  // ─── Hydration ────────────────────────────────────────────────────────────
+  // EFSA 2010 / IOM 2005 baseline ~35 ml/kg, plus exercise add-on per ACSM
+  // 2007 Position Stand. Older adults blunted thirst → enforce a sex-specific
+  // floor (Volkert/ESPEN 2019; Kenney & Chiu 2001).
+  const hydrationExerciseMin = p.wearable?.exercise_minutes
+  const hydrationActiveKcal = p.wearable?.active_calories_kcal
+  let water_ml = Math.round(p.weight_kg * 35)
+  if (hydrationExerciseMin !== undefined && hydrationExerciseMin > 30) {
+    water_ml += Math.round(p.weight_kg * 12 * ((hydrationExerciseMin - 30) / 60))
+  }
+  if (hydrationActiveKcal !== undefined && hydrationActiveKcal > 0) {
+    water_ml += Math.round(hydrationActiveKcal * 13)
+  }
+  if (p.diet_type === 'keto') {
+    // Glycogen depletion → ~3 g water lost per gram of glycogen (Olsson &
+    // Saltin 1970 Acta Physiol Scand). Phinney/Volek recommend ≥500 ml extra
+    // plus electrolytes during adaptation.
+    water_ml += 500
+  }
+  if (p.goals.includes('lose-weight')) {
+    // Dennis et al. 2010 Obesity: 500 ml pre-meal water improved weight loss.
+    water_ml += 500
+  }
+  if (p.age >= 65) {
+    const elderlyFloor = p.biological_sex === 'male' ? 2000 : 1600
+    water_ml = Math.max(water_ml, elderlyFloor)
+  }
+  // Hard floor — EFSA AI for total water from beverages.
+  const beverageFloor = p.biological_sex === 'male' ? 2000 : 1500
+  water_ml = Math.max(water_ml, beverageFloor)
+  // Cap at 4 L to avoid hyponatremia risk in non-elite athletes
+  // (Almond et al. 2005 NEJM, Boston Marathon hyponatremia study).
+  water_ml = Math.min(water_ml, 4000)
+  // Round to nearest 100 ml — the precision the literature actually supports.
+  water_ml = Math.round(water_ml / 100) * 100
+
   // ─── Rationale (pt-BR) ────────────────────────────────────────────────────
   const proteinPerKg = Math.round((protein_g / p.weight_kg) * 10) / 10
   const rationaleParts: string[] = [
@@ -274,6 +320,7 @@ export function calculateGoals(p: UserGoalProfile): DailyGoals {
   if (p.goals.includes('build-muscle')) rationaleParts.push(`Superávit ${shortSleep ? '7%' : '12%'} para hipertrofia`)
   if (highBloodSugar) rationaleParts.push('Carboidratos limitados para controle glicêmico')
   if (p.diet_type === 'keto') rationaleParts.push('Carboidratos ≤50 g (cetogênica)')
+  rationaleParts.push(`Hidratação ${(water_ml / 1000).toFixed(1)} L (35 ml/kg + exercício, EFSA 2010/ACSM 2007)`)
 
   return {
     kcal: Math.round(kcal),
@@ -281,6 +328,7 @@ export function calculateGoals(p: UserGoalProfile): DailyGoals {
     carbs_g,
     fat_g,
     fiber_g,
+    water_ml,
     protein_per_kg: proteinPerKg,
     rationale: rationaleParts.join('. ') + '.',
     sources: RESEARCH_SOURCES,
@@ -305,4 +353,8 @@ export const RESEARCH_SOURCES: string[] = [
   'Nedeltcheva AV et al. 2010 — Ann Intern Med (sleep & fat loss)',
   'Burke LM et al. 2018 — Front Physiol (carbohydrate for athletes)',
   'ADA Standards of Care 2024 — Diabetes Care',
+  'EFSA Panel on Dietetic Products 2010 — Scientific Opinion on Dietary Reference Values for Water',
+  'Institute of Medicine 2005 — DRI for Water, Potassium, Sodium, Chloride, and Sulfate',
+  'Sawka MN et al. 2007 — ACSM Position Stand: Exercise and Fluid Replacement (Med Sci Sports Exerc)',
+  'Volkert D et al. 2019 — ESPEN guideline on clinical nutrition and hydration in geriatrics',
 ]

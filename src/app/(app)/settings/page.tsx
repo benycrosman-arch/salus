@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -13,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import {
   Bell, Shield, LogOut, ChevronRight, Globe,
-  Download, Trash2, Crown, Check, Apple, Smartphone, Loader2
+  Download, Trash2, Crown, Check, Apple, Smartphone, Loader2, MessageCircle
 } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
@@ -36,6 +37,25 @@ export default function SettingsPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState("")
   const [deleting, setDeleting] = useState(false)
+  const [whatsappState, setWhatsappState] = useState<{ enabled: boolean; status?: string | null } | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/whatsapp/status", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (cancelled) return
+        if (j?.enabled) {
+          setWhatsappState({ enabled: true, status: j.connection?.status ?? null })
+        } else {
+          setWhatsappState({ enabled: false })
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setWhatsappState({ enabled: false })
+      })
+    return () => { cancelled = true }
+  }, [])
 
   const handleLogout = async () => {
     track("logout")
@@ -57,13 +77,16 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `salus-data-${new Date().toISOString().split("T")[0]}.json`
+      // Server provides a friendly filename via Content-Disposition; this is a fallback.
+      const disposition = res.headers.get("content-disposition") || ""
+      const match = disposition.match(/filename="?([^";]+)"?/i)
+      a.download = match?.[1] || `salus-relatorio-${new Date().toISOString().split("T")[0]}.pdf`
       document.body.appendChild(a)
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
       track("data_exported")
-      toast.success("Seus dados foram baixados.")
+      toast.success("Seu relatório em PDF foi baixado. Você pode enviá-lo ao seu médico ou nutricionista.")
     } catch (err) {
       console.error(err)
       toast.error("Erro ao exportar dados.")
@@ -196,6 +219,28 @@ export default function SettingsPage() {
         </div>
       </Card>
 
+      {/* WhatsApp coach (Pro) */}
+      {whatsappState?.enabled && (
+        <Link href="/settings/whatsapp" className="block">
+          <Card className="border-0 shadow-md p-5 hover:bg-muted/40 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageCircle className="w-4 h-4 text-primary" />
+                <div>
+                  <h2 className="font-semibold text-foreground">Coach por WhatsApp</h2>
+                  <p className="text-xs text-muted-foreground font-body">
+                    {whatsappState.status === "verified"
+                      ? "Conectado · gerenciar lembretes"
+                      : "Receba lembretes proativos no seu WhatsApp"}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </Card>
+        </Link>
+      )}
+
       {/* Privacy */}
       <Card className="border-0 shadow-md p-5">
         <div className="flex items-center gap-2 mb-4">
@@ -214,9 +259,16 @@ export default function SettingsPage() {
               ) : (
                 <Download className="w-4 h-4 text-muted-foreground" />
               )}
-              <span className="text-sm font-body text-foreground">
-                {exporting ? "Preparando download..." : "Exportar meus dados"}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-body text-foreground">
+                  {exporting ? "Gerando relatório..." : "Exportar meus dados (PDF)"}
+                </span>
+                {!exporting && (
+                  <span className="text-xs text-muted-foreground">
+                    Relatório legível para enviar ao seu médico
+                  </span>
+                )}
+              </div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>

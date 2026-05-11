@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
-import { Eye, EyeOff, Loader2, CheckCircle, User, Stethoscope, ArrowLeft } from "lucide-react"
+import { Eye, EyeOff, Loader2, CheckCircle, User, Stethoscope, ArrowLeft, Check } from "lucide-react"
 import { toast } from "sonner"
 import { identify, track } from "@/lib/posthog"
 import { useTranslations } from "next-intl"
@@ -24,6 +24,7 @@ function SignUpInner() {
   const tCommon = useTranslations('common')
   const tOauth = useTranslations('auth.oauth')
   const tErrors = useTranslations('auth.errors')
+  const tNutri = useTranslations('pricing.nutri')
 
   const prefilledEmail = params.get('email') ?? ''
   const inviteToken = params.get('invite') ?? ''
@@ -40,12 +41,6 @@ function SignUpInner() {
       router.replace(`/auth/signup?${qs.toString()}`)
     }
   }, [role, prefilledEmail, inviteToken, router])
-
-  // Drop o invite token num cookie para o auth callback consumir.
-  useEffect(() => {
-    if (!inviteToken) return
-    document.cookie = `salus_invite=${encodeURIComponent(inviteToken)}; path=/; max-age=${60 * 60 * 24}; samesite=lax`
-  }, [inviteToken])
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState(prefilledEmail)
@@ -96,6 +91,17 @@ function SignUpInner() {
       if (data.session && data.user) {
         identify(data.user.id, { email: data.user.email, role })
         track("signup_completed", { method: "password", needs_verification: false, role })
+        // Propagate role to profiles immediately. Without this, a nutri whose
+        // signup doesn't require email confirmation lands on /onboarding-nutri
+        // with role='user' (the trigger default), and the middleware can route
+        // them to the wrong onboarding flow. /auth/callback does this too, but
+        // it never runs on this path.
+        if (role === "nutricionista") {
+          await supabase
+            .from("profiles")
+            .update({ role: "nutricionista" })
+            .eq("id", data.user.id)
+        }
         router.push(onboardingPath)
         router.refresh()
       } else {
@@ -252,6 +258,58 @@ function SignUpInner() {
           <ArrowLeft className="w-3 h-3" />
           Trocar tipo de conta
         </button>
+
+        {role === 'nutricionista' && (
+          <div className="rounded-3xl bg-gradient-to-br from-[#1a3a2a] to-[#0f2519] p-6 ring-1 ring-white/5 text-white">
+            <span className="inline-block rounded-full bg-[#c8a538]/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#c8a538] mb-3">
+              {tNutri('kicker')}
+            </span>
+            <h3 className="font-serif text-xl sm:text-2xl italic leading-tight">
+              {tNutri('headline')}
+            </h3>
+            <p className="text-xs text-white/70 mt-2">{tNutri('tagline')}</p>
+            <div className="mt-4 grid grid-cols-1 gap-2 text-xs text-white/70">
+              <div className="flex items-center gap-2">
+                <Check className="w-3.5 h-3.5 text-[#c8a538] shrink-0" />
+                <span>{tNutri('bullet1')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-3.5 h-3.5 text-[#c8a538] shrink-0" />
+                <span>{tNutri('bullet2')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-3.5 h-3.5 text-[#c8a538] shrink-0" />
+                <span>{tNutri('bullet3')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-3.5 h-3.5 text-[#c8a538] shrink-0" />
+                <span>{tNutri('bullet4')}</span>
+              </div>
+            </div>
+            <div className="mt-5 pt-5 border-t border-white/10">
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-[#c8a538] mb-3">
+                {tNutri('ladderTitle')}
+              </p>
+              <div className="rounded-2xl bg-white/[0.03] ring-1 ring-white/10 divide-y divide-white/5">
+                {[
+                  { p: '1', r: '5%' },
+                  { p: '2', r: '6%' },
+                  { p: '3', r: '7%' },
+                  { p: '4', r: '8%' },
+                  { p: '5', r: '9%' },
+                  { p: '6–10', r: '10%' },
+                  { p: '11+', r: '12%' },
+                ].map(({ p, r }) => (
+                  <div key={p} className="flex items-center justify-between px-4 py-2 text-xs">
+                    <span className="text-white/60">{tNutri('ladderPatients', { count: p })}</span>
+                    <span className="font-bold text-white">{r}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-[10px] text-white/40 leading-relaxed">{tNutri('ladderNote')}</p>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-3xl bg-white ring-1 ring-black/[0.04] shadow-sm p-8 space-y-5">
           <form onSubmit={handleSignUp} className="space-y-4">

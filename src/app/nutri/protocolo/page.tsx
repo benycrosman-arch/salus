@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import { createServerClient } from "@supabase/ssr"
 import { ProtocoloEditor } from "./protocolo-editor"
 
@@ -15,7 +16,7 @@ export default async function ProtocoloPage() {
     },
   )
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  if (!user) redirect("/auth/login?redirectTo=/nutri/protocolo")
 
   const { data: profile } = await supabase
     .from("profiles")

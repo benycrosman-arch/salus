@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/whatsapp-nudges",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/weekly-report",
+      "schedule": "0 * * * 1"
+    }
+  ]
+}

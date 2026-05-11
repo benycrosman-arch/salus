@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { isAdminEmail } from '@/lib/admin'
 
 type EmailOtpType = 'signup' | 'email' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
 
@@ -159,10 +158,14 @@ export async function GET(request: NextRequest) {
   // Consume a pending nutri invite if one is parked in the cookie.
   // Done after auth establishes a session, before any redirect — the link
   // shows up immediately on the patient's dashboard and the nutri's panel.
+  // If the auto-link fails (e.g. email mismatch 403), we keep the cookie and
+  // bounce the patient to the manual confirmation screen so they see the error
+  // instead of silently landing on the dashboard with no link.
   const inviteToken = cookieStore.get('salus_invite')?.value
+  let inviteAcceptFailed = false
   if (inviteToken && profile?.role !== 'nutricionista') {
     try {
-      await fetch(`${origin}/api/nutri/invite/accept`, {
+      const acceptRes = await fetch(`${origin}/api/nutri/invite/accept`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,12 +174,28 @@ export async function GET(request: NextRequest) {
         },
         body: JSON.stringify({ token: inviteToken }),
       })
+      if (!acceptRes.ok) {
+        const errBody = await acceptRes.json().catch(() => ({}))
+        console.error(
+          'invite accept (post-auth) returned',
+          acceptRes.status,
+          errBody?.code || errBody?.error,
+        )
+        inviteAcceptFailed = true
+      } else {
+        // Success — accept endpoint already cleared the cookie, but be explicit.
+        cookieStore.set('salus_invite', '', { maxAge: 0, path: '/' })
+      }
     } catch (err) {
-      console.error('invite accept (post-auth) failed:', err)
+      console.error('invite accept (post-auth) network error:', err)
+      inviteAcceptFailed = true
     }
-    // Burn the cookie regardless — the accept endpoint clears it on success
-    // but we don't want a stale token lingering on partial failure either.
-    cookieStore.set('salus_invite', '', { maxAge: 0, path: '/' })
+  }
+
+  // If the auto-link failed, route the patient to /aceitar-convite/confirmar
+  // which reads the cookie itself, retries the accept, and surfaces the error.
+  if (inviteAcceptFailed) {
+    return NextResponse.redirect(`${origin}/aceitar-convite/confirmar`)
   }
 
   const isNutri = profile?.role === 'nutricionista'
@@ -185,11 +204,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}${isNutri ? '/onboarding-nutri' : '/onboarding'}`)
   }
   if (isNutri) {
-    const status = profile.nutri_verification_status
-    if (status === 'verified' || isAdminEmail(userEmail)) {
-      return NextResponse.redirect(`${origin}/nutri`)
-    }
-    return NextResponse.redirect(`${origin}/nutri/aguardando-verificacao`)
+    // CRN verification gate temporariamente desativado — todo nutri vai direto
+    // para o painel. Para reativar, restaurar o branch para /aguardando-verificacao
+    // baseado em profile.nutri_verification_status (e re-importar isAdminEmail).
+    void profile.nutri_verification_status
+    return NextResponse.redirect(`${origin}/nutri`)
   }
   return NextResponse.redirect(`${origin}${next}`)
 }

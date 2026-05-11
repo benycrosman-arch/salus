@@ -84,8 +84,10 @@ export default async function AceitarConvitePage({
   } = await userSupabase.auth.getUser()
 
   if (user) {
-    // Logged in already — let them confirm the link instead of magically attaching
-    redirect(`/aceitar-convite/confirmar?token=${encodeURIComponent(token)}`)
+    // Logged in already — let them confirm the link instead of magically attaching.
+    // The confirmar page reads the token from the httpOnly cookie set above, so
+    // we don't need to expose it in the URL.
+    redirect('/aceitar-convite/confirmar')
   }
 
   const nutriName = nutri?.name?.trim() || 'Seu nutricionista'

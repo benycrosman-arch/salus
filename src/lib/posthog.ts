@@ -43,6 +43,7 @@ export type SalusEvent =
   | "meal_scanned_text"
   | "meal_logged"
   | "first_meal_logged"
+  | "meal_deleted"
   | "dashboard_opened"
   | "dashboard_opened_d1"
   | "dashboard_opened_d7"

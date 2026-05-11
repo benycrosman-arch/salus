@@ -2,10 +2,10 @@ export function isWhatsAppFeatureEnabled(): boolean {
   return process.env.WHATSAPP_FEATURE_ENABLED === 'true'
 }
 
-export function isChatwootMocked(): boolean {
-  // Default to mocked when the feature is off or no real base URL is set —
+export function isZapiMocked(): boolean {
+  // Default to mocked when MOCK_ZAPI is set or no real instance is configured —
   // protects accidental live calls in dev.
-  if (process.env.MOCK_CHATWOOT === 'true') return true
-  if (!process.env.CHATWOOT_BASE_URL) return true
+  if (process.env.MOCK_ZAPI === 'true') return true
+  if (!process.env.ZAPI_INSTANCE_ID || !process.env.ZAPI_TOKEN || !process.env.ZAPI_CLIENT_TOKEN) return true
   return false
 }

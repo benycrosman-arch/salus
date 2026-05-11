@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import {
   ArrowLeft, TrendingUp, TrendingDown, RefreshCw,
-  CheckCircle2, ArrowRight, Loader2, Flag, Camera,
+  CheckCircle2, ArrowRight, Loader2, Flag, Camera, Trash2,
 } from "lucide-react"
 import { toast } from "sonner"
 import { track } from "@/lib/posthog"
@@ -110,6 +110,7 @@ export default function MealResultPage() {
   const [delta, setDelta] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -151,6 +152,22 @@ export default function MealResultPage() {
     })()
     return () => { cancelled = true }
   }, [mealId, supabase])
+
+  const handleDelete = async () => {
+    if (!meal || deleting) return
+    if (!window.confirm("Excluir esta refeição? Essa ação não pode ser desfeita.")) return
+    setDeleting(true)
+    const { error: delErr } = await supabase.from("meals").delete().eq("id", meal.id)
+    if (delErr) {
+      toast.error("Não consegui excluir essa refeição. Tenta de novo.")
+      setDeleting(false)
+      return
+    }
+    track("meal_deleted", { meal_id: meal.id, score: meal.score, surface: "meal-result" })
+    toast.success("Refeição excluída.")
+    router.push("/dashboard")
+    router.refresh()
+  }
 
   const handleReportAI = async () => {
     if (!meal) return
@@ -388,14 +405,26 @@ export default function MealResultPage() {
           Análise gerada por IA — valores são estimativas. Não substitui aconselhamento médico ou
           nutricional. Consulte um profissional de saúde antes de mudanças significativas na sua dieta.
         </p>
-        <button
-          type="button"
-          onClick={handleReportAI}
-          className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-[#c4614a] transition-colors"
-        >
-          <Flag className="w-3 h-3" />
-          Reportar problema nesta análise
-        </button>
+        <div className="mt-2 flex items-center justify-center gap-3 text-[11px] text-muted-foreground">
+          <button
+            type="button"
+            onClick={handleReportAI}
+            className="inline-flex items-center gap-1.5 hover:text-[#c4614a] transition-colors"
+          >
+            <Flag className="w-3 h-3" />
+            Reportar problema nesta análise
+          </button>
+          <span aria-hidden="true">·</span>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="inline-flex items-center gap-1.5 hover:text-destructive transition-colors disabled:opacity-50"
+          >
+            {deleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+            Excluir refeição
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -23,6 +23,7 @@ const dmSerifDisplay = DM_Serif_Display({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://salusai.com.br"),
   title: "Salus — Nutrição de Precisão",
   description: "Foto vira ciência. IA nutricional 24/7, planos personalizados e lista de compras em um toque.",
 }

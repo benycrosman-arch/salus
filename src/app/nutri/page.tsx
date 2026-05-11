@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import { createServerClient } from "@supabase/ssr"
 import { Card } from "@/components/ui/card"
 import {
@@ -27,7 +28,7 @@ export default async function NutriDashboardPage() {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  if (!user) redirect("/auth/login?redirectTo=/nutri")
 
   const [linksRes, invitesRes, profileRes] = await Promise.all([
     supabase
@@ -46,6 +47,12 @@ export default async function NutriDashboardPage() {
       .eq("id", user.id)
       .maybeSingle(),
   ])
+
+  // Surface RLS / connectivity issues in logs — silently coercing to [] hides
+  // policy regressions and makes the dashboard look fine while data is missing.
+  if (linksRes.error) console.error("nutri dashboard links query failed:", linksRes.error.message)
+  if (invitesRes.error) console.error("nutri dashboard invites query failed:", invitesRes.error.message)
+  if (profileRes.error) console.error("nutri dashboard profile query failed:", profileRes.error.message)
 
   const links = linksRes.data ?? []
   const invites = invitesRes.data ?? []

@@ -85,8 +85,6 @@ export type MealWindow =
 export interface WhatsAppConnection {
   user_id: string
   phone_e164: string
-  chatwoot_contact_id: number | null
-  chatwoot_conversation_id: number | null
   status: 'pending' | 'verified' | 'disabled'
   timezone: string
   nudge_lunch_enabled: boolean
@@ -96,4 +94,5 @@ export interface WhatsAppConnection {
   last_nudge_lunch_at: string | null
   last_nudge_dinner_at: string | null
   last_nudge_recap_at: string | null
+  last_weekly_report_at?: string | null
 }

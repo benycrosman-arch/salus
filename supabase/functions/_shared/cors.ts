@@ -2,6 +2,8 @@
 // Web origins only — native Expo fetch() doesn't send Origin and skips CORS.
 
 const ALLOWED_ORIGINS = [
+  "https://salusai.com.br",
+  "https://www.salusai.com.br",
   "https://salus.nulllabs.org",
   "https://www.salus.nulllabs.org",
   "https://nulllabs.org",

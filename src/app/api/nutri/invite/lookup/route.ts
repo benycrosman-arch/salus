@@ -8,7 +8,8 @@ import { createClient } from '@supabase/supabase-js'
  */
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token')?.trim()
-  if (!token || token.length < 16) {
+  // Tokens are 64-char hex (gen_random_bytes(32)) — anything else is malformed.
+  if (!token || token.length !== 64 || !/^[0-9a-f]+$/i.test(token)) {
     return NextResponse.json({ error: 'Token inválido.' }, { status: 400 })
   }
 
@@ -30,9 +31,11 @@ export async function GET(request: NextRequest) {
   const expired = new Date(invite.expires_at) < new Date()
   const status = expired && invite.status === 'pending' ? 'expired' : invite.status
 
+  // Only the nutri's display name is exposed publicly. Their email is
+  // intentionally withheld — a token holder doesn't need it to accept.
   const { data: nutri } = await admin
     .from('profiles')
-    .select('name, email')
+    .select('name')
     .eq('id', invite.nutri_id)
     .maybeSingle()
 
@@ -45,7 +48,6 @@ export async function GET(request: NextRequest) {
     },
     nutri: {
       name: nutri?.name ?? '',
-      email: nutri?.email ?? '',
     },
   })
 }

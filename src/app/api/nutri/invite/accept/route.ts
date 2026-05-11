@@ -60,6 +60,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Você não pode aceitar seu próprio convite.' }, { status: 400 })
   }
 
+  // The token is only valid for the email it was issued to. Anyone else
+  // bouncing the link (or signing up with a different address) is rejected.
+  if (
+    invite.patient_email.trim().toLowerCase() !==
+    (user.email ?? '').trim().toLowerCase()
+  ) {
+    return NextResponse.json(
+      {
+        error: 'Este convite foi enviado para outro e-mail. Faça login com a conta correta para aceitar.',
+        code: 'email_mismatch',
+        invited_email: invite.patient_email,
+      },
+      { status: 403 },
+    )
+  }
+
   // Patients only — the nutri panel is incompatible with patient role
   const { data: profile } = await admin
     .from('profiles')

@@ -7,6 +7,7 @@ import { cookies } from "next/headers"
 import { getLocale, getTranslations } from "next-intl/server"
 import { DashboardCharts } from "./dashboard-client"
 import { DashboardEngagement } from "./dashboard-engagement"
+import { HydrationQuickLog } from "./hydration-quick-log"
 import { MicronutrientPanel } from "@/components/dashboard/micronutrient-panel"
 import { calculateGoals } from "@/lib/goals"
 import type { UserGoalProfile } from "@/lib/goals"
@@ -45,6 +46,34 @@ function extractWearableSignals(rows: WearableRow[]) {
   }
 }
 
+// Hydration is a running daily total — sum (not average) every entry whose
+// metric label is one of the known fluid-intake keys. Apple Health emits
+// "dietary_water" in liters; we coerce to ml.
+function isHydrationMetric(metric: string): boolean {
+  const m = metric.toLowerCase()
+  return (
+    m.includes("water_ml") ||
+    m.includes("water_intake") ||
+    m.includes("hydration") ||
+    m.includes("dietary_water") ||
+    m.includes("fluid_ml") ||
+    m.includes("agua_ml") ||
+    m.includes("hidratacao")
+  )
+}
+
+function sumHydrationMl(rows: WearableRow[]): number {
+  let total = 0
+  for (const row of rows) {
+    if (typeof row.value !== "number" || Number.isNaN(row.value)) continue
+    if (!isHydrationMetric(row.metric)) continue
+    // dietary_water arrives in liters — anything ≤ 30 is almost certainly L.
+    const ml = row.value <= 30 ? row.value * 1000 : row.value
+    total += ml
+  }
+  return Math.round(total)
+}
+
 // ─── Server data fetch ────────────────────────────────────────────────────────
 async function getDashboardData() {
   const cookieStore = await cookies()
@@ -65,7 +94,7 @@ async function getDashboardData() {
   const today = new Date().toISOString().split('T')[0]
   const sevenDaysAgo = new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0]
 
-  const [profileRes, streakRes, todayMealsRes, weekStatsRes, prefsRes, labsRes, wearableRes] = await Promise.all([
+  const [profileRes, streakRes, todayMealsRes, weekStatsRes, prefsRes, labsRes, wearableRes, todayHydrationRes] = await Promise.all([
     supabase.from('profiles').select('name, age, biological_sex, height_cm, weight_kg, activity_level, ai_daily_goals, ai_goals_generated_at').eq('id', user.id).single(),
     supabase.from('streaks').select('current_streak, longest_streak').eq('user_id', user.id).single(),
     supabase.from('meals').select('macros, score, meal_type, logged_at').eq('user_id', user.id).gte('logged_at', `${today}T00:00:00`).order('logged_at', { ascending: false }),
@@ -73,6 +102,7 @@ async function getDashboardData() {
     supabase.from('user_preferences').select('goals, diet_type').eq('user_id', user.id).single(),
     supabase.from('lab_results').select('marker, value').eq('user_id', user.id).order('measured_at', { ascending: false }),
     supabase.from("wearable_data").select("metric, value").eq("user_id", user.id).gte("recorded_at", `${sevenDaysAgo}T00:00:00`),
+    supabase.from("wearable_data").select("metric, value").eq("user_id", user.id).gte("recorded_at", `${today}T00:00:00`),
   ])
 
   const profile = profileRes.data
@@ -87,6 +117,7 @@ async function getDashboardData() {
     wearableSignals.active_calories_kcal !== undefined ||
     wearableSignals.exercise_minutes !== undefined ||
     wearableSignals.sleep_hours !== undefined
+  const todayHydrationMl = sumHydrationMl((todayHydrationRes.data ?? []) as WearableRow[])
 
   // Compute today's macro totals
   const todayTotals = todayMeals.reduce(
@@ -112,8 +143,8 @@ async function getDashboardData() {
   // 1) If wearable has recent data, prioritize adaptive profile+wearable goals.
   // 2) Else prefer AI-personalized goals.
   // 3) Else deterministic Mifflin-St Jeor.
-  let dailyGoals: { kcal: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g: number; protein_per_kg?: number } =
-    { kcal: 2000, protein_g: 150, carbs_g: 200, fat_g: 67, fiber_g: 25 }
+  let dailyGoals: { kcal: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g: number; water_ml: number; protein_per_kg?: number } =
+    { kcal: 2000, protein_g: 150, carbs_g: 200, fat_g: 67, fiber_g: 25, water_ml: 2500 }
   let goalsSource: 'ai' | 'mifflin' | 'default' | 'adaptive_wearable' = 'default'
   let goalsRationale: string | null = null
   let priorityMicros: string[] = []
@@ -121,7 +152,7 @@ async function getDashboardData() {
   let goalFlags: string[] = []
 
   const aiGoals = profile?.ai_daily_goals as {
-    kcal?: number; protein_g?: number; carbs_g?: number; fat_g?: number; fiber_g?: number
+    kcal?: number; protein_g?: number; carbs_g?: number; fat_g?: number; fiber_g?: number; water_ml?: number
     rationale?: string; priority_micros?: string[]; habits?: string[]; flags?: string[]
   } | null
 
@@ -151,6 +182,7 @@ async function getDashboardData() {
       carbs_g: aiGoals.carbs_g ?? 200,
       fat_g: aiGoals.fat_g ?? 67,
       fiber_g: aiGoals.fiber_g ?? 25,
+      water_ml: aiGoals.water_ml ?? 2500,
     }
     goalsSource = 'ai'
     goalsRationale = aiGoals.rationale ?? null
@@ -222,6 +254,7 @@ async function getDashboardData() {
     lastMeal,
     weeklyScores,
     mealsToday: todayMeals.length,
+    todayHydrationMl,
     userId: user.id,
     userCreatedAt: user.created_at ?? null,
     aiGoalsGeneratedAt: profile?.ai_goals_generated_at ?? null,
@@ -465,7 +498,7 @@ export default async function DashboardPage() {
             </p>
           </div>
         </div>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-2xl bg-white ring-1 ring-black/[0.04] p-5 flex gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-[#1a3a2a]/5 flex items-center justify-center flex-shrink-0">
               <TrendingUp className="h-4 w-4 text-[#1a3a2a]" />
@@ -488,6 +521,11 @@ export default async function DashboardPage() {
               </p>
             </div>
           </div>
+          <HydrationQuickLog
+            goalMl={data.dailyGoals.water_ml}
+            consumedMl={data.todayHydrationMl}
+            emptyLabel={t('hydrationNoData')}
+          />
         </div>
       </div>
 

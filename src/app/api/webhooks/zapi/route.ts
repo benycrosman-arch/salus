@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createHmac, timingSafeEqual } from 'node:crypto'
 import { isWhatsAppFeatureEnabled } from '@/lib/whatsapp/feature-flag'
 import { createServiceClient } from '@/lib/supabase/service'
 import { loadUserContext } from '@/lib/whatsapp/context'
@@ -8,38 +7,36 @@ import { dispatchOutbound } from '@/lib/whatsapp/dispatch'
 import {
   analyzeMealFromImage,
   analyzeMealFromText,
-  fetchChatwootImage,
+  fetchInboundImage,
   persistMealLog,
   formatMealReply,
   errorReply,
 } from '@/lib/whatsapp/meal-log'
+import { normalizeE164 } from '@/lib/whatsapp/phone'
 import type { WhatsAppConnection } from '@/lib/whatsapp/types'
 
 export const dynamic = 'force-dynamic'
 
-interface ChatwootAttachment {
-  file_type?: string
-  data_url?: string
-  thumb_url?: string
-  message_id?: number
-}
-
-interface ChatwootMessageEvent {
-  event?: string
-  message_type?: 'incoming' | 'outgoing' | string
-  content?: string | null
-  attachments?: ChatwootAttachment[]
-  conversation?: { id: number; contact_inbox?: { contact_id?: number } }
-  sender?: { id?: number; phone_number?: string | null }
-}
-
-function verifySignature(rawBody: string, signature: string | null, secret: string): boolean {
-  if (!signature) return false
-  const expected = createHmac('sha256', secret).update(rawBody).digest('hex')
-  const a = Buffer.from(expected, 'hex')
-  const b = Buffer.from(signature.replace(/^sha256=/, ''), 'hex')
-  if (a.length !== b.length) return false
-  return timingSafeEqual(a, b)
+/**
+ * Z-API "ReceivedCallback" webhook payload (the relevant subset).
+ * Z-API sends every event type to the configured webhook URL — we filter
+ * to just inbound user messages and ignore everything else (status updates,
+ * read receipts, our own outbound echoes via fromMe=true, etc.).
+ */
+interface ZapiInboundPayload {
+  type?: string
+  fromMe?: boolean
+  isGroup?: boolean
+  phone?: string
+  senderName?: string
+  messageId?: string
+  text?: { message?: string }
+  image?: { imageUrl?: string; caption?: string; mimeType?: string }
+  audio?: unknown
+  video?: unknown
+  document?: unknown
+  // Z-API also nests payload under "message" in some configs.
+  message?: { text?: string; type?: string; imageUrl?: string; caption?: string }
 }
 
 export async function POST(request: NextRequest) {
@@ -47,94 +44,77 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, reason: 'feature_disabled' }, { status: 503 })
   }
 
-  const rawBody = await request.text()
-  const secret = process.env.CHATWOOT_WEBHOOK_SECRET
-
-  // Skip signature verification when running fully mocked (no secret set).
-  // In production, secret MUST be set and signatures MUST verify.
-  if (secret) {
-    const sig = request.headers.get('x-chatwoot-signature') || request.headers.get('x-hub-signature-256')
-    if (!verifySignature(rawBody, sig, secret)) {
-      return NextResponse.json({ ok: false, reason: 'bad_signature' }, { status: 401 })
+  // Z-API doesn't HMAC-sign webhooks. Their recommended security is to require
+  // the same Client-Token header back on the inbound, so we can verify the
+  // request actually came from our instance. In dev (mock) we skip the check.
+  const expectedClientToken = process.env.ZAPI_CLIENT_TOKEN
+  if (expectedClientToken && process.env.NODE_ENV === 'production') {
+    const sentClientToken = request.headers.get('client-token') || request.headers.get('Client-Token')
+    if (sentClientToken !== expectedClientToken) {
+      return NextResponse.json({ ok: false, reason: 'bad_client_token' }, { status: 401 })
     }
-  } else if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ ok: false, reason: 'webhook_secret_missing' }, { status: 500 })
   }
 
-  let event: ChatwootMessageEvent
+  let event: ZapiInboundPayload
   try {
-    event = JSON.parse(rawBody) as ChatwootMessageEvent
+    event = (await request.json()) as ZapiInboundPayload
   } catch {
     return NextResponse.json({ ok: false, reason: 'bad_payload' }, { status: 400 })
   }
 
-  // Only react to inbound user messages.
-  if (event.event !== 'message_created' || event.message_type !== 'incoming') {
+  // Only react to inbound user messages from 1:1 chats.
+  if (event.fromMe || event.isGroup) {
     return NextResponse.json({ ok: true, ignored: true })
   }
+  if (event.type && !['ReceivedCallback', 'message-received', 'PresenceChatCallback'].includes(event.type)) {
+    // Ignore status callbacks, delivery receipts, etc.
+    if (event.type !== 'ReceivedCallback') {
+      return NextResponse.json({ ok: true, ignored: true, type: event.type })
+    }
+  }
 
-  const text = (event.content ?? '').trim()
-  const contactId = event.conversation?.contact_inbox?.contact_id ?? event.sender?.id ?? null
-  const phone = event.sender?.phone_number ?? null
-  const conversationId = event.conversation?.id ?? null
-  const imageAttachment = (event.attachments ?? []).find(
-    (a) => (a.file_type ?? '').toLowerCase().startsWith('image') && !!a.data_url,
-  )
+  const text = (event.text?.message ?? event.message?.text ?? '').trim()
+  const imageUrl = event.image?.imageUrl ?? event.message?.imageUrl ?? null
+  const caption = event.image?.caption ?? event.message?.caption ?? ''
+  const phoneRaw = event.phone ?? null
+  const phone = phoneRaw ? normalizeE164(phoneRaw) : null
 
-  // We need a signal — text OR an image — and a contactId to attribute it to.
-  if ((!text && !imageAttachment) || !contactId) {
+  if (!phone || (!text && !imageUrl)) {
     return NextResponse.json({ ok: true, ignored: true })
   }
 
   const supabase = createServiceClient()
 
-  // Resolve the connection. Try contact_id, fall back to phone match.
-  let conn: WhatsAppConnection | null = null
-  {
-    const { data } = await supabase
-      .from('whatsapp_connections')
-      .select('*')
-      .eq('chatwoot_contact_id', contactId)
-      .maybeSingle()
-    conn = (data as WhatsAppConnection) ?? null
-  }
-  if (!conn && phone) {
-    const { data } = await supabase
-      .from('whatsapp_connections')
-      .select('*')
-      .eq('phone_e164', phone)
-      .maybeSingle()
-    conn = (data as WhatsAppConnection) ?? null
-    if (conn && conn.chatwoot_contact_id !== contactId) {
-      await supabase
-        .from('whatsapp_connections')
-        .update({ chatwoot_contact_id: contactId })
-        .eq('user_id', conn.user_id)
-    }
-  }
+  // Resolve the connection by phone (Z-API's only stable identifier).
+  const { data: connRow } = await supabase
+    .from('whatsapp_connections')
+    .select('*')
+    .eq('phone_e164', phone)
+    .maybeSingle()
+  let conn = (connRow as WhatsAppConnection) ?? null
 
   // Persist the inbound regardless — useful for support even if user not linked.
   if (conn) {
     await supabase.from('whatsapp_messages').insert({
       user_id: conn.user_id,
       direction: 'inbound',
-      content: text || (imageAttachment ? '[image]' : ''),
+      content: text || (imageUrl ? '[image]' : ''),
       source: 'user',
-      chatwoot_message_id: null,
-      metadata: { contactId, conversationId, hasImage: !!imageAttachment },
+      zapi_message_id: event.messageId ?? null,
+      metadata: { phone, hasImage: !!imageUrl, senderName: event.senderName ?? null },
     })
 
-    // Refresh service window.
-    const updates: Record<string, unknown> = { last_message_at: new Date().toISOString() }
-    if (conversationId && conversationId !== conn.chatwoot_conversation_id) {
-      updates.chatwoot_conversation_id = conversationId
-    }
-    await supabase.from('whatsapp_connections').update(updates).eq('user_id', conn.user_id)
-    conn = { ...conn, last_message_at: updates.last_message_at as string, chatwoot_conversation_id: (updates.chatwoot_conversation_id as number | undefined) ?? conn.chatwoot_conversation_id }
+    // Refresh service window (still useful as a "last contact" timestamp).
+    const lastMessageAt = new Date().toISOString()
+    await supabase
+      .from('whatsapp_connections')
+      .update({ last_message_at: lastMessageAt })
+      .eq('user_id', conn.user_id)
+    conn = { ...conn, last_message_at: lastMessageAt }
   }
 
   if (!conn) {
-    // Unknown sender. Don't reply automatically — let the human inbox handle it.
+    // Unknown sender — don't reply automatically.
     return NextResponse.json({ ok: true, unknown_sender: true })
   }
 
@@ -166,21 +146,22 @@ export async function POST(request: NextRequest) {
   const locale = 'pt' as const
 
   // ─── Meal-log path: image always tries to log; text only logs if intent matches. ───
-  if (imageAttachment) {
+  if (imageUrl) {
     try {
-      const fetched = await fetchChatwootImage(imageAttachment.data_url!)
+      const fetched = await fetchInboundImage(imageUrl)
       if (!fetched) {
         await dispatchOutbound({ supabase, conn, content: errorReply(locale), source: 'meal_log_image_fetch_failed' })
         return NextResponse.json({ ok: true, meal_logged: false, reason: 'image_fetch_failed' })
       }
-      const analysis = await analyzeMealFromImage(fetched.base64, fetched.mediaType, text || null, locale)
+      const analysisInput = (caption || text).trim() || null
+      const analysis = await analyzeMealFromImage(fetched.base64, fetched.mediaType, analysisInput, locale)
       if (analysis?.isMeal && analysis.foods.length > 0) {
         const persisted = await persistMealLog({
           supabase,
           userId: conn.user_id,
           analysis,
-          photoUrl: imageAttachment.data_url ?? null,
-          notes: text || null,
+          photoUrl: imageUrl,
+          notes: analysisInput,
         })
         if (persisted) {
           await dispatchOutbound({
@@ -193,14 +174,13 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ ok: true, meal_logged: true, mealId: persisted.mealId, score: persisted.score })
         }
       }
-      // Photo received but no meal detected (e.g. screenshot, blank). Fall through to chat.
+      // Photo received but no meal detected — fall through to chat.
     } catch (err) {
-      console.error('[whatsapp] photo meal-log failed', err)
+      console.error('[zapi] photo meal-log failed', err)
       await dispatchOutbound({ supabase, conn, content: errorReply(locale), source: 'meal_log_photo_failed' })
       return NextResponse.json({ ok: true, meal_logged: false, reason: 'photo_analysis_failed' })
     }
   } else if (text.length > 6) {
-    // Text-only: try meal-log first; if isMeal=false, fall through to chat agent.
     try {
       const analysis = await analyzeMealFromText(text, locale)
       if (analysis?.isMeal && analysis.foods.length > 0) {
@@ -221,9 +201,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ ok: true, meal_logged: true, mealId: persisted.mealId, score: persisted.score })
         }
       }
-      // Not a meal — fall through to the chat agent below.
     } catch (err) {
-      console.error('[whatsapp] text meal-log failed (continuing to chat)', err)
+      console.error('[zapi] text meal-log failed (continuing to chat)', err)
     }
   }
 
@@ -238,11 +217,11 @@ export async function POST(request: NextRequest) {
   let reply: string
   let usage: Record<string, unknown> | undefined
   try {
-    const result = await generateReply(ctx, text || (imageAttachment ? '[imagem recebida sem texto]' : ''))
+    const result = await generateReply(ctx, text || (imageUrl ? '[imagem recebida sem texto]' : ''))
     reply = result.text
     usage = result.usage
   } catch (err) {
-    console.error('[whatsapp] generateReply failed', err)
+    console.error('[zapi] generateReply failed', err)
     reply = 'Tive um soluço aqui agora — tenta de novo em alguns minutos. Se continuar, abre o app que eu te mostro tudo lá.'
     usage = { error: String(err) }
   }
