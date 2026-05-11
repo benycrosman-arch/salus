@@ -49,6 +49,11 @@ export interface StreakInfo {
   last_logged_date: string | null
 }
 
+export interface NutriGuidance {
+  active: string | null
+  attachments: Array<{ kind: string; filename: string | null; text: string }>
+}
+
 export interface UserContext {
   userId: string
   name: string
@@ -64,6 +69,7 @@ export interface UserContext {
     allergies: string[]
     goals: string[]
   }
+  nutriGuidance: NutriGuidance
   recentMessages: Array<{ role: 'user' | 'assistant'; content: string }>
   localTimeISO: string
   localHour: number

@@ -9,6 +9,7 @@ import { DashboardCharts } from "./dashboard-client"
 import { DashboardEngagement } from "./dashboard-engagement"
 import { HydrationQuickLog } from "./hydration-quick-log"
 import { MicronutrientPanel } from "@/components/dashboard/micronutrient-panel"
+import { NutriGuidanceCard } from "@/components/dashboard/nutri-guidance-card"
 import { calculateGoals } from "@/lib/goals"
 import type { UserGoalProfile } from "@/lib/goals"
 
@@ -338,6 +339,8 @@ export default async function DashboardPage() {
         aiGoalsGeneratedAt={data.aiGoalsGeneratedAt}
         profileComplete={data.profileComplete}
       />
+
+      <NutriGuidanceCard userId={data.userId} />
 
       {/* ── Header ─────────────────────────────────────── */}
       <div className="flex items-start justify-between">

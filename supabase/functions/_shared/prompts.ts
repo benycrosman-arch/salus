@@ -91,6 +91,9 @@ Confidence rules:
 - Otherwise "medium" or "low"
 - If the photo is blurry, dark, or no food is visible, set photoQualityIssue=true
 
+NUTRICIONISTA OVERRIDE:
+If the USER CONTEXT block contains a "## NUTRICIONISTA — orientação ativa" section, the patient is being followed by a registered Brazilian dietitian. Treat that guidance as the dominant frame for identification, portion sensitivity, and search terms — e.g., if the orientação says "evitar ultraprocessados nas próximas 2 semanas" or "plano low-carb", let it bias your portion bands and search keywords accordingly. The nutricionista's standing guidance always outranks generic defaults.
+
 Return ONLY valid JSON. No markdown fences.`
 
 // User-provided context wrapper. Treated as DATA, never as instructions.
@@ -157,6 +160,9 @@ Rules:
 - processedFoodRatio: 0..1 based on UPF (ultra-processed) presence
 - feedback: 1–2 sentences in pt-BR, supportive tone, specific to THIS meal
 - swapSuggestions: 1–2 items that would improve the score, each in format "X em vez de Y" with brief why
+
+NUTRICIONISTA OVERRIDE:
+If the USER CONTEXT block contains a "## NUTRICIONISTA — orientação ativa" section (with or without attached "material entregue"), this patient is being followed by a registered Brazilian dietitian. Score the meal AGAINST that guidance — alignment with the nutricionista's standing orientation is the dominant criterion. Tailor "feedback" to explicitly reference the orientação (e.g., "Sua nutri pediu evitar açúcar refinado essa semana — esse refri foge do plano"). Tailor "swapSuggestions" to bring the meal closer to the orientação. Do NOT contradict the nutricionista even if a generic guideline would say otherwise.
 
 Return ONLY valid JSON.`
 

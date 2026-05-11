@@ -16,6 +16,8 @@ import {
   ShieldCheck,
   Beaker,
 } from "lucide-react"
+import { RecommendationsEditor } from "./recommendations-editor"
+import { AttachmentsUploader } from "./attachments-uploader"
 
 export const dynamic = "force-dynamic"
 
@@ -55,7 +57,7 @@ export default async function PacientePage({ params }: { params: Promise<Params>
   const since30Iso = since30Date.toISOString()
   const since7Iso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [patientRes, mealsRes, labsRes] = await Promise.all([
+  const [patientRes, mealsRes, labsRes, recsRes, attsRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, name, email, height_cm, weight_kg, biological_sex, birth_date, city")
@@ -74,6 +76,18 @@ export default async function PacientePage({ params }: { params: Promise<Params>
       .eq("user_id", patientId)
       .order("measured_at", { ascending: false })
       .limit(8),
+    supabase
+      .from("nutri_recommendations")
+      .select("id, body, is_active, created_at")
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("nutri_patient_attachments")
+      .select("id, storage_path, original_filename, byte_size, page_count, kind, extracted_at, created_at")
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false })
+      .limit(50),
   ])
 
   const patient = patientRes.data
@@ -81,6 +95,8 @@ export default async function PacientePage({ params }: { params: Promise<Params>
 
   const meals = mealsRes.data ?? []
   const labs = labsRes.data ?? []
+  const initialRecommendations = recsRes.data ?? []
+  const initialAttachments = attsRes.data ?? []
 
   // Daily stats and user_preferences are owner-only via RLS, so derive
   // everything we can from meals (which the nutri can read for linked patients).
@@ -138,6 +154,17 @@ export default async function PacientePage({ params }: { params: Promise<Params>
       </div>
 
       {lowScore && <LowScoreAlert avg7={avg7!} concerningCount={concerningMeals.length} />}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <RecommendationsEditor
+          patientId={patientId}
+          initialRecommendations={initialRecommendations}
+        />
+        <AttachmentsUploader
+          patientId={patientId}
+          initialAttachments={initialAttachments}
+        />
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <KpiCard

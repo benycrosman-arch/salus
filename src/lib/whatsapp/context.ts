@@ -5,9 +5,57 @@ import type {
   DailyTotals,
   MealLog,
   MealWindow,
+  NutriGuidance,
   StreakInfo,
   UserContext,
 } from './types'
+
+const MAX_ATTACHMENT_CHARS_EACH = 2000
+const MAX_ATTACHMENT_CHARS_TOTAL = 5000
+
+async function loadNutriGuidance(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<NutriGuidance> {
+  try {
+    const [recRes, attRes] = await Promise.all([
+      supabase
+        .from('nutri_recommendations')
+        .select('body')
+        .eq('patient_id', userId)
+        .eq('is_active', true)
+        .maybeSingle(),
+      supabase
+        .from('nutri_patient_attachments')
+        .select('kind, original_filename, extracted_text')
+        .eq('patient_id', userId)
+        .not('extracted_text', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(10),
+    ])
+
+    const active = (recRes.data?.body as string | undefined)?.trim() || null
+    const attachments: NutriGuidance['attachments'] = []
+    let budget = MAX_ATTACHMENT_CHARS_TOTAL
+    for (const row of attRes.data ?? []) {
+      if (budget <= 0) break
+      const raw = ((row as { extracted_text?: string | null }).extracted_text ?? '').trim()
+      if (!raw) continue
+      const slice = raw.slice(0, Math.min(MAX_ATTACHMENT_CHARS_EACH, budget))
+      budget -= slice.length
+      attachments.push({
+        kind: ((row as { kind?: string | null }).kind ?? 'other') as string,
+        filename: ((row as { original_filename?: string | null }).original_filename ?? null) as
+          | string
+          | null,
+        text: slice,
+      })
+    }
+    return { active, attachments }
+  } catch {
+    return { active: null, attachments: [] }
+  }
+}
 
 const DEFAULT_GOALS: DailyGoals = {
   kcal: 2000,
@@ -114,36 +162,38 @@ export async function loadUserContext(opts: LoadContextOptions): Promise<UserCon
 
   const { iso, hour, date } = localISO(timezone)
 
-  const [profileRes, prefsRes, mealsRes, streaksRes, recentMsgsRes] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('name, ai_daily_goals, weight_kg, height_cm, biological_sex, birth_date')
-      .eq('id', userId)
-      .maybeSingle(),
-    supabase
-      .from('user_preferences')
-      .select('diet_type, allergies, goals')
-      .eq('user_id', userId)
-      .maybeSingle(),
-    supabase
-      .from('meals')
-      .select('id, meal_type, score, score_band, macros, logged_at, user_notes')
-      .eq('user_id', userId)
-      .gte('logged_at', `${date}T00:00:00`)
-      .lte('logged_at', `${date}T23:59:59`)
-      .order('logged_at', { ascending: true }),
-    supabase
-      .from('streaks')
-      .select('current_streak, longest_streak, last_logged_date')
-      .eq('user_id', userId)
-      .maybeSingle(),
-    supabase
-      .from('whatsapp_messages')
-      .select('direction, content')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(recentMessageLimit),
-  ])
+  const [profileRes, prefsRes, mealsRes, streaksRes, recentMsgsRes, nutriGuidance] =
+    await Promise.all([
+      supabase
+        .from('profiles')
+        .select('name, ai_daily_goals, weight_kg, height_cm, biological_sex, birth_date')
+        .eq('id', userId)
+        .maybeSingle(),
+      supabase
+        .from('user_preferences')
+        .select('diet_type, allergies, goals')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase
+        .from('meals')
+        .select('id, meal_type, score, score_band, macros, logged_at, user_notes')
+        .eq('user_id', userId)
+        .gte('logged_at', `${date}T00:00:00`)
+        .lte('logged_at', `${date}T23:59:59`)
+        .order('logged_at', { ascending: true }),
+      supabase
+        .from('streaks')
+        .select('current_streak, longest_streak, last_logged_date')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase
+        .from('whatsapp_messages')
+        .select('direction, content')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(recentMessageLimit),
+      loadNutriGuidance(supabase, userId),
+    ])
 
   const profile = profileRes.data
   const prefs = prefsRes.data
@@ -183,6 +233,7 @@ export async function loadUserContext(opts: LoadContextOptions): Promise<UserCon
       allergies: (prefs?.allergies as string[] | null) ?? [],
       goals: (prefs?.goals as string[] | null) ?? [],
     },
+    nutriGuidance,
     recentMessages,
     localTimeISO: iso,
     localHour: hour,
@@ -195,9 +246,44 @@ export async function loadUserContext(opts: LoadContextOptions): Promise<UserCon
  * prompt. Plain text — easier to cache than JSON, and the agent works with
  * narrative context better than nested objects.
  */
+function renderNutriGuidance(g: NutriGuidance, lang: 'pt' | 'en'): string[] {
+  if (!g.active && g.attachments.length === 0) return []
+  const out: string[] = []
+  if (lang === 'pt') {
+    out.push('## ORIENTAÇÃO DO NUTRICIONISTA (PRIORIDADE MÁXIMA — siga isso antes de qualquer sugestão genérica)')
+    if (g.active) out.push(g.active)
+    if (g.attachments.length > 0) {
+      out.push('')
+      out.push('## MATERIAL DO NUTRICIONISTA (conteúdo dos PDFs)')
+      for (const a of g.attachments) {
+        const label = [a.kind, a.filename].filter(Boolean).join(' / ')
+        out.push(`--- ${label} ---`)
+        out.push(a.text)
+      }
+    }
+    out.push('')
+  } else {
+    out.push("## NUTRITIONIST'S STANDING GUIDANCE (TOP PRIORITY — follow this before any generic advice)")
+    if (g.active) out.push(g.active)
+    if (g.attachments.length > 0) {
+      out.push('')
+      out.push('## NUTRITIONIST MATERIALS (PDF content)')
+      for (const a of g.attachments) {
+        const label = [a.kind, a.filename].filter(Boolean).join(' / ')
+        out.push(`--- ${label} ---`)
+        out.push(a.text)
+      }
+    }
+    out.push('')
+  }
+  return out
+}
+
 export function renderContextBlock(ctx: UserContext): string {
   const lines: string[] = []
   const lang = ctx.locale === 'en' ? 'en' : 'pt'
+
+  lines.push(...renderNutriGuidance(ctx.nutriGuidance, lang))
 
   if (lang === 'pt') {
     lines.push(`Usuário: ${ctx.name} (id ${ctx.userId})`)

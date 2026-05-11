@@ -1,5 +1,55 @@
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4"
 
+const MAX_ATTACHMENT_CHARS_EACH = 2500
+const MAX_ATTACHMENT_CHARS_TOTAL = 6000
+
+interface NutriGuidance {
+  active: string | null
+  attachments: { kind: string; filename: string | null; text: string }[]
+}
+
+async function loadNutriGuidance(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<NutriGuidance> {
+  try {
+    const [recRes, attRes] = await Promise.all([
+      supabase
+        .from("nutri_recommendations")
+        .select("body")
+        .eq("patient_id", userId)
+        .eq("is_active", true)
+        .maybeSingle(),
+      supabase
+        .from("nutri_patient_attachments")
+        .select("kind, original_filename, extracted_text")
+        .eq("patient_id", userId)
+        .not("extracted_text", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(10),
+    ])
+
+    const active = (recRes.data?.body as string | undefined)?.trim() || null
+    const attachments: NutriGuidance["attachments"] = []
+    let budget = MAX_ATTACHMENT_CHARS_TOTAL
+    for (const row of attRes.data ?? []) {
+      if (budget <= 0) break
+      const raw = (row.extracted_text as string | null) ?? ""
+      if (!raw) continue
+      const slice = raw.slice(0, Math.min(MAX_ATTACHMENT_CHARS_EACH, budget))
+      budget -= slice.length
+      attachments.push({
+        kind: (row.kind as string | null) ?? "other",
+        filename: (row.original_filename as string | null) ?? null,
+        text: slice,
+      })
+    }
+    return { active, attachments }
+  } catch {
+    return { active: null, attachments: [] }
+  }
+}
+
 /**
  * Reads user goals + recent meals to inject into the system prompt.
  * Tightly scoped — five most recent meals only — so token usage stays bounded.
@@ -8,7 +58,7 @@ export async function buildNutritionContext(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<string> {
-  const [profileRes, prefsRes, mealsRes] = await Promise.all([
+  const [profileRes, prefsRes, mealsRes, nutriGuidance] = await Promise.all([
     supabase
       .from("profiles")
       .select("age, biological_sex, height_cm, weight_kg, activity_level")
@@ -25,13 +75,15 @@ export async function buildNutritionContext(
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(5),
+    loadNutriGuidance(supabase, userId),
   ])
 
   const profile = profileRes.data
   const prefs = prefsRes.data
   const meals = mealsRes.data ?? []
+  const hasNutri = nutriGuidance.active || nutriGuidance.attachments.length > 0
 
-  if (!profile && !prefs && meals.length === 0) return ""
+  if (!profile && !prefs && meals.length === 0 && !hasNutri) return ""
 
   const lines: string[] = ["", "## USER CONTEXT (read-only background)"]
 
@@ -69,6 +121,21 @@ export async function buildNutritionContext(
       .filter(Boolean)
       .join(" | ")
     if (summary) lines.push(`Recent meals: ${summary}`)
+  }
+
+  if (hasNutri) {
+    lines.push("")
+    lines.push("## NUTRICIONISTA — orientação ativa (TRATAR COMO PRIORIDADE)")
+    if (nutriGuidance.active) lines.push(nutriGuidance.active)
+    if (nutriGuidance.attachments.length > 0) {
+      lines.push("")
+      lines.push("## NUTRICIONISTA — material entregue (conteúdo dos PDFs)")
+      for (const att of nutriGuidance.attachments) {
+        const label = [att.kind, att.filename].filter(Boolean).join(" / ")
+        lines.push(`--- ${label} ---`)
+        lines.push(att.text)
+      }
+    }
   }
 
   return lines.join("\n")
