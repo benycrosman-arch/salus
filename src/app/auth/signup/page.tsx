@@ -249,7 +249,7 @@ function SignUpInner() {
             <h1 className="font-serif text-3xl italic text-[#1a3a2a]">{t('heading')}</h1>
             <p className="mt-2 text-sm text-[#1a3a2a]/50">
               {role === 'nutricionista'
-                ? 'Conta de nutricionista — verificaremos seu CRN no próximo passo'
+                ? 'Conta de nutricionista — acesso imediato ao painel'
                 : t('tagline')}
             </p>
           </div>
@@ -462,7 +462,7 @@ function RolePicker() {
                 <p className="font-serif italic text-2xl text-[#1a3a2a]">Sou nutricionista</p>
                 <p className="text-sm text-[#1a3a2a]/60 mt-1.5 leading-relaxed">
                   Acompanhe seus pacientes, defina seu protocolo e use a IA para reforçar suas
-                  recomendações. Verificamos seu CRN no próximo passo.
+                  recomendações. Acesso imediato ao painel.
                 </p>
               </div>
             </div>

@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('onboarding_completed, role, nutri_verification_status')
+    .select('onboarding_completed, role')
     .eq('id', userId)
     .single()
 

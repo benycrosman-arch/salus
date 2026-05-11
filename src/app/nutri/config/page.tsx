@@ -30,7 +30,7 @@ export default async function NutriConfigPage() {
     .eq("id", user.id)
     .maybeSingle()
 
-  if (!profile) redirect("/onboarding-nutri")
+  if (!profile) redirect("/nutri")
 
   return (
     <div className="space-y-6">

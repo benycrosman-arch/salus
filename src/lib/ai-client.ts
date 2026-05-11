@@ -20,7 +20,6 @@ export type EdgeFunctionName =
   | "ai-personalize-goals"
   | "food-search"
   | "barcode-lookup"
-  | "verify-nutri-credential"
 
 function userMessage(status: number, fallback: string): string {
   switch (status) {
