@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/whatsapp-nudges",
-      "schedule": "0 * * * *"
+      "schedule": "0 8 * * *"
     },
     {
       "path": "/api/cron/weekly-report",
-      "schedule": "0 * * * 1"
+      "schedule": "0 0 * * 1"
     }
   ]
 }
