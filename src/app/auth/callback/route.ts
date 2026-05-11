@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createServiceClient } from '@/lib/supabase/service'
 
 type EmailOtpType = 'signup' | 'email' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
 
@@ -122,11 +123,17 @@ export async function GET(request: NextRequest) {
     return ERR_REDIRECT(origin, 'no_auth_params', 'Sem code ou token_hash')
   }
 
-  // Ensure a profile row exists (safety net for cases where the signup trigger missed it).
-  // We also propagate role from metadata: signup form stores it in user_metadata.role
-  // so users hitting verification email links land on the right onboarding flow.
+  // Role detection: email+senha grava role em user_metadata.role via signUp({data}).
+  // OAuth (Google/Apple) não permite isso, então o signup page passa &role= na URL
+  // de redirectTo — lemos os dois e nutri ganha se qualquer um indicar.
   const metaRole = typeof userMeta?.role === 'string' ? userMeta.role : null
-  const desiredRole = metaRole === 'nutricionista' ? 'nutricionista' : 'user'
+  const urlRole = searchParams.get('role')
+  const desiredRole = (metaRole === 'nutricionista' || urlRole === 'nutricionista')
+    ? 'nutricionista'
+    : 'user'
+
+  // Safety net: garante que o profile existe (caso o trigger handle_new_user
+  // tenha falhado). O role aqui só importa se a row ainda não existir.
   await supabase.from('profiles').upsert(
     {
       id: userId,
@@ -139,11 +146,14 @@ export async function GET(request: NextRequest) {
     },
     { onConflict: 'id', ignoreDuplicates: true }
   )
-  // Nutri pula a etapa de onboarding intermediário — marcamos role +
-  // onboarding_completed imediatamente. Update condicional para não
-  // mexer em nutris que já estavam onboarded.
+
+  // OAuth: o trigger criou profile com role='user' (raw_user_meta_data do
+  // provider não tem role). Aqui usamos service-role pra contornar o
+  // guard_profile_admin_columns (migration 011), que reverteria new.role
+  // pro old.role num UPDATE feito pelo próprio usuário.
   if (desiredRole === 'nutricionista') {
-    await supabase
+    const service = createServiceClient()
+    await service
       .from('profiles')
       .update({
         role: 'nutricionista',
@@ -151,7 +161,12 @@ export async function GET(request: NextRequest) {
         onboarding_completed_at: new Date().toISOString(),
       })
       .eq('id', userId)
-      .or('role.eq.user,onboarding_completed.is.false,onboarding_completed.is.null')
+
+    // Propaga pro user_metadata se veio só pela URL (OAuth) — alinha a
+    // fonte de verdade pra qualquer fluxo futuro que dependa do metadata.
+    if (metaRole !== 'nutricionista') {
+      await supabase.auth.updateUser({ data: { role: 'nutricionista' } })
+    }
   }
 
   const { data: profile } = await supabase

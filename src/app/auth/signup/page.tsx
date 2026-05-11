@@ -93,20 +93,10 @@ function SignUpInner() {
       if (data.session && data.user) {
         identify(data.user.id, { email: data.user.email, role })
         track("signup_completed", { method: "password", needs_verification: false, role })
-        // Nutri: marca role + onboarding_completed imediatamente, então o
-        // middleware nunca redireciona para /onboarding-nutri (que foi
-        // removido do fluxo). /auth/callback faz o mesmo, mas não roda
-        // quando o signup já devolve sessão (sem confirmação de e-mail).
-        if (role === "nutricionista") {
-          await supabase
-            .from("profiles")
-            .update({
-              role: "nutricionista",
-              onboarding_completed: true,
-              onboarding_completed_at: new Date().toISOString(),
-            })
-            .eq("id", data.user.id)
-        }
+        // O trigger handle_new_user (migration 024) lê role do user_metadata
+        // e seta profiles.role e onboarding_completed corretamente no INSERT.
+        // Para confirmação por e-mail, /auth/callback faz a mesma cobertura
+        // server-side com service-role pra contornar o guard de UPDATE.
         router.push(onboardingPath)
         router.refresh()
       } else {
