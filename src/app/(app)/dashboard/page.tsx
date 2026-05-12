@@ -8,6 +8,7 @@ import { getLocale, getTranslations } from "next-intl/server"
 import { DashboardCharts } from "./dashboard-client"
 import { DashboardEngagement } from "./dashboard-engagement"
 import { HydrationQuickLog } from "./hydration-quick-log"
+import { PatientRealtimeRefresher } from "./patient-realtime-refresher"
 import { MicronutrientPanel } from "@/components/dashboard/micronutrient-panel"
 import { NutriGuidanceCard } from "@/components/dashboard/nutri-guidance-card"
 import { calculateGoals } from "@/lib/goals"
@@ -333,6 +334,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="page-enter space-y-8">
+      <PatientRealtimeRefresher patientId={data.userId} />
       <DashboardEngagement
         userId={data.userId}
         userCreatedAt={data.userCreatedAt}
