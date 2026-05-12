@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation"
 import { resetIdentity, track } from "@/lib/posthog"
 import { useTranslations } from "next-intl"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { MyNutriCard } from "./my-nutri-card"
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -124,6 +125,8 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-foreground font-sans">Configurações</h1>
         <p className="text-sm text-muted-foreground font-body mt-1">Gerencie sua assinatura, notificações e privacidade</p>
       </div>
+
+      <MyNutriCard />
 
       {/* Subscription */}
       <Card className="border-0 shadow-md overflow-hidden">

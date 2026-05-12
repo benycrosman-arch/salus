@@ -19,6 +19,7 @@ import {
 import { RecommendationsEditor } from "./recommendations-editor"
 import { AttachmentsUploader } from "./attachments-uploader"
 import { GoalsEditor } from "./goals-editor"
+import { EndRelationshipButton } from "./end-relationship-button"
 
 export const dynamic = "force-dynamic"
 
@@ -46,7 +47,7 @@ export default async function PacientePage({ params }: { params: Promise<Params>
   // link exists so we can render a useful 404 instead of an empty page.
   const { data: link } = await supabase
     .from("nutri_patient_links")
-    .select("status, created_at")
+    .select("id, status, created_at")
     .eq("nutri_id", user.id)
     .eq("patient_id", patientId)
     .eq("status", "active")
@@ -158,6 +159,10 @@ export default async function PacientePage({ params }: { params: Promise<Params>
               {patient.city && <span>{patient.city}</span>}
             </div>
           </div>
+          <EndRelationshipButton
+            linkId={link.id}
+            patientName={patient.name || patient.email || "este paciente"}
+          />
         </div>
       </div>
 
