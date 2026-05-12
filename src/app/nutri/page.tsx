@@ -12,6 +12,7 @@ import {
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { listInvitesForNutri } from "@/lib/nutri-invites"
+import { PacientesRealtimeRefresher } from "./pacientes/realtime-refresher"
 
 export const dynamic = "force-dynamic"
 
@@ -250,6 +251,7 @@ export default async function NutriDashboardPage() {
           </ul>
         </Card>
       )}
+      <PacientesRealtimeRefresher nutriId={user.id} />
     </div>
   )
 }

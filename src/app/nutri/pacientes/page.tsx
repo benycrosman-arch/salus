@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createServerClient } from "@supabase/ssr"
 import { PacientesClient, type Patient, type PatientColumn, type Invite } from "./pacientes-client"
+import { PacientesRealtimeRefresher } from "./realtime-refresher"
 import { listInvitesForNutri } from "@/lib/nutri-invites"
 
 export const dynamic = "force-dynamic"
@@ -143,6 +144,7 @@ export default async function PacientesPage() {
         pendingInvites={pendingInvites}
         historyInvites={historyInvites}
       />
+      <PacientesRealtimeRefresher nutriId={user.id} />
     </div>
   )
 }
