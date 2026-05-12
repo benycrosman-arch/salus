@@ -181,7 +181,9 @@ export async function GET(request: NextRequest) {
   // If the auto-link fails (e.g. email mismatch 403), we keep the cookie and
   // bounce the patient to the manual confirmation screen so they see the error
   // instead of silently landing on the dashboard with no link.
-  const inviteToken = cookieStore.get('salus_invite')?.value
+  const inviteRaw = cookieStore.get('salus_invite')?.value || ''
+  const inviteParsed = parseInviteCookie(inviteRaw)
+  const inviteToken = inviteParsed.token
   let inviteAcceptFailed = false
   if (inviteToken && profile?.role !== 'nutricionista') {
     try {
@@ -192,7 +194,7 @@ export async function GET(request: NextRequest) {
           // Forward the auth cookies so the accept endpoint sees the session
           cookie: cookieStore.getAll().map((c) => `${c.name}=${c.value}`).join('; '),
         },
-        body: JSON.stringify({ token: inviteToken }),
+        body: JSON.stringify({ token: inviteToken, code: inviteParsed.code }),
       })
       if (!acceptRes.ok) {
         const errBody = await acceptRes.json().catch(() => ({}))
@@ -231,4 +233,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/onboarding`)
   }
   return NextResponse.redirect(`${origin}${next}`)
+}
+
+function parseInviteCookie(raw: string): { token: string; code: string } {
+  if (!raw) return { token: '', code: '' }
+  if (raw.startsWith('{')) {
+    try {
+      const j = JSON.parse(raw) as { token?: unknown; code?: unknown }
+      return {
+        token: typeof j.token === 'string' ? j.token : '',
+        code: typeof j.code === 'string' ? j.code : '',
+      }
+    } catch {
+      return { token: '', code: '' }
+    }
+  }
+  return { token: raw, code: '' }
 }

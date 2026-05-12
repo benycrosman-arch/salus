@@ -15,6 +15,9 @@ import {
   AlertTriangle,
   Moon,
   Send,
+  KeyRound,
+  X,
+  ShieldCheck,
 } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
@@ -105,6 +108,16 @@ export function PacientesClient({
   const [email, setEmail] = useState("")
   const [sending, setSending] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [created, setCreated] = useState<{
+    email: string
+    link: string
+    accessCode: string
+    expiresInHours: number
+    emailSent: boolean
+  } | null>(null)
+  const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedCode, setCopiedCode] = useState(false)
+  const [copiedBoth, setCopiedBoth] = useState(false)
 
   const grouped = useMemo(() => {
     const out: Record<PatientColumn, Patient[]> = { engajado: [], atencao: [], inativo: [] }
@@ -135,11 +148,13 @@ export function PacientesClient({
         method: "email",
         delivered: !!body.emailSent,
       })
-      if (body.emailSent) {
-        toast.success(`Convite enviado para ${email}`)
-      } else {
-        toast.success(`Convite criado para ${email}. Copie o link e envie manualmente.`)
-      }
+      setCreated({
+        email,
+        link: body.link,
+        accessCode: body.accessCode,
+        expiresInHours: body.expiresInHours ?? 24,
+        emailSent: !!body.emailSent,
+      })
       setEmail("")
       router.refresh()
     } catch {
@@ -149,7 +164,28 @@ export function PacientesClient({
     }
   }
 
-  const copyLink = (token: string, id: string) => {
+  const copyLink = async (link: string) => {
+    await navigator.clipboard.writeText(link)
+    setCopiedLink(true)
+    toast.success("Link copiado")
+    setTimeout(() => setCopiedLink(false), 2000)
+  }
+  const copyCode = async (code: string) => {
+    await navigator.clipboard.writeText(code)
+    setCopiedCode(true)
+    toast.success("Código copiado")
+    setTimeout(() => setCopiedCode(false), 2000)
+  }
+  const copyBoth = async () => {
+    if (!created) return
+    const text = `Convite Salus para você:\nLink: ${created.link}\nCódigo de acesso: ${created.accessCode}\n\n(Válido por ${created.expiresInHours}h. O código é necessário para confirmar.)`
+    await navigator.clipboard.writeText(text)
+    setCopiedBoth(true)
+    toast.success("Mensagem copiada — cole no WhatsApp/SMS")
+    setTimeout(() => setCopiedBoth(false), 2000)
+  }
+
+  const copyPendingLink = (token: string, id: string) => {
     const baseUrl = window.location.origin
     const link = `${baseUrl}/aceitar-convite?token=${token}`
     navigator.clipboard.writeText(link).then(() => {
@@ -189,13 +225,100 @@ export function PacientesClient({
         </div>
       </Card>
 
+      {/* Credentials display — shown ONCE after a successful invite. The code
+          is never retrievable again from the server, so the nutri must copy or
+          send it now. */}
+      {created && (
+        <Card className="border-0 shadow-md p-5 bg-gradient-to-br from-[#1a3a2a]/[0.04] to-transparent ring-1 ring-[#1a3a2a]/10">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#1a3a2a]" />
+              <h3 className="text-sm font-semibold text-[#1a3a2a]">
+                Convite criado para {created.email}
+              </h3>
+            </div>
+            <button
+              onClick={() => setCreated(null)}
+              className="text-[#1a3a2a]/40 hover:text-[#1a3a2a] transition-colors"
+              aria-label="Fechar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-xs text-[#1a3a2a]/60 mb-4">
+            {created.emailSent
+              ? `Email enviado. O código abaixo NÃO está no email — você precisa enviá-lo separadamente (WhatsApp, presencial). Válido por ${created.expiresInHours}h.`
+              : `Email não foi enviado automaticamente. Envie o link e o código abaixo para o paciente. Válido por ${created.expiresInHours}h.`}
+          </p>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] font-semibold text-[#1a3a2a]/60 uppercase tracking-wide">
+                Link
+              </label>
+              <div className="mt-1 flex items-stretch gap-2">
+                <code className="flex-1 min-w-0 px-3 py-2 bg-white rounded-lg ring-1 ring-[#e4ddd4] text-xs text-[#1a3a2a] break-all font-mono">
+                  {created.link}
+                </code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyLink(created.link)}
+                  className="shrink-0"
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-[#1a3a2a]/60 uppercase tracking-wide flex items-center gap-1">
+                <KeyRound className="w-3 h-3" />
+                Código de acesso (mostrado apenas uma vez)
+              </label>
+              <div className="mt-1 flex items-stretch gap-2">
+                <code className="flex-1 min-w-0 px-3 py-3 bg-white rounded-lg ring-1 ring-[#e4ddd4] text-2xl tracking-[0.3em] text-center font-mono text-[#1a3a2a] font-semibold">
+                  {created.accessCode}
+                </code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyCode(created.accessCode)}
+                  className="shrink-0"
+                >
+                  {copiedCode ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                </Button>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              onClick={copyBoth}
+              className="w-full bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 text-white"
+            >
+              {copiedBoth ? (
+                <><Check className="w-4 h-4 mr-2" />Mensagem copiada</>
+              ) : (
+                <><Copy className="w-4 h-4 mr-2" />Copiar mensagem pronta (WhatsApp/SMS)</>
+              )}
+            </Button>
+            <p className="text-[10px] text-[#1a3a2a]/50 text-center leading-relaxed">
+              Por segurança, envie o link e o código por canais diferentes (ex.: link por email, código por WhatsApp).
+              O paciente terá 5 tentativas para digitar o código antes do convite ser bloqueado.
+            </p>
+          </div>
+        </Card>
+      )}
+
       {/* Kanban */}
       <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
         <div className="grid grid-flow-col auto-cols-[85%] sm:auto-cols-auto sm:grid-cols-4 gap-4 min-w-min">
           <InviteColumn
             invites={pendingInvites}
             copiedId={copiedId}
-            onCopy={copyLink}
+            onCopy={copyPendingLink}
           />
           <PatientColumnCard column="engajado" patients={grouped.engajado} />
           <PatientColumnCard column="atencao" patients={grouped.atencao} />

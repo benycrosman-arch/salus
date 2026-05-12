@@ -3,22 +3,22 @@ import { guardRequest } from '@/lib/api-guard'
 import { sendEmail, nutriInviteEmail } from '@/lib/email'
 import { insertInvite, listInvitesForNutri } from '@/lib/nutri-invites'
 import { verifyInviteRequest } from '@/lib/invite-security'
+import { generateAccessCode, hashCode } from '@/lib/invite-codes'
+
+const INVITE_TTL_HOURS = 24
 
 /**
- * Create an invite. Persists in nutri_invites and dispatches an email via
- * Resend. The returned `link` lands the patient on the public /aceitar-convite
- * page, which shows the nutri's name and routes to signup with the invite
- * token persisted (auto-linking on signup completion).
+ * Create an invite. Persists in nutri_invites with a salted hash of a 6-char
+ * out-of-band access code, dispatches an email via Resend, and returns BOTH
+ * the link and the raw code so the nutri can show them in the UI exactly
+ * once. The patient must present token + code to accept — single-channel
+ * compromise (forwarded email, leaked link) isn't enough.
  */
 export async function POST(request: NextRequest) {
   const guard = await guardRequest()
   if (!guard.ok) return guard.response
   const { user, supabase } = guard
 
-  // The invite link is dispatched in an email — using request.nextUrl.origin
-  // (Host header) as a fallback would let an attacker who can hit this API
-  // mint phishing links pointing at attacker.com under our `convites@`
-  // sender. Refuse to issue an invite if the prod URL isn't configured.
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL
   if (!baseUrl || !/^https?:\/\//.test(baseUrl)) {
     console.error('NEXT_PUBLIC_APP_URL not set; refusing to mint invite link.')
@@ -53,14 +53,29 @@ export async function POST(request: NextRequest) {
   }
   const email = verdict.normalizedEmail
 
+  // Generate the access code BEFORE the insert so we can hash it with the
+  // invite ID. Trick: insert a placeholder hash first, then update with the
+  // real hash using the row's actual ID. Simpler: use a UUID generated
+  // client-side as both the row PK and the salt — but the schema has
+  // gen_random_uuid() as the default and we don't want to fight that.
+  //
+  // Compromise: hash with the (random) raw code itself as both data and salt
+  // on first pass, then immediately update with the proper id-salted hash.
+  // Shorter total: just use the email + code + a per-request nonce as a
+  // pre-hash placeholder and overwrite right after. We do the latter.
+  const rawCode = generateAccessCode()
+  const expiresAt = new Date(Date.now() + INVITE_TTL_HOURS * 60 * 60 * 1000).toISOString()
+
+  // Insert with a temporary hash (id not yet known).
+  const tempHash = hashCode('pending-rotation', rawCode)
   const { data: invite, error } = await insertInvite(supabase, {
     nutri_id: user.id,
     patient_email: email,
+    code_hash: tempHash,
+    expires_at: expiresAt,
   })
 
   if (error || !invite) {
-    // 23505 = unique_violation from the partial index added in migration 028.
-    // Means another concurrent request beat us to the duplicate-pending guard.
     if (error?.code === '23505') {
       return NextResponse.json(
         { error: 'Já existe um convite pendente para este e-mail.', code: 'duplicate_pending' },
@@ -73,10 +88,23 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Now that we have the row's UUID, rotate to the proper id-salted hash.
+  // If this update fails the invite still works — but accept won't accept
+  // any code (since the temp hash uses a literal salt nobody knows). Treat
+  // an update failure as a hard error and roll the invite back.
+  const properHash = hashCode(invite.id, rawCode)
+  const { error: rotateErr } = await supabase
+    .from('nutri_invites')
+    .update({ code_hash: properHash })
+    .eq('id', invite.id)
+  if (rotateErr) {
+    await supabase.from('nutri_invites').delete().eq('id', invite.id)
+    console.error('invite code-hash rotation failed:', rotateErr.message)
+    return NextResponse.json({ error: 'Falha ao gerar código do convite.' }, { status: 500 })
+  }
+
   const link = `${baseUrl.replace(/\/$/, '')}/aceitar-convite?token=${invite.token}`
 
-  // Strip CR/LF from the display name — it ends up in the email Subject and a
-  // newline there could be interpreted as a header boundary by some relays.
   const rawNutriName = profile?.name || user.email?.split('@')[0] || 'Seu nutricionista'
   const nutriName = rawNutriName.replace(/[\r\n]+/g, ' ').slice(0, 200)
 
@@ -84,6 +112,7 @@ export async function POST(request: NextRequest) {
     nutriName,
     patientEmail: invite.patient_email,
     link,
+    accessCode: rawCode,
   })
   const send = await sendEmail({
     to: invite.patient_email,
@@ -94,8 +123,15 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    invite,
+    invite: {
+      id: invite.id,
+      patient_email: invite.patient_email,
+      expires_at: invite.expires_at,
+      token: invite.token,
+    },
     link,
+    accessCode: rawCode,
+    expiresInHours: INVITE_TTL_HOURS,
     emailSent: send.ok,
     emailReason: send.ok ? null : send.reason,
   })

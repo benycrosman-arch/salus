@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
-import { getInviteByToken } from '@/lib/nutri-invites'
+import { getInviteByToken, recordCodeAttempt } from '@/lib/nutri-invites'
+import { hashCode, normalizeCode, verifyCodeHash, MAX_CODE_ATTEMPTS } from '@/lib/invite-codes'
 
 /**
- * Consume an invite token. Auth required: the calling user becomes the patient.
- * Creates a nutri_patient_links row (or reactivates an existing one) and marks
- * the invite as accepted. Idempotent — safe to call twice.
+ * Consume an invite token + access code.
  *
- * Token can come from POST body or `salus_invite` cookie (set when the user
- * first lands on /aceitar-convite). The cookie path lets us auto-link after
- * signup without bouncing through extra pages.
+ * Inputs (in priority order):
+ *   - body.token / body.code
+ *   - `salus_invite` cookie (JSON `{token, code}` for new invites; legacy
+ *     plain-string token for invites issued before migration 029)
+ *
+ * Auth required: the calling user becomes the patient. Creates a
+ * nutri_patient_links row (or reactivates an existing one) and marks the
+ * invite as accepted. Idempotent — safe to call twice.
  */
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
@@ -32,8 +36,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = (await request.json().catch(() => null)) as { token?: string } | null
-  const token = (body?.token || cookieStore.get('salus_invite')?.value || '').trim()
+  const body = (await request.json().catch(() => null)) as
+    | { token?: string; code?: string }
+    | null
+
+  const cookieRaw = cookieStore.get('salus_invite')?.value || ''
+  const cookieParsed = parseInviteCookie(cookieRaw)
+
+  const token = (body?.token || cookieParsed.token || '').trim()
+  const rawCode = body?.code || cookieParsed.code || ''
   if (!token) {
     return NextResponse.json({ error: 'Token ausente.' }, { status: 400 })
   }
@@ -52,13 +63,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Convite expirado.' }, { status: 410 })
   }
 
-  // Patient must not be the inviting nutri
   if (invite.nutri_id === user.id) {
     return NextResponse.json({ error: 'Você não pode aceitar seu próprio convite.' }, { status: 400 })
   }
 
-  // The token is only valid for the email it was issued to. Anyone else
-  // bouncing the link (or signing up with a different address) is rejected.
   if (
     invite.patient_email.trim().toLowerCase() !==
     (user.email ?? '').trim().toLowerCase()
@@ -73,7 +81,45 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Patients only — the nutri panel is incompatible with patient role
+  // Code verification — required for any invite that has a code_hash (i.e.
+  // issued after migration 029). Legacy invites without a hash are
+  // grandfathered to keep pre-existing pending links acceptable.
+  if (invite.code_hash) {
+    const attempts = invite.code_attempts ?? 0
+    if (attempts >= MAX_CODE_ATTEMPTS) {
+      await admin.from('nutri_invites').update({ status: 'expired' }).eq('id', invite.id)
+      return NextResponse.json(
+        { error: 'Muitas tentativas erradas. O convite foi bloqueado — peça um novo.', code: 'code_locked' },
+        { status: 423 },
+      )
+    }
+    const normalized = normalizeCode(rawCode)
+    if (!normalized) {
+      return NextResponse.json(
+        { error: 'Código de acesso obrigatório (6 caracteres).', code: 'code_required' },
+        { status: 400 },
+      )
+    }
+    const expected = invite.code_hash
+    const actual = hashCode(invite.id, normalized)
+    if (!verifyCodeHash(expected, actual)) {
+      const newCount = attempts + 1
+      await recordCodeAttempt(admin, invite.id, newCount, newCount >= MAX_CODE_ATTEMPTS)
+      const remaining = Math.max(0, MAX_CODE_ATTEMPTS - newCount)
+      return NextResponse.json(
+        {
+          error:
+            remaining > 0
+              ? `Código incorreto. Você tem mais ${remaining} tentativa${remaining === 1 ? '' : 's'}.`
+              : 'Código incorreto. Convite bloqueado — peça um novo ao seu nutricionista.',
+          code: 'code_invalid',
+          remaining,
+        },
+        { status: 401 },
+      )
+    }
+  }
+
   const { data: profile } = await admin
     .from('profiles')
     .select('role')
@@ -86,7 +132,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Upsert link (active). The unique constraint is (nutri_id, patient_id).
   const { error: linkErr } = await admin
     .from('nutri_patient_links')
     .upsert(
@@ -104,8 +149,24 @@ export async function POST(request: NextRequest) {
 
   await admin.from('nutri_invites').update({ status: 'accepted' }).eq('id', invite.id)
 
-  // Burn the cookie so we don't try to re-accept on subsequent loads
   cookieStore.set('salus_invite', '', { maxAge: 0, path: '/' })
 
   return NextResponse.json({ ok: true, nutri_id: invite.nutri_id })
+}
+
+function parseInviteCookie(raw: string): { token: string; code: string } {
+  if (!raw) return { token: '', code: '' }
+  // New cookies are JSON; legacy cookies are bare token strings.
+  if (raw.startsWith('{')) {
+    try {
+      const j = JSON.parse(raw) as { token?: unknown; code?: unknown }
+      return {
+        token: typeof j.token === 'string' ? j.token : '',
+        code: typeof j.code === 'string' ? j.code : '',
+      }
+    } catch {
+      return { token: '', code: '' }
+    }
+  }
+  return { token: raw, code: '' }
 }

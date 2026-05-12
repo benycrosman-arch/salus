@@ -3,15 +3,17 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 /**
  * Column-aware helpers for the `nutri_invites` table.
  *
- * Why this exists: the live DB drifted from migration history at some point —
- * the canonical column is `patient_email`, but in some environments it's still
- * the legacy `email` (migration 014's rename never ran, or PostgREST's schema
- * cache is stale). Rather than crash the entire invite/dashboard flow on that
- * drift, we probe once per process, cache the working column name, and
- * normalize the row shape so callers always see `patient_email`.
+ * Why this exists: the live DB has drifted from migration files multiple
+ * times. The canonical column is `patient_email`, but legacy envs still have
+ * `email` (migration 014 didn't run). Migration 029 added `code_hash` and
+ * `code_attempts`, which may not be present on every env yet either.
  *
- * Once `npx supabase db push` lands migration 027 everywhere, this falls into
- * its happy path forever — the fallback branch is just defense in depth.
+ * On first call we probe what the DB actually has and cache the answer for
+ * the lifetime of the Vercel instance. Inserts/selects route through the
+ * detected shape, so the app keeps working through partial deploys.
+ *
+ * Once `npx supabase db push` lands migrations 027/029 everywhere, every
+ * probe lands on the canonical happy path forever.
  */
 
 export type InviteRow = {
@@ -22,44 +24,50 @@ export type InviteRow = {
   status?: string
   created_at?: string
   expires_at: string
+  code_hash?: string | null
+  code_attempts?: number
 }
 
 type EmailColumn = 'patient_email' | 'email'
+type SchemaShape = { emailCol: EmailColumn; hasCodeColumns: boolean }
 
-let cachedColumn: EmailColumn | null = null
-let probePromise: Promise<EmailColumn> | null = null
+let cachedShape: SchemaShape | null = null
+let probePromise: Promise<SchemaShape> | null = null
 
-/**
- * Strict — only matches PostgREST's "schema cache" PGRST204 family.
- * Looser substrings ('could not find') match RLS / trigger errors and would
- * cause us to flip column names for the wrong reason.
- */
 function isSchemaCacheError(message: string | undefined): boolean {
   if (!message) return false
   return message.toLowerCase().includes('schema cache')
 }
 
-async function probeColumn(supabase: SupabaseClient): Promise<EmailColumn> {
-  // limit(0) returns no rows but PostgREST still validates the projection
-  // against the schema cache, so a missing column raises PGRST204.
-  const { error } = await supabase.from('nutri_invites').select('patient_email').limit(0)
-  if (!error) return 'patient_email'
-  if (isSchemaCacheError(error.message)) return 'email'
-  // Some other error (RLS denial during probe). Default to canonical and let
-  // the per-call retry handle the unlucky case where it's actually wrong.
-  return 'patient_email'
+async function probeShape(supabase: SupabaseClient): Promise<SchemaShape> {
+  // Most-canonical first; fall back through the matrix on schema-cache errors.
+  // limit(0) returns no rows but still validates the projection.
+  const r1 = await supabase.from('nutri_invites').select('patient_email, code_hash').limit(0)
+  if (!r1.error) return { emailCol: 'patient_email', hasCodeColumns: true }
+
+  const r2 = await supabase.from('nutri_invites').select('patient_email').limit(0)
+  if (!r2.error) return { emailCol: 'patient_email', hasCodeColumns: false }
+
+  const r3 = await supabase.from('nutri_invites').select('email, code_hash').limit(0)
+  if (!r3.error) return { emailCol: 'email', hasCodeColumns: true }
+
+  const r4 = await supabase.from('nutri_invites').select('email').limit(0)
+  if (!r4.error) return { emailCol: 'email', hasCodeColumns: false }
+
+  // All probes failed — likely RLS blocking the entire table during probe.
+  // Default to canonical and let per-call retry handle it if we guessed wrong.
+  return { emailCol: 'patient_email', hasCodeColumns: true }
 }
 
-export async function getInviteEmailColumn(supabase: SupabaseClient): Promise<EmailColumn> {
-  if (cachedColumn) return cachedColumn
+export async function getInviteShape(supabase: SupabaseClient): Promise<SchemaShape> {
+  if (cachedShape) return cachedShape
   if (!probePromise) {
-    probePromise = probeColumn(supabase)
-      .then((c) => {
-        cachedColumn = c
-        return c
+    probePromise = probeShape(supabase)
+      .then((s) => {
+        cachedShape = s
+        return s
       })
       .catch((err) => {
-        // Don't poison the cache on a failed probe — let the next caller retry.
         probePromise = null
         throw err
       })
@@ -77,52 +85,59 @@ function normalize(row: Record<string, unknown> | null): InviteRow | null {
   return out as unknown as InviteRow
 }
 
-function projectionFor(col: EmailColumn, canonical: string): string {
-  if (col === 'patient_email') return canonical
-  return canonical
-    .split(',')
-    .map((s) => s.trim())
-    .map((s) => (s === 'patient_email' ? 'email' : s))
+function projectionFor(shape: SchemaShape, canonical: string): string {
+  const parts = canonical.split(',').map((s) => s.trim())
+  return parts
+    .map((s) => {
+      if (s === 'patient_email' && shape.emailCol === 'email') return 'email'
+      if ((s === 'code_hash' || s === 'code_attempts') && !shape.hasCodeColumns) return null
+      return s
+    })
+    .filter((s): s is string => s !== null)
     .join(', ')
 }
 
 /**
- * Run an op with the cached column name; if it fails with a schema-cache
- * error, retry once with the alt column. Only commit the cache flip when the
- * retry actually SUCCEEDS — otherwise a transient error would poison the
- * cache for the lifetime of the process.
+ * Run an op with the cached shape; if it fails with a schema-cache error,
+ * invalidate the cache and retry once with a fresh probe. Only commit cache
+ * updates when the retry actually SUCCEEDS — otherwise a transient error
+ * would poison the cache for the lifetime of the process.
  */
-async function withColumnRetry<T extends { error: { message: string } | null }>(
+async function withShapeRetry<T extends { error: { message: string } | null }>(
   supabase: SupabaseClient,
-  run: (col: EmailColumn) => Promise<T>,
+  run: (shape: SchemaShape) => Promise<T>,
 ): Promise<T> {
-  const col = await getInviteEmailColumn(supabase)
-  const first = await run(col)
+  const shape = await getInviteShape(supabase)
+  const first = await run(shape)
   if (!first.error || !isSchemaCacheError(first.error.message)) return first
 
-  const altCol: EmailColumn = col === 'patient_email' ? 'email' : 'patient_email'
-  const second = await run(altCol)
-  if (!second.error) {
-    cachedColumn = altCol
-  }
-  return second
+  // Force a re-probe on the second pass.
+  cachedShape = null
+  probePromise = null
+  const fresh = await getInviteShape(supabase)
+  return run(fresh)
 }
 
-/**
- * Insert a new invite. Caller passes the canonical shape; we translate at the
- * boundary. Returns the row in canonical shape.
- */
 export async function insertInvite(
   supabase: SupabaseClient,
-  args: { nutri_id: string; patient_email: string },
+  args: {
+    nutri_id: string
+    patient_email: string
+    code_hash?: string | null
+    expires_at?: string
+  },
 ): Promise<{ data: InviteRow | null; error: { message: string; code?: string } | null }> {
   const canonical = 'id, token, patient_email, status, created_at, expires_at, nutri_id'
-  const res = await withColumnRetry(supabase, async (col) => {
-    const projection = projectionFor(col, canonical)
-    const payload =
-      col === 'patient_email'
-        ? { nutri_id: args.nutri_id, patient_email: args.patient_email }
-        : { nutri_id: args.nutri_id, email: args.patient_email }
+  const res = await withShapeRetry(supabase, async (shape) => {
+    const projection = projectionFor(shape, canonical)
+    const payload: Record<string, unknown> = {
+      nutri_id: args.nutri_id,
+      [shape.emailCol]: args.patient_email,
+    }
+    if (args.expires_at !== undefined) payload.expires_at = args.expires_at
+    if (args.code_hash !== undefined && shape.hasCodeColumns) {
+      payload.code_hash = args.code_hash
+    }
     return supabase.from('nutri_invites').insert(payload).select(projection).single()
   })
   return {
@@ -131,17 +146,14 @@ export async function insertInvite(
   }
 }
 
-/**
- * List invites for a nutri (most-recent first).
- */
 export async function listInvitesForNutri(
   supabase: SupabaseClient,
   nutri_id: string,
   limit = 50,
 ): Promise<{ data: InviteRow[]; error: { message: string } | null }> {
   const canonical = 'id, patient_email, status, created_at, expires_at, token, nutri_id'
-  const res = await withColumnRetry(supabase, async (col) => {
-    const projection = projectionFor(col, canonical)
+  const res = await withShapeRetry(supabase, async (shape) => {
+    const projection = projectionFor(shape, canonical)
     return supabase
       .from('nutri_invites')
       .select(projection)
@@ -155,27 +167,20 @@ export async function listInvitesForNutri(
   return { data: rows, error: res.error }
 }
 
-/**
- * Look up a single invite by token. Used by the public landing + accept route.
- * Token is forced to lowercase so an uppercase URL still resolves.
- */
 export async function getInviteByToken(
   supabase: SupabaseClient,
   token: string,
 ): Promise<{ data: InviteRow | null; error: { message: string } | null }> {
-  const canonical = 'id, nutri_id, patient_email, status, expires_at, token, created_at'
+  const canonical =
+    'id, nutri_id, patient_email, status, expires_at, token, created_at, code_hash, code_attempts'
   const normalizedToken = token.toLowerCase()
-  const res = await withColumnRetry(supabase, async (col) => {
-    const projection = projectionFor(col, canonical)
+  const res = await withShapeRetry(supabase, async (shape) => {
+    const projection = projectionFor(shape, canonical)
     return supabase.from('nutri_invites').select(projection).eq('token', normalizedToken).maybeSingle()
   })
   return { data: normalize(res.data as Record<string, unknown> | null), error: res.error }
 }
 
-/**
- * Count invites issued by a nutri since a given timestamp. Used by the
- * per-nutri abuse guard.
- */
 export async function countInvitesSince(
   supabase: SupabaseClient,
   nutri_id: string,
@@ -189,30 +194,38 @@ export async function countInvitesSince(
   return count ?? 0
 }
 
-/**
- * Returns true if there's already a pending, non-expired invite from this
- * nutri to this email. Prevents accidental spam (duplicate-tap on the
- * "Enviar convite" button). Uses the same column-retry path so a stale
- * cache can't make this guard silently fail open.
- *
- * Note: this is a best-effort pre-check. The migration-028 partial unique
- * index is the actual race-proof guarantee — caller must also handle 23505.
- */
 export async function hasPendingInviteFor(
   supabase: SupabaseClient,
   nutri_id: string,
   patient_email: string,
 ): Promise<boolean> {
   const nowIso = new Date().toISOString()
-  const res = await withColumnRetry(supabase, async (col) => {
+  const res = await withShapeRetry(supabase, async (shape) => {
     return supabase
       .from('nutri_invites')
       .select('id', { count: 'exact', head: true })
       .eq('nutri_id', nutri_id)
-      .eq(col, patient_email)
+      .eq(shape.emailCol, patient_email)
       .eq('status', 'pending')
       .gt('expires_at', nowIso)
   })
   if (res.error) return false
   return (res.count ?? 0) > 0
+}
+
+/**
+ * Bump code_attempts and optionally lock the invite. Best-effort — failure
+ * just means the next attempt also gets counted, which is fine.
+ */
+export async function recordCodeAttempt(
+  supabase: SupabaseClient,
+  inviteId: string,
+  newAttemptCount: number,
+  lock: boolean,
+): Promise<void> {
+  const shape = await getInviteShape(supabase)
+  if (!shape.hasCodeColumns) return
+  const update: Record<string, unknown> = { code_attempts: newAttemptCount }
+  if (lock) update.status = 'expired'
+  await supabase.from('nutri_invites').update(update).eq('id', inviteId)
 }

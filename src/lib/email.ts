@@ -53,6 +53,11 @@ export async function sendEmail({ to, subject, html, from, replyTo }: SendArgs):
 
 /**
  * Email template for a nutricionista inviting a patient.
+ *
+ * The `accessCode` is intentionally NOT included in the email — the nutri
+ * shares it via a different channel (verbal, WhatsApp, etc) so a leaked
+ * email alone can't be used to accept the invite. We do mention that a
+ * code is required so the patient knows to ask for it.
  */
 export function nutriInviteEmail({
   nutriName,
@@ -62,6 +67,7 @@ export function nutriInviteEmail({
   nutriName: string
   patientEmail: string
   link: string
+  accessCode?: string
 }) {
   const safeNutri = (nutriName?.trim() || 'Seu nutricionista').replace(/[\r\n]+/g, ' ')
   const safeLink = escapeHtml(link)
@@ -86,8 +92,11 @@ export function nutriInviteEmail({
                 <h1 style="font-family:Georgia,serif;font-style:italic;font-size:28px;line-height:1.25;color:#1a3a2a;margin:0 0 12px 0;">
                   Seu nutricionista ${escapeHtml(safeNutri)} convidou você para usar a Salus AI
                 </h1>
-                <p style="font-size:15px;line-height:1.6;color:#1a3a2a;opacity:0.85;margin:0 0 20px 0;">
+                <p style="font-size:15px;line-height:1.6;color:#1a3a2a;opacity:0.85;margin:0 0 16px 0;">
                   A Salus é o aplicativo que ${escapeHtml(safeNutri)} usa para acompanhar suas refeições, exames e progresso entre as consultas. Você fotografa o prato, a IA analisa, e seu nutricionista vê tudo no painel dele(a).
+                </p>
+                <p style="font-size:14px;line-height:1.6;color:#1a3a2a;opacity:0.75;margin:0 0 20px 0;background:#faf8f4;border-radius:12px;padding:12px 14px;">
+                  <strong>Você vai precisar de um código de 6 caracteres</strong> que ${escapeHtml(safeNutri)} te enviou separadamente (ex.: WhatsApp, mensagem). Ele(a) precisa te passar esse código pra você concluir a vinculação — por segurança, ele não está neste e-mail.
                 </p>
               </td>
             </tr>

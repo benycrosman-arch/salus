@@ -1,26 +1,26 @@
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
-import { Stethoscope, ArrowRight, CheckCircle, AlertCircle, Mail } from 'lucide-react'
+import { Stethoscope, CheckCircle, AlertCircle } from 'lucide-react'
 import { getInviteByToken } from '@/lib/nutri-invites'
+import { CodeEntryForm } from './code-entry-form'
 
 export const dynamic = 'force-dynamic'
 
 type Search = { token?: string }
 
 /**
- * Public landing for an invite link emailed by a nutricionista.
+ * Public landing for an invite link.
  *
  * Flow:
- *   1. Look up the token (server-side, service role) → nutri name + status
- *   2. Persist the token in `salus_invite` cookie (1 day)
- *   3. If the visitor is already authenticated, push them straight through
- *      `/api/nutri/invite/accept` via the nutri-link redirector below
- *   4. Otherwise, route to /auth/signup?email=... — the auth callback will
- *      consume the cookie post-signup and create the link automatically.
+ *   1. Look up the token (server-side, service role) → confirm it's pending
+ *   2. Show the nutri's name + a 6-char code entry form
+ *   3. Form posts to /api/nutri/invite/verify-code; on success the server
+ *      sets the httpOnly `salus_invite` cookie with {token, code}
+ *   4. Client redirects to /auth/signup (or /aceitar-convite/confirmar if
+ *      already logged in)
  */
 export default async function AceitarConvitePage({
   searchParams,
@@ -49,15 +49,14 @@ export default async function AceitarConvitePage({
 
   const { data: nutri } = await admin
     .from('profiles')
-    .select('name, email')
+    .select('name')
     .eq('id', invite.nutri_id)
     .maybeSingle()
 
-  // Auth-check FIRST so we can decide whether to persist the cookie. If a
-  // logged-in visitor with the wrong email lands on an attacker's link, we
-  // don't want their session to silently inherit the attacker's token in the
-  // httpOnly cookie — accept's email_mismatch gate would catch it, but the
-  // safer move is to never persist the cookie unless it could plausibly help.
+  // Detect whether the visitor is already authenticated. Used purely to
+  // decide where to redirect after a successful code verification — we do
+  // NOT plant the cookie here anymore. The verify-code endpoint sets it
+  // only after the patient proves they have the access code.
   const cookieStore = await cookies()
   const userSupabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -73,27 +72,6 @@ export default async function AceitarConvitePage({
   const {
     data: { user },
   } = await userSupabase.auth.getUser()
-
-  const sessionEmail = user?.email?.trim().toLowerCase() ?? null
-  const invitedEmail = invite.patient_email.trim().toLowerCase()
-  const matchesSession = !user || sessionEmail === invitedEmail
-
-  if (matchesSession) {
-    cookieStore.set('salus_invite', token, {
-      maxAge: 60 * 60 * 24,
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    })
-  }
-
-  if (user) {
-    // Logged in — bounce to the confirmation screen. If the email doesn't
-    // match, /api/nutri/invite/accept will surface 403 email_mismatch and the
-    // confirmar UI shows a "trocar de conta" path.
-    redirect('/aceitar-convite/confirmar')
-  }
 
   const nutriName = nutri?.name?.trim() || 'Seu nutricionista'
 
@@ -113,45 +91,24 @@ export default async function AceitarConvitePage({
           <div className="w-12 h-12 rounded-2xl bg-[#1a3a2a]/10 flex items-center justify-center mb-5">
             <Stethoscope className="w-5 h-5 text-[#1a3a2a]" />
           </div>
-          <h1 className="font-serif text-3xl italic text-[#1a3a2a] leading-tight">
-            Seu nutricionista <span className="not-italic font-semibold">{nutriName}</span> convidou
-            você para usar a Salus AI
+          <h1 className="font-serif text-2xl italic text-[#1a3a2a] leading-tight">
+            <span className="not-italic font-semibold">{nutriName}</span> te convidou para a Salus
           </h1>
-          <p className="text-sm text-[#1a3a2a]/60 mt-3 leading-relaxed">
-            A Salus é o app que {nutriName} usa para acompanhar suas refeições, exames e progresso
-            entre as consultas. Você fotografa o prato, a IA analisa, e seu nutricionista vê tudo no
-            painel dele(a).
+          <p className="text-sm text-[#1a3a2a]/60 mt-2 leading-relaxed">
+            Para confirmar, digite o código de 6 caracteres que ele(a) te enviou separadamente
+            (ex.: WhatsApp, mensagem, em consulta).
           </p>
 
-          <div className="mt-6 rounded-2xl bg-[#faf8f4] p-4 flex items-center gap-3">
-            <Mail className="w-4 h-4 text-[#1a3a2a]/50" />
-            <div className="text-xs text-[#1a3a2a]/70 font-body">
-              Convite enviado para{' '}
-              <span className="font-medium text-[#1a3a2a]">{invite.patient_email}</span>
-            </div>
-          </div>
-
-          <Link href={`/auth/signup?email=${encodeURIComponent(invite.patient_email)}`}>
-            <Button className="mt-6 w-full h-12 rounded-full bg-[#1a3a2a] text-white hover:bg-[#1a3a2a]/90">
-              Criar conta e aceitar convite
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
-
-          <p className="text-center text-xs text-[#1a3a2a]/50 mt-4">
-            Já tem conta?{' '}
-            <Link
-              href={`/auth/login?email=${encodeURIComponent(invite.patient_email)}`}
-              className="font-semibold text-[#1a3a2a] hover:underline"
-            >
-              Entrar
-            </Link>
-          </p>
+          <CodeEntryForm
+            token={token}
+            invitedEmail={invite.patient_email}
+            isLoggedIn={!!user}
+          />
         </div>
 
         <p className="text-center text-[11px] text-[#1a3a2a]/40 mt-5 leading-relaxed">
-          Ao aceitar, {nutriName} terá acesso aos seus dados de nutrição, exames e progresso na
-          Salus. Você pode encerrar o vínculo a qualquer momento em Configurações.
+          Ao aceitar, {nutriName} terá acesso aos seus dados de nutrição, exames e progresso.
+          Você pode encerrar o vínculo a qualquer momento em Configurações.
         </p>
       </div>
     </div>
