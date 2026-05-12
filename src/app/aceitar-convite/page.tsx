@@ -5,6 +5,7 @@ import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { Stethoscope, ArrowRight, CheckCircle, AlertCircle, Mail } from 'lucide-react'
+import { getInviteByToken } from '@/lib/nutri-invites'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,11 +40,7 @@ export default async function AceitarConvitePage({
   }
   const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
 
-  const { data: invite } = await admin
-    .from('nutri_invites')
-    .select('id, nutri_id, patient_email, status, expires_at')
-    .eq('token', token)
-    .maybeSingle()
+  const { data: invite } = await getInviteByToken(admin, token)
 
   if (!invite) return <InvalidScreen reason="not_found" />
   if (invite.status === 'accepted') return <AlreadyAccepted />
@@ -56,18 +53,12 @@ export default async function AceitarConvitePage({
     .eq('id', invite.nutri_id)
     .maybeSingle()
 
-  // Persist token in a cookie so /auth/callback can auto-link after signup
+  // Auth-check FIRST so we can decide whether to persist the cookie. If a
+  // logged-in visitor with the wrong email lands on an attacker's link, we
+  // don't want their session to silently inherit the attacker's token in the
+  // httpOnly cookie — accept's email_mismatch gate would catch it, but the
+  // safer move is to never persist the cookie unless it could plausibly help.
   const cookieStore = await cookies()
-  cookieStore.set('salus_invite', token, {
-    maxAge: 60 * 60 * 24,
-    path: '/',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-  })
-
-  // If the visitor is already logged in (e.g. patient with existing account
-  // clicking the email link), short-circuit to the link confirmation screen.
   const userSupabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -83,10 +74,24 @@ export default async function AceitarConvitePage({
     data: { user },
   } = await userSupabase.auth.getUser()
 
+  const sessionEmail = user?.email?.trim().toLowerCase() ?? null
+  const invitedEmail = invite.patient_email.trim().toLowerCase()
+  const matchesSession = !user || sessionEmail === invitedEmail
+
+  if (matchesSession) {
+    cookieStore.set('salus_invite', token, {
+      maxAge: 60 * 60 * 24,
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    })
+  }
+
   if (user) {
-    // Logged in already — let them confirm the link instead of magically attaching.
-    // The confirmar page reads the token from the httpOnly cookie set above, so
-    // we don't need to expose it in the URL.
+    // Logged in — bounce to the confirmation screen. If the email doesn't
+    // match, /api/nutri/invite/accept will surface 403 email_mismatch and the
+    // confirmar UI shows a "trocar de conta" path.
     redirect('/aceitar-convite/confirmar')
   }
 

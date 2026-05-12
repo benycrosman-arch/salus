@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { listInvitesForNutri } from "@/lib/nutri-invites"
 
 export const dynamic = "force-dynamic"
 
@@ -36,11 +37,7 @@ export default async function NutriDashboardPage() {
       .select("patient_id, status, created_at")
       .eq("nutri_id", user.id)
       .eq("status", "active"),
-    supabase
-      .from("nutri_invites")
-      .select("id, patient_email, status, created_at, expires_at")
-      .eq("nutri_id", user.id)
-      .eq("status", "pending"),
+    listInvitesForNutri(supabase, user.id, 50),
     supabase
       .from("profiles")
       .select("nutri_protocol, name")
@@ -55,7 +52,10 @@ export default async function NutriDashboardPage() {
   if (profileRes.error) console.error("nutri dashboard profile query failed:", profileRes.error.message)
 
   const links = linksRes.data ?? []
-  const invites = invitesRes.data ?? []
+  const nowMs = Date.now()
+  const invites = (invitesRes.data ?? []).filter(
+    (inv) => inv.status === "pending" && new Date(inv.expires_at).getTime() > nowMs,
+  )
 
   // Hydrate patient profiles
   let patients: { id: string; name: string | null; email: string | null }[] = []

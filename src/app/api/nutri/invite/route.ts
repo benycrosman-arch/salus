@@ -1,45 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { guardRequest } from '@/lib/api-guard'
 import { sendEmail, nutriInviteEmail } from '@/lib/email'
-import { normalizeE164 } from '@/lib/whatsapp/phone'
+import { insertInvite, listInvitesForNutri } from '@/lib/nutri-invites'
+import { verifyInviteRequest } from '@/lib/invite-security'
 
 /**
  * Create an invite. Persists in nutri_invites and dispatches an email via
- * Resend when configured. The returned `link` lands the patient on the public
- * /aceitar-convite page, which shows the nutri's name and routes to signup
- * with the invite token persisted (auto-linking on signup completion).
- *
- * If `phone` is provided, also returns a `waMeUrl` (https://wa.me/...) the
- * client opens to dispatch the invite as a WhatsApp message — Brazilian-market
- * channel, replaces the email click-through where the nutri already has the
- * patient's number.
+ * Resend. The returned `link` lands the patient on the public /aceitar-convite
+ * page, which shows the nutri's name and routes to signup with the invite
+ * token persisted (auto-linking on signup completion).
  */
 export async function POST(request: NextRequest) {
   const guard = await guardRequest()
   if (!guard.ok) return guard.response
   const { user, supabase } = guard
 
-  const body = (await request.json().catch(() => null)) as
-    | { email?: string; phone?: string }
-    | null
-  const email = String(body?.email ?? '').trim().toLowerCase()
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: 'E-mail inválido.' }, { status: 400 })
+  // The invite link is dispatched in an email — using request.nextUrl.origin
+  // (Host header) as a fallback would let an attacker who can hit this API
+  // mint phishing links pointing at attacker.com under our `convites@`
+  // sender. Refuse to issue an invite if the prod URL isn't configured.
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!baseUrl || !/^https?:\/\//.test(baseUrl)) {
+    console.error('NEXT_PUBLIC_APP_URL not set; refusing to mint invite link.')
+    return NextResponse.json(
+      { error: 'Convites temporariamente indisponíveis.' },
+      { status: 503 },
+    )
   }
 
-  // Phone is optional. When provided we normalize to E.164; bad phones are a
-  // 400 (don't silently drop — better to tell the nutri).
-  let phoneE164: string | null = null
-  const rawPhone = String(body?.phone ?? '').trim()
-  if (rawPhone.length > 0) {
-    phoneE164 = normalizeE164(rawPhone)
-    if (!phoneE164) {
-      return NextResponse.json(
-        { error: 'Telefone inválido. Use o formato (XX) 9XXXX-XXXX.' },
-        { status: 400 },
-      )
-    }
-  }
+  const body = (await request.json().catch(() => null)) as { email?: unknown } | null
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -50,39 +39,47 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Apenas nutricionistas podem convidar.' }, { status: 403 })
   }
 
-  const { data: invite, error } = await supabase
-    .from('nutri_invites')
-    .insert({
-      nutri_id: user.id,
-      patient_email: email,
-      patient_phone: phoneE164,
-    })
-    .select('id, token, patient_email, patient_phone, expires_at')
-    .single()
+  const verdict = await verifyInviteRequest({
+    supabase,
+    nutriId: user.id,
+    nutriOwnEmail: user.email ?? null,
+    rawEmail: body?.email,
+  })
+  if (!verdict.ok) {
+    return NextResponse.json(
+      { error: verdict.error, code: verdict.code },
+      { status: verdict.status },
+    )
+  }
+  const email = verdict.normalizedEmail
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  const { data: invite, error } = await insertInvite(supabase, {
+    nutri_id: user.id,
+    patient_email: email,
+  })
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    request.nextUrl.origin
-  const link = `${baseUrl}/aceitar-convite?token=${invite.token}`
-
-  const nutriName = profile?.name || user.email?.split('@')[0] || 'Seu nutricionista'
-
-  // Build the wa.me deep link. Strip the leading + because wa.me wants raw digits.
-  let waMeUrl: string | null = null
-  if (phoneE164) {
-    const digits = phoneE164.replace(/\D/g, '')
-    const message =
-      `Oi! ${nutriName} te convidou pra usar o Salus — fotografe seus pratos e ele(a) ` +
-      `acompanha tudo direto no painel.\n\n` +
-      `Aceite com o e-mail ${email}: ${link}`
-    waMeUrl = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
+  if (error || !invite) {
+    // 23505 = unique_violation from the partial index added in migration 028.
+    // Means another concurrent request beat us to the duplicate-pending guard.
+    if (error?.code === '23505') {
+      return NextResponse.json(
+        { error: 'Já existe um convite pendente para este e-mail.', code: 'duplicate_pending' },
+        { status: 409 },
+      )
+    }
+    return NextResponse.json(
+      { error: error?.message || 'Falha ao criar convite.' },
+      { status: 500 },
+    )
   }
 
-  // Email is best-effort. Skip when the nutri is going to dispatch via WhatsApp
-  // and explicitly requested no email — but keeping the existing default of
-  // also emailing keeps the invite recoverable if the WA tap is missed.
+  const link = `${baseUrl.replace(/\/$/, '')}/aceitar-convite?token=${invite.token}`
+
+  // Strip CR/LF from the display name — it ends up in the email Subject and a
+  // newline there could be interpreted as a header boundary by some relays.
+  const rawNutriName = profile?.name || user.email?.split('@')[0] || 'Seu nutricionista'
+  const nutriName = rawNutriName.replace(/[\r\n]+/g, ' ').slice(0, 200)
+
   const { subject, html } = nutriInviteEmail({
     nutriName,
     patientEmail: invite.patient_email,
@@ -99,7 +96,6 @@ export async function POST(request: NextRequest) {
     ok: true,
     invite,
     link,
-    waMeUrl,
     emailSent: send.ok,
     emailReason: send.ok ? null : send.reason,
   })
@@ -110,13 +106,7 @@ export async function GET() {
   if (!guard.ok) return guard.response
   const { user, supabase } = guard
 
-  const { data, error } = await supabase
-    .from('nutri_invites')
-    .select('id, patient_email, status, created_at, expires_at')
-    .eq('nutri_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(50)
-
+  const { data, error } = await listInvitesForNutri(supabase, user.id, 50)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ invites: data ?? [] })
+  return NextResponse.json({ invites: data })
 }

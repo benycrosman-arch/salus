@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getInviteByToken } from '@/lib/nutri-invites'
 
 /**
  * Public lookup for an invite token. Used by /aceitar-convite to show the
@@ -19,11 +20,7 @@ export async function GET(request: NextRequest) {
   }
   const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
 
-  const { data: invite, error } = await admin
-    .from('nutri_invites')
-    .select('id, nutri_id, patient_email, status, expires_at')
-    .eq('token', token)
-    .maybeSingle()
+  const { data: invite, error } = await getInviteByToken(admin, token)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!invite) return NextResponse.json({ error: 'Convite não encontrado.' }, { status: 404 })

@@ -63,7 +63,8 @@ export function nutriInviteEmail({
   patientEmail: string
   link: string
 }) {
-  const safeNutri = nutriName?.trim() || 'Seu nutricionista'
+  const safeNutri = (nutriName?.trim() || 'Seu nutricionista').replace(/[\r\n]+/g, ' ')
+  const safeLink = escapeHtml(link)
   const subject = `${safeNutri} convidou você para a Salus AI`
   const html = `<!doctype html>
 <html lang="pt-BR">
@@ -92,12 +93,12 @@ export function nutriInviteEmail({
             </tr>
             <tr>
               <td style="padding:8px 40px 32px 40px;" align="left">
-                <a href="${link}" style="display:inline-block;background:#1a3a2a;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:14px 24px;border-radius:999px;">
+                <a href="${safeLink}" style="display:inline-block;background:#1a3a2a;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:14px 24px;border-radius:999px;">
                   Aceitar convite e criar conta
                 </a>
                 <p style="font-size:13px;line-height:1.6;color:#1a3a2a;opacity:0.6;margin:18px 0 0 0;">
                   Ou copie e cole este link no navegador:<br />
-                  <span style="word-break:break-all;color:#1a3a2a;">${link}</span>
+                  <span style="word-break:break-all;color:#1a3a2a;">${safeLink}</span>
                 </p>
               </td>
             </tr>

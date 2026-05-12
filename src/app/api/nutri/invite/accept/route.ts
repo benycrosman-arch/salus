@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
+import { getInviteByToken } from '@/lib/nutri-invites'
 
 /**
  * Consume an invite token. Auth required: the calling user becomes the patient.
@@ -43,11 +44,7 @@ export async function POST(request: NextRequest) {
   }
   const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
 
-  const { data: invite } = await admin
-    .from('nutri_invites')
-    .select('id, nutri_id, patient_email, status, expires_at')
-    .eq('token', token)
-    .maybeSingle()
+  const { data: invite } = await getInviteByToken(admin, token)
 
   if (!invite) return NextResponse.json({ error: 'Convite inválido.' }, { status: 404 })
   if (new Date(invite.expires_at) < new Date()) {

@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createServerClient } from "@supabase/ssr"
 import { PacientesClient, type Patient, type PatientColumn, type Invite } from "./pacientes-client"
+import { listInvitesForNutri } from "@/lib/nutri-invites"
 
 export const dynamic = "force-dynamic"
 
@@ -45,12 +46,7 @@ export default async function PacientesPage() {
       .select("patient_id, status, created_at")
       .eq("nutri_id", user.id)
       .eq("status", "active"),
-    supabase
-      .from("nutri_invites")
-      .select("id, patient_email, status, created_at, expires_at, token")
-      .eq("nutri_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50),
+    listInvitesForNutri(supabase, user.id, 50),
   ])
 
   if (linksRes.error) console.error("pacientes: links query failed:", linksRes.error.message)
@@ -118,9 +114,9 @@ export default async function PacientesPage() {
     .map((inv) => ({
       id: inv.id,
       patient_email: inv.patient_email,
-      created_at: inv.created_at,
+      created_at: inv.created_at ?? "",
       expires_at: inv.expires_at,
-      token: inv.token,
+      token: inv.token ?? "",
     }))
 
   const historyInvites: Invite[] = allInvites
@@ -128,9 +124,9 @@ export default async function PacientesPage() {
     .map((inv) => ({
       id: inv.id,
       patient_email: inv.patient_email,
-      created_at: inv.created_at,
+      created_at: inv.created_at ?? "",
       expires_at: inv.expires_at,
-      token: inv.token,
+      token: inv.token ?? "",
       status: inv.status,
     }))
 
