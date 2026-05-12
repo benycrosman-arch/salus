@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { guardRequest } from '@/lib/api-guard'
 import { sendEmail, nutriInviteEmail } from '@/lib/email'
-import { insertInvite, listInvitesForNutri } from '@/lib/nutri-invites'
-import { verifyInviteRequest } from '@/lib/invite-security'
-import { generateAccessCode, hashCode } from '@/lib/invite-codes'
+import { listInvitesForNutri } from '@/lib/nutri-invites'
+import { generateAccessCode } from '@/lib/invite-codes'
 
 const INVITE_TTL_HOURS = 24
 
 /**
- * Create an invite. Persists in nutri_invites with a salted hash of a 6-char
- * out-of-band access code, dispatches an email via Resend, and returns BOTH
- * the link and the raw code so the nutri can show them in the UI exactly
- * once. The patient must present token + code to accept — single-channel
- * compromise (forwarded email, leaked link) isn't enough.
+ * Create an invite via the create_invitation RPC (migration 033).
+ *
+ * The route stays thin: generate a 6-char access code, hand it + email
+ * to the RPC. The RPC runs cap-check, dup-check, and the salted-hash
+ * insert in a single transaction with row locks — closing the TOCTOU
+ * windows that existed when those checks lived in JS.
+ *
+ * Raw code is shown to the nutri exactly once in the response and
+ * dispatched in the email body NEVER (the email mentions a code is
+ * required so the patient knows to ask).
  */
 export async function POST(request: NextRequest) {
   const guard = await guardRequest()
@@ -29,83 +33,65 @@ export async function POST(request: NextRequest) {
   }
 
   const body = (await request.json().catch(() => null)) as { email?: unknown } | null
+  const email = typeof body?.email === 'string' ? body.email : ''
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, name')
-    .eq('id', user.id)
-    .maybeSingle()
-  if (profile?.role !== 'nutricionista') {
-    return NextResponse.json({ error: 'Apenas nutricionistas podem convidar.' }, { status: 403 })
-  }
-
-  const verdict = await verifyInviteRequest({
-    supabase,
-    nutriId: user.id,
-    nutriOwnEmail: user.email ?? null,
-    rawEmail: body?.email,
-  })
-  if (!verdict.ok) {
-    return NextResponse.json(
-      { error: verdict.error, code: verdict.code },
-      { status: verdict.status },
-    )
-  }
-  const email = verdict.normalizedEmail
-
-  // Generate the access code BEFORE the insert so we can hash it with the
-  // invite ID. Trick: insert a placeholder hash first, then update with the
-  // real hash using the row's actual ID. Simpler: use a UUID generated
-  // client-side as both the row PK and the salt — but the schema has
-  // gen_random_uuid() as the default and we don't want to fight that.
-  //
-  // Compromise: hash with the (random) raw code itself as both data and salt
-  // on first pass, then immediately update with the proper id-salted hash.
-  // Shorter total: just use the email + code + a per-request nonce as a
-  // pre-hash placeholder and overwrite right after. We do the latter.
   const rawCode = generateAccessCode()
-  const expiresAt = new Date(Date.now() + INVITE_TTL_HOURS * 60 * 60 * 1000).toISOString()
 
-  // Insert with a temporary hash (id not yet known).
-  const tempHash = hashCode('pending-rotation', rawCode)
-  const { data: invite, error } = await insertInvite(supabase, {
-    nutri_id: user.id,
-    patient_email: email,
-    code_hash: tempHash,
-    expires_at: expiresAt,
+  type RpcResp =
+    | {
+        ok: true
+        invite: { id: string; token: string; patient_email: string; expires_at: string }
+        nutri_name: string
+      }
+    | {
+        ok: false
+        code:
+          | 'invalid_email'
+          | 'invalid_code'
+          | 'self_invite'
+          | 'hourly_cap'
+          | 'daily_cap'
+          | 'duplicate_pending'
+        error: string
+      }
+
+  const { data, error } = await supabase.rpc('create_invitation', {
+    p_patient_email: email,
+    p_raw_code: rawCode,
+    p_expires_in_hours: INVITE_TTL_HOURS,
   })
 
-  if (error || !invite) {
-    if (error?.code === '23505') {
+  if (error) {
+    // The RPC raises only for unauthorized / forbidden — everything else
+    // comes back in the jsonb envelope.
+    if (error.message.includes('forbidden')) {
       return NextResponse.json(
-        { error: 'Já existe um convite pendente para este e-mail.', code: 'duplicate_pending' },
-        { status: 409 },
+        { error: 'Apenas nutricionistas podem convidar.' },
+        { status: 403 },
       )
     }
-    return NextResponse.json(
-      { error: error?.message || 'Falha ao criar convite.' },
-      { status: 500 },
-    )
+    if (error.message.includes('unauthorized')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    console.error('create_invitation RPC failed:', error.message)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Now that we have the row's UUID, rotate to the proper id-salted hash.
-  // If this update fails the invite still works — but accept won't accept
-  // any code (since the temp hash uses a literal salt nobody knows). Treat
-  // an update failure as a hard error and roll the invite back.
-  const properHash = hashCode(invite.id, rawCode)
-  const { error: rotateErr } = await supabase
-    .from('nutri_invites')
-    .update({ code_hash: properHash })
-    .eq('id', invite.id)
-  if (rotateErr) {
-    await supabase.from('nutri_invites').delete().eq('id', invite.id)
-    console.error('invite code-hash rotation failed:', rotateErr.message)
-    return NextResponse.json({ error: 'Falha ao gerar código do convite.' }, { status: 500 })
+  const resp = data as RpcResp
+  if (!resp.ok) {
+    const status =
+      resp.code === 'duplicate_pending'
+        ? 409
+        : resp.code === 'hourly_cap' || resp.code === 'daily_cap'
+          ? 429
+          : 400
+    return NextResponse.json({ error: resp.error, code: resp.code }, { status })
   }
 
+  const invite = resp.invite
   const link = `${baseUrl.replace(/\/$/, '')}/aceitar-convite?token=${invite.token}`
 
-  const rawNutriName = profile?.name || user.email?.split('@')[0] || 'Seu nutricionista'
+  const rawNutriName = resp.nutri_name || user.email?.split('@')[0] || 'Seu nutricionista'
   const nutriName = rawNutriName.replace(/[\r\n]+/g, ' ').slice(0, 200)
 
   const { subject, html } = nutriInviteEmail({
@@ -123,12 +109,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    invite: {
-      id: invite.id,
-      patient_email: invite.patient_email,
-      expires_at: invite.expires_at,
-      token: invite.token,
-    },
+    invite,
     link,
     accessCode: rawCode,
     expiresInHours: INVITE_TTL_HOURS,
