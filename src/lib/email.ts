@@ -54,18 +54,16 @@ export async function sendEmail({ to, subject, html, from, replyTo }: SendArgs):
 /**
  * Email template for a nutricionista inviting a patient.
  *
- * The 6-char access code is rendered prominently in the body, similar to
- * how Google / GitHub send verification codes. Single-channel UX (one email
- * with both link and code) — simpler than the two-channel design and matches
- * the "Sign in to {Service}" mental model patients already have. The code
- * still adds defense-in-depth: someone with only the URL (e.g. shoulder-
- * surfed, leaked in a referrer header) can't accept without the email body.
+ * The access code is intentionally NOT in the email — the nutri shares it
+ * out-of-band (WhatsApp / verbal / in consultation) within a 5-minute
+ * window after creating the invite. Two-channel design: someone who only
+ * intercepts the email can't accept; they need the code too. The email
+ * mentions the code requirement so the patient knows to ask their nutri.
  */
 export function nutriInviteEmail({
   nutriName,
   patientEmail,
   link,
-  accessCode,
 }: {
   nutriName: string
   patientEmail: string
@@ -74,27 +72,7 @@ export function nutriInviteEmail({
 }) {
   const safeNutri = (nutriName?.trim() || 'Seu nutricionista').replace(/[\r\n]+/g, ' ')
   const safeLink = escapeHtml(link)
-  const safeCode = accessCode ? escapeHtml(accessCode) : null
-  const subject = safeCode
-    ? `${safeCode} é o seu código Salus`
-    : `${safeNutri} convidou você para a Salus AI`
-  const codeBlock = safeCode
-    ? `<tr>
-              <td style="padding:8px 40px 24px 40px;">
-                <p style="font-size:13px;line-height:1.5;color:#1a3a2a;opacity:0.7;margin:0 0 10px 0;">
-                  Seu código de verificação:
-                </p>
-                <div style="background:#faf8f4;border:1px solid #e4ddd4;border-radius:14px;padding:18px 20px;text-align:center;">
-                  <div style="font-family:'SF Mono',Menlo,Consolas,monospace;font-size:32px;font-weight:700;letter-spacing:0.3em;color:#1a3a2a;">
-                    ${safeCode}
-                  </div>
-                </div>
-                <p style="font-size:12px;line-height:1.5;color:#1a3a2a;opacity:0.55;margin:10px 0 0 0;">
-                  Digite este código na tela do convite. Ele expira em 24 horas e só pode ser usado uma vez.
-                </p>
-              </td>
-            </tr>`
-    : ''
+  const subject = `${safeNutri} convidou você para a Salus`
   const html = `<!doctype html>
 <html lang="pt-BR">
   <body style="margin:0;padding:0;background:#faf8f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a3a2a;">
@@ -115,12 +93,14 @@ export function nutriInviteEmail({
                 <h1 style="font-family:Georgia,serif;font-style:italic;font-size:28px;line-height:1.25;color:#1a3a2a;margin:0 0 12px 0;">
                   ${escapeHtml(safeNutri)} convidou você para a Salus
                 </h1>
-                <p style="font-size:15px;line-height:1.6;color:#1a3a2a;opacity:0.85;margin:0 0 12px 0;">
+                <p style="font-size:15px;line-height:1.6;color:#1a3a2a;opacity:0.85;margin:0 0 16px 0;">
                   A Salus é o aplicativo que ${escapeHtml(safeNutri)} usa para acompanhar suas refeições, exames e progresso entre as consultas. Você fotografa o prato, a IA analisa, e seu nutricionista vê tudo no painel dele(a).
+                </p>
+                <p style="font-size:14px;line-height:1.6;color:#1a3a2a;opacity:0.75;margin:0 0 20px 0;background:#faf8f4;border-radius:12px;padding:12px 14px;">
+                  <strong>Você vai precisar de um código de 6 caracteres</strong> que ${escapeHtml(safeNutri)} te enviou separadamente (WhatsApp, mensagem ou pessoalmente). Por segurança, ele não está neste e-mail.
                 </p>
               </td>
             </tr>
-            ${codeBlock}
             <tr>
               <td style="padding:8px 40px 32px 40px;" align="left">
                 <a href="${safeLink}" style="display:inline-block;background:#1a3a2a;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:14px 24px;border-radius:999px;">

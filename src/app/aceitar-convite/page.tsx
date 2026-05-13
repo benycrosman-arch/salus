@@ -95,8 +95,8 @@ export default async function AceitarConvitePage({
             <span className="not-italic font-semibold">{nutriName}</span> te convidou para a Salus
           </h1>
           <p className="text-sm text-[#1a3a2a]/60 mt-2 leading-relaxed">
-            Enviamos um código de 6 caracteres para o seu e-mail.
-            Verifique sua caixa de entrada (e a pasta de spam) e digite ele aqui.
+            Para confirmar, digite o código de 6 caracteres que <span className="font-medium text-[#1a3a2a]">{nutriName}</span> te enviou separadamente
+            (WhatsApp, mensagem ou em consulta).
           </p>
 
           <CodeEntryForm

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -109,15 +109,18 @@ export function PacientesClient({
   const [sending, setSending] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [created, setCreated] = useState<{
+    inviteId: string
     email: string
     link: string
     accessCode: string
+    codeVisibleUntil: number
     expiresInHours: number
     emailSent: boolean
   } | null>(null)
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedCode, setCopiedCode] = useState(false)
   const [copiedBoth, setCopiedBoth] = useState(false)
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
 
   const grouped = useMemo(() => {
     const out: Record<PatientColumn, Patient[]> = { engajado: [], atencao: [], inativo: [] }
@@ -148,10 +151,16 @@ export function PacientesClient({
         method: "email",
         delivered: !!body.emailSent,
       })
+      // The server returns code_visible_until inside body.invite (set by the
+      // create_invitation RPC). Fall back to now+5min if missing.
+      const visibleUntilIso =
+        body.invite?.code_visible_until ?? new Date(Date.now() + 5 * 60 * 1000).toISOString()
       setCreated({
+        inviteId: body.invite?.id ?? "",
         email,
         link: body.link,
         accessCode: body.accessCode,
+        codeVisibleUntil: new Date(visibleUntilIso).getTime(),
         expiresInHours: body.expiresInHours ?? 24,
         emailSent: !!body.emailSent,
       })
@@ -163,6 +172,23 @@ export function PacientesClient({
       setSending(false)
     }
   }
+
+  // Drive a 1-second tick while the credentials card is mounted with an
+  // unexpired code. Stops the interval when expired or the card closes.
+  useEffect(() => {
+    if (!created) {
+      setSecondsLeft(null)
+      return
+    }
+    const tick = () => {
+      const remainingMs = created.codeVisibleUntil - Date.now()
+      const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000))
+      setSecondsLeft(remainingSec)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [created])
 
   const copyLink = async (link: string) => {
     await navigator.clipboard.writeText(link)
@@ -178,12 +204,14 @@ export function PacientesClient({
   }
   const copyBoth = async () => {
     if (!created) return
-    const text = `Convite Salus para você:\n${created.link}\n\nO código de 6 caracteres foi enviado pro seu email (válido por ${created.expiresInHours}h).`
+    const text = `Convite Salus pra você:\n${created.link}\n\nCódigo de acesso: ${created.accessCode}\n(O convite expira em ${created.expiresInHours}h.)`
     await navigator.clipboard.writeText(text)
     setCopiedBoth(true)
     toast.success("Mensagem copiada — cole no WhatsApp/SMS")
     setTimeout(() => setCopiedBoth(false), 2000)
   }
+
+  const codeStillVisible = secondsLeft !== null && secondsLeft > 0
 
   const copyPendingLink = (token: string, id: string) => {
     const baseUrl = window.location.origin
@@ -247,8 +275,8 @@ export function PacientesClient({
           </div>
           <p className="text-xs text-[#1a3a2a]/60 mb-4">
             {created.emailSent
-              ? `Email enviado pro paciente com o link e o código de 6 caracteres. Válido por ${created.expiresInHours}h. O código abaixo é o mesmo que está no email — copie e mande por WhatsApp se quiser ter certeza que ele(a) recebeu.`
-              : `Email não foi enviado automaticamente. Mande o link e o código abaixo manualmente pro paciente. Válido por ${created.expiresInHours}h.`}
+              ? `Email com o link foi enviado pro paciente. O código de acesso aparece aqui por 5 minutos — envie ele por WhatsApp ou pessoalmente. Por segurança, ele NÃO está no email.`
+              : `Email não foi enviado automaticamente. Mande o link manualmente — o código está abaixo (visível por 5 minutos).`}
           </p>
 
           <div className="space-y-3">
@@ -275,38 +303,53 @@ export function PacientesClient({
             <div>
               <label className="text-[11px] font-semibold text-[#1a3a2a]/60 uppercase tracking-wide flex items-center gap-1">
                 <KeyRound className="w-3 h-3" />
-                Código de acesso (mostrado apenas uma vez)
+                Código de acesso
+                {codeStillVisible && (
+                  <span className="ml-auto text-[10px] font-mono text-[#c4944a] tabular-nums">
+                    {Math.floor((secondsLeft ?? 0) / 60)}:
+                    {String((secondsLeft ?? 0) % 60).padStart(2, "0")}
+                  </span>
+                )}
               </label>
-              <div className="mt-1 flex items-stretch gap-2">
-                <code className="flex-1 min-w-0 px-3 py-3 bg-white rounded-lg ring-1 ring-[#e4ddd4] text-2xl tracking-[0.3em] text-center font-mono text-[#1a3a2a] font-semibold">
-                  {created.accessCode}
-                </code>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyCode(created.accessCode)}
-                  className="shrink-0"
-                >
-                  {copiedCode ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                </Button>
-              </div>
+              {codeStillVisible ? (
+                <div className="mt-1 flex items-stretch gap-2">
+                  <code className="flex-1 min-w-0 px-3 py-3 bg-white rounded-lg ring-1 ring-[#e4ddd4] text-2xl tracking-[0.3em] text-center font-mono text-[#1a3a2a] font-semibold">
+                    {created.accessCode}
+                  </code>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyCode(created.accessCode)}
+                    className="shrink-0"
+                  >
+                    {copiedCode ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-1 px-3 py-3 bg-white rounded-lg ring-1 ring-[#e4ddd4] text-center text-xs text-[#1a3a2a]/50">
+                  Código expirou — gere um novo convite se precisar reenviar.
+                </div>
+              )}
             </div>
 
-            <Button
-              type="button"
-              onClick={copyBoth}
-              className="w-full bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 text-white"
-            >
-              {copiedBoth ? (
-                <><Check className="w-4 h-4 mr-2" />Mensagem copiada</>
-              ) : (
-                <><Copy className="w-4 h-4 mr-2" />Copiar mensagem pronta (WhatsApp/SMS)</>
-              )}
-            </Button>
+            {codeStillVisible && (
+              <Button
+                type="button"
+                onClick={copyBoth}
+                className="w-full bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 text-white"
+              >
+                {copiedBoth ? (
+                  <><Check className="w-4 h-4 mr-2" />Mensagem copiada</>
+                ) : (
+                  <><Copy className="w-4 h-4 mr-2" />Copiar mensagem pronta (WhatsApp/SMS)</>
+                )}
+              </Button>
+            )}
             <p className="text-[10px] text-[#1a3a2a]/50 text-center leading-relaxed">
-              O paciente recebe o link + código no email. O código também aparece aqui caso você
-              precise reenviar. 5 tentativas erradas bloqueiam o convite.
+              Por segurança, o código aparece por <strong>5 minutos</strong> e some — copie e envie
+              pro paciente por canal separado (WhatsApp, mensagem, em consulta). 5 tentativas
+              erradas bloqueiam o convite.
             </p>
           </div>
         </Card>
