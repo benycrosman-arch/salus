@@ -20,6 +20,7 @@ import { RecommendationsEditor } from "./recommendations-editor"
 import { AttachmentsUploader } from "./attachments-uploader"
 import { GoalsEditor } from "./goals-editor"
 import { EndRelationshipButton } from "./end-relationship-button"
+import { PatientChat } from "./patient-chat"
 
 export const dynamic = "force-dynamic"
 
@@ -169,6 +170,8 @@ export default async function PacientePage({ params }: { params: Promise<Params>
       {lowScore && <LowScoreAlert avg7={avg7!} concerningCount={concerningMeals.length} />}
 
       <GoalsEditor patientId={patientId} initial={initialGoals} />
+
+      <PatientChat patientId={patientId} patientName={patient.name || "paciente"} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <RecommendationsEditor
