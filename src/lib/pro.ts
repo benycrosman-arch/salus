@@ -36,6 +36,13 @@ interface ProInputs {
   role?: string | null
 }
 
+// Kill switch — flip to true to re-enable subscription gating across the app.
+// While false, every non-nutri user is treated as a paying Pro subscriber so
+// the paywall modal, feature-blocker, trial banner, and quota checks all
+// short-circuit to allow. Nutricionistas still resolve to tier='nutri' via
+// the role check below.
+const SUBSCRIPTION_GATING_ENABLED = false
+
 const SUB_ACTIVE = new Set(['active', 'trialing', 'in_grace_period'])
 
 function tierFromProductId(productId: string | null | undefined): Tier {
@@ -54,6 +61,10 @@ export function getProStatus(profile: ProInputs | null | undefined, now: Date = 
   // Nutricionistas: top-tier always.
   if (profile.role === 'nutricionista' || profile.plan === 'nutri_pro') {
     return { isPro: true, tier: 'nutri', source: 'nutri', trialActive: false, trialEndsAt: null, trialDaysLeft: 0 }
+  }
+
+  if (!SUBSCRIPTION_GATING_ENABLED) {
+    return { isPro: true, tier: 'pro', source: 'subscription', trialActive: false, trialEndsAt: null, trialDaysLeft: 0 }
   }
 
   // Active paid subscription wins regardless of trial state.
