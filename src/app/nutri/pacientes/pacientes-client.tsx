@@ -275,8 +275,8 @@ export function PacientesClient({
           </div>
           <p className="text-xs text-[#1a3a2a]/60 mb-4">
             {created.emailSent
-              ? `Email com o link foi enviado pro paciente. O código de acesso aparece aqui por 5 minutos — envie ele por WhatsApp ou pessoalmente. Por segurança, ele NÃO está no email.`
-              : `Email não foi enviado automaticamente. Mande o link manualmente — o código está abaixo (visível por 5 minutos).`}
+              ? `Email enviado pro paciente com o link e o código de 6 caracteres (uso único). O código também aparece aqui por 5 minutos — copie e mande por WhatsApp se quiser ter certeza que ele(a) recebeu.`
+              : `Email não foi enviado automaticamente. Envie o link e o código abaixo manualmente. O código aparece aqui por 5 minutos.`}
           </p>
 
           <div className="space-y-3">
@@ -347,9 +347,9 @@ export function PacientesClient({
               </Button>
             )}
             <p className="text-[10px] text-[#1a3a2a]/50 text-center leading-relaxed">
-              Por segurança, o código aparece por <strong>5 minutos</strong> e some — copie e envie
-              pro paciente por canal separado (WhatsApp, mensagem, em consulta). 5 tentativas
-              erradas bloqueiam o convite.
+              O código está no email do paciente e aparece aqui por <strong>5 minutos</strong> como
+              backup. Uso único — depois de aceito não funciona mais. 5 tentativas erradas
+              bloqueiam o convite.
             </p>
           </div>
         </Card>
