@@ -18,7 +18,16 @@ import {
   KeyRound,
   X,
   ShieldCheck,
+  Trash2,
 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { track } from "@/lib/posthog"
@@ -121,6 +130,8 @@ export function PacientesClient({
   const [copiedCode, setCopiedCode] = useState(false)
   const [copiedBoth, setCopiedBoth] = useState(false)
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
+  const [confirmingCancel, setConfirmingCancel] = useState<Invite | null>(null)
+  const [cancelling, setCancelling] = useState(false)
 
   const grouped = useMemo(() => {
     const out: Record<PatientColumn, Patient[]> = { engajado: [], atencao: [], inativo: [] }
@@ -212,6 +223,31 @@ export function PacientesClient({
   }
 
   const codeStillVisible = secondsLeft !== null && secondsLeft > 0
+
+  const cancelInvite = async () => {
+    if (!confirmingCancel) return
+    setCancelling(true)
+    try {
+      const res = await fetch(`/api/nutri/invite/${confirmingCancel.id}/cancel`, {
+        method: "POST",
+      })
+      const body = (await res.json().catch(() => ({}))) as { error?: string }
+      if (!res.ok) {
+        toast.error(body.error || "Falha ao cancelar.")
+        return
+      }
+      toast.success("Convite cancelado.")
+      // If the credentials card was showing this invite, clear it too —
+      // the code is wiped server-side, so the panel is stale.
+      if (created?.inviteId === confirmingCancel.id) setCreated(null)
+      setConfirmingCancel(null)
+      router.refresh()
+    } catch {
+      toast.error("Erro de rede.")
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   const copyPendingLink = (token: string, id: string) => {
     const baseUrl = window.location.origin
@@ -362,6 +398,7 @@ export function PacientesClient({
             invites={pendingInvites}
             copiedId={copiedId}
             onCopy={copyPendingLink}
+            onCancel={(inv) => setConfirmingCancel(inv)}
           />
           <PatientColumnCard column="engajado" patients={grouped.engajado} />
           <PatientColumnCard column="atencao" patients={grouped.atencao} />
@@ -391,6 +428,45 @@ export function PacientesClient({
           </ul>
         </Card>
       )}
+
+      <Dialog
+        open={!!confirmingCancel}
+        onOpenChange={(open) => !open && !cancelling && setConfirmingCancel(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar convite?</DialogTitle>
+            <DialogDescription>
+              {confirmingCancel ? (
+                <>
+                  O convite para{" "}
+                  <span className="font-medium text-[#1a3a2a]">
+                    {confirmingCancel.patient_email}
+                  </span>{" "}
+                  vai ser cancelado. O link e o código param de funcionar imediatamente. Você
+                  pode criar um novo convite a qualquer momento.
+                </>
+              ) : null}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmingCancel(null)}
+              disabled={cancelling}
+            >
+              Voltar
+            </Button>
+            <Button
+              onClick={cancelInvite}
+              disabled={cancelling}
+              className="bg-[#c4614a] hover:bg-[#c4614a]/90 text-white"
+            >
+              {cancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancelar convite"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -452,10 +528,12 @@ function InviteColumn({
   invites,
   copiedId,
   onCopy,
+  onCancel,
 }: {
   invites: Invite[]
   copiedId: string | null
   onCopy: (token: string, id: string) => void
+  onCancel: (invite: Invite) => void
 }) {
   const cfg = COLUMN_CONFIG.convite
   const Icon = cfg.icon
@@ -482,7 +560,17 @@ function InviteColumn({
               key={inv.id}
               className="bg-white rounded-xl p-3 ring-1 ring-black/[0.04] shadow-sm"
             >
-              <p className="text-sm font-medium text-[#1a3a2a] truncate">{inv.patient_email}</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-medium text-[#1a3a2a] truncate flex-1">{inv.patient_email}</p>
+                <button
+                  onClick={() => onCancel(inv)}
+                  className="text-[#1a3a2a]/30 hover:text-[#c4614a] transition-colors flex-shrink-0"
+                  aria-label="Cancelar convite"
+                  title="Cancelar convite"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
               <p className="text-[10px] text-[#1a3a2a]/50 font-body mt-0.5">
                 Expira em {new Date(inv.expires_at).toLocaleDateString("pt-BR")}
               </p>
