@@ -40,6 +40,19 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Funnel any authenticated user with an unconsumed invite cookie through
+  // /aceitar-convite/confirmar. Only /auth/callback and that page actually
+  // POST to /api/nutri/invite/accept, so email/password signup with
+  // auto-confirm and existing-user login both end up authenticated with the
+  // cookie stranded and the nutri↔paciente link never created.
+  if (user && request.cookies.has('salus_invite')) {
+    const onInviteFlow = pathname.startsWith('/aceitar-convite')
+    const onAuthFlow = pathname.startsWith('/auth/')
+    if (!onInviteFlow && !onAuthFlow) {
+      return NextResponse.redirect(new URL('/aceitar-convite/confirmar', request.url))
+    }
+  }
+
   const isPublicRoute =
     PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/')) ||
     pathname.startsWith('/auth/')

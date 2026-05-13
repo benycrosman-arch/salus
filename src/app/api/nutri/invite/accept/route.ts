@@ -99,6 +99,15 @@ export async function POST(request: NextRequest) {
     }
     if ('invited_email' in resp && resp.invited_email) payload.invited_email = resp.invited_email
     if ('remaining' in resp && typeof resp.remaining === 'number') payload.remaining = resp.remaining
+
+    // Terminal failures: burn the cookie so the middleware funnel doesn't
+    // loop the user back to /aceitar-convite/confirmar forever. Recoverable
+    // codes (email_mismatch, role_conflict, code_required, code_invalid)
+    // keep the cookie so the patient can switch accounts or retry the code.
+    const TERMINAL = new Set(['not_found', 'expired', 'code_locked', 'self_invite'])
+    if (TERMINAL.has(resp.code)) {
+      cookieStore.set('salus_invite', '', { maxAge: 0, path: '/' })
+    }
     return NextResponse.json(payload, { status })
   }
 
