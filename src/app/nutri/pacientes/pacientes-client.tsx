@@ -178,7 +178,7 @@ export function PacientesClient({
   }
   const copyBoth = async () => {
     if (!created) return
-    const text = `Convite Salus para você:\nLink: ${created.link}\nCódigo de acesso: ${created.accessCode}\n\n(Válido por ${created.expiresInHours}h. O código é necessário para confirmar.)`
+    const text = `Convite Salus para você:\n${created.link}\n\nO código de 6 caracteres foi enviado pro seu email (válido por ${created.expiresInHours}h).`
     await navigator.clipboard.writeText(text)
     setCopiedBoth(true)
     toast.success("Mensagem copiada — cole no WhatsApp/SMS")
@@ -247,8 +247,8 @@ export function PacientesClient({
           </div>
           <p className="text-xs text-[#1a3a2a]/60 mb-4">
             {created.emailSent
-              ? `Email enviado. O código abaixo NÃO está no email — você precisa enviá-lo separadamente (WhatsApp, presencial). Válido por ${created.expiresInHours}h.`
-              : `Email não foi enviado automaticamente. Envie o link e o código abaixo para o paciente. Válido por ${created.expiresInHours}h.`}
+              ? `Email enviado pro paciente com o link e o código de 6 caracteres. Válido por ${created.expiresInHours}h. O código abaixo é o mesmo que está no email — copie e mande por WhatsApp se quiser ter certeza que ele(a) recebeu.`
+              : `Email não foi enviado automaticamente. Mande o link e o código abaixo manualmente pro paciente. Válido por ${created.expiresInHours}h.`}
           </p>
 
           <div className="space-y-3">
@@ -305,8 +305,8 @@ export function PacientesClient({
               )}
             </Button>
             <p className="text-[10px] text-[#1a3a2a]/50 text-center leading-relaxed">
-              Por segurança, envie o link e o código por canais diferentes (ex.: link por email, código por WhatsApp).
-              O paciente terá 5 tentativas para digitar o código antes do convite ser bloqueado.
+              O paciente recebe o link + código no email. O código também aparece aqui caso você
+              precise reenviar. 5 tentativas erradas bloqueiam o convite.
             </p>
           </div>
         </Card>
