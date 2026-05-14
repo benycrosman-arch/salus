@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 import Link from "next/link"
-import { LayoutDashboard, Users, Settings, FileText } from "lucide-react"
+import { NutriBottomNav } from "./bottom-nav"
 
 export default async function NutriLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -30,39 +30,29 @@ export default async function NutriLayout({ children }: { children: React.ReactN
   if (profile.role !== "nutricionista") redirect("/dashboard")
 
   return (
-    <div className="min-h-screen bg-[#faf8f4]">
-      <header className="border-b border-[#e4ddd4] bg-white">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 h-14 flex items-center justify-between">
-          <Link href="/nutri" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#1a3a2a] flex items-center justify-center">
-              <span className="text-white font-bold text-xs">N</span>
+    <>
+      <div className="min-h-screen bg-[#fcf9f8] text-[#1b1c1c]">
+        <div className="mx-auto max-w-[480px] pb-24">
+          <header className="bg-[#fcf9f8] sticky top-0 z-30 h-16 flex items-center justify-between px-4 border-b border-[#e4ddd4]">
+            <Link href="/nutri" className="flex items-center gap-2">
+              <span className="font-serif text-2xl text-[#1a3a2a] font-bold">Salus NutriGen</span>
+            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                aria-label="Notificações"
+                className="hover:bg-[#eae7e7] p-2 rounded-full transition-colors"
+              >
+                <span className="material-symbols-outlined text-[#1a3a2a]">notifications</span>
+              </button>
+              <div className="w-8 h-8 rounded-full bg-[#1a3a2a] text-white flex items-center justify-center text-xs font-bold border border-[#e4ddd4]">
+                {(profile.name || user.email || "?").slice(0, 1).toUpperCase()}
+              </div>
             </div>
-            <span className="font-serif italic text-lg text-[#1a3a2a]">Salus Nutri</span>
-          </Link>
-          <nav className="flex items-center gap-1">
-            <NavLink href="/nutri" icon={<LayoutDashboard className="w-4 h-4" />} label="Painel" />
-            <NavLink href="/nutri/pacientes" icon={<Users className="w-4 h-4" />} label="Pacientes" />
-            <NavLink href="/nutri/protocolo" icon={<FileText className="w-4 h-4" />} label="Protocolo" />
-            <NavLink href="/nutri/config" icon={<Settings className="w-4 h-4" />} label="Config" />
-          </nav>
-          <div className="text-xs text-[#1a3a2a]/60 hidden sm:block">
-            {profile.name || user.email}
-          </div>
+          </header>
+          <main className="px-4 pt-2 flex flex-col gap-6">{children}</main>
         </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-5 sm:px-8 py-8">{children}</main>
-    </div>
-  )
-}
-
-function NavLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="hidden sm:inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-[#1a3a2a]/60 hover:text-[#1a3a2a] hover:bg-[#1a3a2a]/5 transition-colors"
-    >
-      {icon}
-      {label}
-    </Link>
+        <NutriBottomNav />
+      </div>
+    </>
   )
 }

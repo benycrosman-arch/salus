@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import { Mail, Phone, IdCard } from "lucide-react"
 import { SignOutButton } from "@/app/(app)/profile/sign-out-button"
+import { DeleteAccountCard } from "./delete-account-card"
 
 export const dynamic = "force-dynamic"
 
@@ -74,6 +75,8 @@ export default async function NutriConfigPage() {
         </p>
         <SignOutButton />
       </Card>
+
+      <DeleteAccountCard />
     </div>
   )
 }
