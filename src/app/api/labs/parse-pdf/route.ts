@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
-const MAX_PAGES = 20
+const MAX_PAGES = 35
 
 function countPdfPages(buf: Buffer): number {
   // Cheap, no-dep page counter — looks for "/Type /Page" object headers.

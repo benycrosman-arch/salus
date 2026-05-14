@@ -552,16 +552,17 @@ export default function OnboardingPage() {
                   <Label className="mb-3 block">Tipo de dieta</Label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { value: "omnivore" as DietType, label: "Onívoro" },
-                      { value: "vegetarian" as DietType, label: "Vegetariano" },
-                      { value: "vegan" as DietType, label: "Vegano" },
-                      { value: "pescatarian" as DietType, label: "Pescetariano" },
-                      { value: "keto" as DietType, label: "Low-carb/Keto" },
-                      { value: "paleo" as DietType, label: "Paleo" },
-                    ].map(({ value, label }) => (
+                      { value: "omnivore" as DietType, label: "Onívoro", hint: "Come de tudo" },
+                      { value: "vegetarian" as DietType, label: "Vegetariano", hint: "Sem carnes" },
+                      { value: "vegan" as DietType, label: "Vegano", hint: "Sem produtos animais" },
+                      { value: "pescatarian" as DietType, label: "Pescetariano", hint: "Peixe, sem carne" },
+                      { value: "keto" as DietType, label: "Low-carb/Keto", hint: "Pouco carboidrato" },
+                      { value: "paleo" as DietType, label: "Paleo", hint: "Comida não processada" },
+                    ].map(({ value, label, hint }) => (
                       <Button key={value} type="button" variant={data.dietType === value ? "default" : "outline"}
-                        className="h-12" onClick={() => setData({ ...data, dietType: value })}>
-                        {label}
+                        className="h-auto py-2 flex-col gap-0.5" onClick={() => setData({ ...data, dietType: value })}>
+                        <span className="text-sm font-medium">{label}</span>
+                        <span className="text-xs opacity-70 font-normal">{hint}</span>
                       </Button>
                     ))}
                   </div>
@@ -569,6 +570,11 @@ export default function OnboardingPage() {
                 <div>
                   <Label className="mb-3 block">Alergias e intolerâncias (opcional)</Label>
                   <div className="flex flex-wrap gap-2">
+                    <Badge variant={data.allergies.length === 0 ? "default" : "outline"}
+                      className="px-3 py-2 cursor-pointer text-sm hover:bg-primary/10 transition-colors"
+                      onClick={() => setData({ ...data, allergies: [] })}>
+                      Não tenho restrições
+                    </Badge>
                     {[
                       { value: "gluten", icon: Wheat, label: "Glúten" },
                       { value: "dairy", icon: Milk, label: "Lactose" },
