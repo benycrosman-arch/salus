@@ -33,9 +33,9 @@ export default async function NutriLayout({ children }: { children: React.ReactN
     <>
       <div className="min-h-screen bg-[#fcf9f8] text-[#1b1c1c]">
         <div className="mx-auto max-w-[480px] pb-24">
-          <header className="bg-[#fcf9f8] sticky top-0 z-30 h-16 flex items-center justify-between px-4 border-b border-[#e4ddd4]">
+          <header className="bg-[#fcf9f8] sticky top-0 z-30 h-24 flex items-center justify-between px-4 border-b border-[#e4ddd4]">
             <Link href="/nutri" className="flex items-center gap-2">
-              <span className="font-serif text-2xl text-[#1a3a2a] font-bold">Salus NutriGen</span>
+              <span className="font-serif text-7xl leading-none text-[#1a3a2a] font-bold">Salus NutriGen</span>
             </Link>
             <div className="flex items-center gap-3">
               <button
