@@ -17,16 +17,15 @@ export function LabsUploader({ patientId }: Props) {
   const router = useRouter()
 
   const handleParsed = (result: ParsedPdfResult) => {
-    const known = Object.values(result.knownLabs).filter((v) => v !== null).length
-    const extra = result.extraLabs.length
-    const total = known + extra
-    if (total === 0) {
-      toast.warning("Não consegui ler marcadores do laudo. Tente outra foto ou PDF mais nítido.")
-    } else {
-      toast.success(`Salvei ${total} marcadores no histórico do paciente.`)
+    if (result.fallback === "manual") {
+      // The edge function already toasted; nothing more to do for nutri.
+      return
     }
-    // Refresh server data so the "Exames recentes" card picks up the new rows.
-    router.refresh()
+    const total = (result.savedCount ?? 0)
+    if (total > 0) {
+      toast.success(`Salvei ${total} marcadores no histórico do paciente.`)
+      router.refresh()
+    }
   }
 
   return (
@@ -41,8 +40,7 @@ export function LabsUploader({ patientId }: Props) {
         histórico do paciente automaticamente.
       </p>
       <PdfExamUpload
-        endpoint="/api/nutri/patient-labs"
-        extraFields={{ patientId }}
+        patientId={patientId}
         onParsed={handleParsed}
         onReset={() => {}}
       />

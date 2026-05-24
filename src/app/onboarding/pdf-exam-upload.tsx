@@ -16,6 +16,7 @@ import {
   Plus,
 } from "lucide-react"
 import { toast } from "sonner"
+import { AIClientError, callEdgeFunction } from "@/lib/ai-client"
 
 export type KnownLabKey =
   | "glucose"
@@ -66,6 +67,9 @@ export interface ParsedPdfResult {
   extraLabs: ExtraLab[]
   confidence: "high" | "medium" | "low"
   notes: string
+  fallback?: "manual"
+  code?: string
+  savedCount?: number
   interpretation?: {
     markers: InterpretedMarkerView[]
     flags: string[]
@@ -81,20 +85,23 @@ export interface ParsedPdfResult {
 
 type State =
   | { kind: "idle" }
+  | { kind: "preparing"; label: string }
   | { kind: "uploading"; label: string }
   | { kind: "done"; label: string; result: ParsedPdfResult }
-  | { kind: "error"; message: string }
+  | { kind: "fallback"; label: string; result: ParsedPdfResult; reason: string }
+  | { kind: "error"; message: string; code?: string }
 
 interface Props {
   onParsed: (result: ParsedPdfResult) => void
   onReset: () => void
-  endpoint?: string
-  extraFields?: Record<string, string>
+  patientId?: string
 }
 
 const MAX_PDF_BYTES = 10 * 1024 * 1024
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+const MAX_IMAGE_BYTES_INPUT = 12 * 1024 * 1024 // accept up to 12 MB raw photos; we downscale before send
+const MAX_IMAGE_BYTES_SEND = 4 * 1024 * 1024 // target after downscale
 const MAX_IMAGES = 8
+const MAX_IMAGE_DIMENSION = 2200
 
 const ACCEPTED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -107,6 +114,23 @@ interface StagedImage {
   id: string
   file: File
   previewUrl: string
+}
+
+const CODE_MESSAGES: Record<string, string> = {
+  anthropic_overloaded: "IA sobrecarregada. Tente de novo em 30s ou preencha manual abaixo.",
+  anthropic_rate_limit: "Muitas requisições. Tente em alguns segundos.",
+  anthropic_network: "A IA demorou demais. Tente PDF/foto menor ou preencha manual.",
+  anthropic_invalid_request: "A IA não conseguiu processar o formato. Tente uma foto mais nítida.",
+  anthropic_auth: "IA temporariamente desconfigurada. Avise o suporte.",
+  api_key_missing: "IA temporariamente desconfigurada. Avise o suporte.",
+  too_large: "Arquivo grande demais. Tire fotos mais leves ou divida o PDF.",
+  too_many_pages: "PDF com muitas páginas. Reduza pra até 35 páginas.",
+  too_many_images: "Muitas fotos. Máximo 8 por envio.",
+  bad_type: "Aceitamos só PDF ou foto (JPEG/PNG/WebP).",
+  empty_file: "Arquivo veio vazio. Tente de novo.",
+  forbidden: "Você não tem permissão para subir esse exame.",
+  no_link: "Esse paciente não está mais vinculado a você.",
+  empty_extraction: "Não consegui ler nenhum marcador. Preencha manual abaixo.",
 }
 
 function formatMeasuredAt(iso: string | null): string | null {
@@ -124,12 +148,60 @@ function isPdf(file: File): boolean {
   return file.type === "application/pdf"
 }
 
-export function PdfExamUpload({
-  onParsed,
-  onReset,
-  endpoint = "/api/labs/parse-pdf",
-  extraFields,
-}: Props) {
+function isHeic(file: File): boolean {
+  const name = file.name.toLowerCase()
+  return (
+    file.type === "image/heic" ||
+    file.type === "image/heif" ||
+    name.endsWith(".heic") ||
+    name.endsWith(".heif")
+  )
+}
+
+async function fileToBase64(file: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result
+      if (typeof result !== "string") return reject(new Error("Failed to read file"))
+      const idx = result.indexOf(",")
+      resolve(idx >= 0 ? result.slice(idx + 1) : result)
+    }
+    reader.onerror = () => reject(reader.error ?? new Error("FileReader error"))
+    reader.readAsDataURL(file)
+  })
+}
+
+// Downscale via canvas. iOS photos can be 4032×3024 / 5-10 MB — OCR doesn't
+// need that. Reduce to MAX_IMAGE_DIMENSION on the long side, JPEG quality 0.85.
+async function downscaleImage(file: File): Promise<Blob> {
+  if (file.size <= MAX_IMAGE_BYTES_SEND) return file
+  const bitmap = await createImageBitmap(file).catch(() => null)
+  if (!bitmap) return file
+
+  const { width, height } = bitmap
+  const longSide = Math.max(width, height)
+  const scale = longSide > MAX_IMAGE_DIMENSION ? MAX_IMAGE_DIMENSION / longSide : 1
+  const targetW = Math.round(width * scale)
+  const targetH = Math.round(height * scale)
+
+  const canvas = document.createElement("canvas")
+  canvas.width = targetW
+  canvas.height = targetH
+  const ctx = canvas.getContext("2d")
+  if (!ctx) return file
+  ctx.drawImage(bitmap, 0, 0, targetW, targetH)
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob((b) => resolve(b), "image/jpeg", 0.85),
+  )
+  bitmap.close?.()
+  if (!blob) return file
+  // If somehow the downscaled blob is larger, keep the original.
+  return blob.size < file.size ? blob : file
+}
+
+export function PdfExamUpload({ onParsed, onReset, patientId }: Props) {
   const [state, setState] = useState<State>({ kind: "idle" })
   const [dragOver, setDragOver] = useState(false)
   const [pdf, setPdf] = useState<File | null>(null)
@@ -149,16 +221,6 @@ export function PdfExamUpload({
     onReset()
   }
 
-  function isHeic(file: File): boolean {
-    const name = file.name.toLowerCase()
-    return (
-      file.type === "image/heic" ||
-      file.type === "image/heif" ||
-      name.endsWith(".heic") ||
-      name.endsWith(".heif")
-    )
-  }
-
   function addFiles(files: FileList | File[]) {
     const arr = Array.from(files)
     if (arr.length === 0) return
@@ -172,16 +234,14 @@ export function PdfExamUpload({
 
     if (heicCandidates.length > 0) {
       toast.error(
-        "Foto em HEIC. No iPhone vá em Ajustes → Câmera → Formatos → 'Mais Compatível' e tire de novo, ou exporte em JPEG.",
+        "Foto em HEIC. No iPhone: Ajustes → Câmera → Formatos → 'Mais Compatível'. Ou exporte em JPEG.",
       )
       if (cleanImages.length === 0 && pdfCandidates.length === 0) return
     }
-
     if (unknown.length > 0) {
       toast.error("Só aceitamos PDF ou foto (JPEG, PNG, WebP).")
       return
     }
-
     if (pdfCandidates.length > 0 && (cleanImages.length > 0 || images.length > 0)) {
       toast.error("Envie PDF OU fotos — não os dois juntos.")
       return
@@ -216,8 +276,8 @@ export function PdfExamUpload({
       }
       const toAdd: StagedImage[] = []
       for (const f of cleanImages.slice(0, remaining)) {
-        if (f.size > MAX_IMAGE_BYTES) {
-          toast.error(`"${f.name}" acima do limite (8 MB).`)
+        if (f.size > MAX_IMAGE_BYTES_INPUT) {
+          toast.error(`"${f.name}" acima de 12 MB. Tira outra com menos resolução.`)
           continue
         }
         toAdd.push({
@@ -249,61 +309,107 @@ export function PdfExamUpload({
     const label = pdf
       ? pdf.name
       : `${images.length} ${images.length === 1 ? "foto" : "fotos"}`
-    setState({ kind: "uploading", label })
+
+    setState({ kind: "preparing", label })
+
+    let filePayload: Array<{ name: string; mediaType: string; size: number; base64: string }>
+    let mode: "pdf" | "images"
     try {
-      const fd = new FormData()
       if (pdf) {
-        fd.append("file", pdf)
+        const base64 = await fileToBase64(pdf)
+        filePayload = [{ name: pdf.name, mediaType: pdf.type, size: pdf.size, base64 }]
+        mode = "pdf"
       } else {
-        for (const img of images) fd.append("files", img.file)
+        const downscaled = await Promise.all(
+          images.map(async (img) => {
+            const blob = await downscaleImage(img.file)
+            const base64 = await fileToBase64(blob)
+            return {
+              name: img.file.name,
+              mediaType: blob instanceof File ? blob.type : "image/jpeg",
+              size: blob.size,
+              base64,
+            }
+          }),
+        )
+        filePayload = downscaled
+        mode = "images"
       }
-      if (extraFields) {
-        for (const [k, v] of Object.entries(extraFields)) fd.append(k, v)
-      }
-      const res = await fetch(endpoint, { method: "POST", body: fd })
-      const payload = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        const msg =
-          typeof payload?.error === "string" && payload.error !== "extraction_failed"
-            ? payload.error
-            : "Não consegui ler o exame. Tente outro arquivo ou preencha manual."
-        setState({ kind: "error", message: msg })
+    } catch (err) {
+      console.error("[pdf-exam-upload] file prep failed", err)
+      setState({ kind: "error", message: "Não consegui preparar o arquivo. Tenta de novo." })
+      return
+    }
+
+    setState({ kind: "uploading", label })
+
+    try {
+      const data = await callEdgeFunction<ParsedPdfResult>(
+        "ai-extract-labs",
+        { mode, files: filePayload, patientId },
+        // Longer timeout because Anthropic on a 5-page laudo can take 60-80s,
+        // and Edge Functions tolerate that comfortably (the Vercel route can't).
+        { timeoutMs: 110_000, retries: 0 },
+      )
+
+      const known = Object.values(data.knownLabs).filter((v) => v !== null).length
+      const extra = data.extraLabs.length
+      const total = known + extra
+
+      if (data.fallback === "manual") {
+        setState({
+          kind: "fallback",
+          label,
+          result: data,
+          reason:
+            (data.code && CODE_MESSAGES[data.code]) ||
+            (data as { error?: string }).error ||
+            "IA indisponível agora.",
+        })
+        onParsed(data)
+        toast.warning("Arquivo salvo. Preenche os valores manualmente abaixo.")
         return
       }
-      const result = payload as ParsedPdfResult
-      setState({ kind: "done", label, result })
-      onParsed(result)
-      const knownCount = Object.values(result.knownLabs).filter((v) => v !== null).length
-      const extraCount = result.extraLabs.length
-      const total = knownCount + extraCount
+
+      setState({ kind: "done", label, result: data })
+      onParsed(data)
       if (total === 0) {
-        toast.warning(
-          "Não consegui ler nenhum marcador. Pode ser um laudo escaneado de baixa qualidade — preencha manualmente abaixo.",
-        )
+        toast.warning("Não consegui ler nenhum marcador. Preenche manual abaixo.")
       } else {
         toast.success(
-          extraCount > 0
-            ? `Lemos ${knownCount} dos 8 principais + ${extraCount} extras.`
-            : `Lemos ${knownCount} dos 8 principais.`,
+          extra > 0
+            ? `Lemos ${known} dos 8 principais + ${extra} extras.`
+            : `Lemos ${known} dos 8 principais.`,
         )
       }
-    } catch {
-      setState({ kind: "error", message: "Erro de rede ao enviar o exame." })
+    } catch (err) {
+      if (err instanceof AIClientError) {
+        const code = err.code ?? undefined
+        const msg = (code && CODE_MESSAGES[code]) || err.message
+        setState({ kind: "error", message: msg, code })
+      } else {
+        setState({ kind: "error", message: "Erro de rede ao enviar o exame." })
+      }
     }
   }
 
-  if (state.kind === "uploading") {
+  if (state.kind === "preparing" || state.kind === "uploading") {
+    const isPrep = state.kind === "preparing"
     return (
       <div className="rounded-xl border border-border bg-muted/30 p-5">
         <div className="flex items-center gap-3">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
           <div className="flex-1">
-            <p className="text-sm font-medium">Lendo seu exame com Claude Opus 4.7…</p>
+            <p className="text-sm font-medium">
+              {isPrep ? "Preparando arquivo…" : "Lendo seu exame com IA…"}
+            </p>
             <p className="text-xs text-muted-foreground font-body truncate">{state.label}</p>
           </div>
         </div>
         <p className="text-xs text-muted-foreground font-body mt-3">
-          Pode levar 15-40s, principalmente em fotos de várias páginas.
+          {isPrep
+            ? "Reduzindo tamanho da imagem antes de enviar…"
+            : "Pode levar 15-60s, principalmente em laudos longos."}
         </p>
       </div>
     )
@@ -368,13 +474,20 @@ export function PdfExamUpload({
     )
   }
 
-  if (state.kind === "error") {
+  if (state.kind === "fallback") {
     return (
-      <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-5">
+      <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-5">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm font-medium">{state.message}</p>
+            <p className="text-sm font-medium">Arquivo salvo, mas a IA não leu agora.</p>
+            <p className="text-xs text-muted-foreground font-body truncate mt-0.5">{state.label}</p>
+            <p className="text-xs font-body mt-2 text-amber-900 dark:text-amber-200">
+              {state.reason}
+            </p>
+            <p className="text-xs text-muted-foreground font-body mt-2">
+              Você pode preencher os valores manualmente abaixo, ou tentar de novo.
+            </p>
             <Button
               type="button"
               variant="ghost"
@@ -391,7 +504,34 @@ export function PdfExamUpload({
     )
   }
 
-  // Idle: PDF picked OR images picked OR nothing.
+  if (state.kind === "error") {
+    return (
+      <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-5">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">{state.message}</p>
+            {state.code && (
+              <p className="text-[10px] text-muted-foreground font-mono mt-1 opacity-70">
+                código: {state.code}
+              </p>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={reset}
+              className="mt-2 text-xs gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Tentar de novo
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const hasSomething = pdf !== null || images.length > 0
 
   return (
@@ -485,7 +625,7 @@ export function PdfExamUpload({
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground font-body">
-              Até 8 fotos · PDF até 10 MB
+              Até 8 fotos · PDF até 10 MB · fotos grandes reduzidas automaticamente
             </p>
           </div>
         </div>
