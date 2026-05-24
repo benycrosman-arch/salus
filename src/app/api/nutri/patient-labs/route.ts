@@ -1,6 +1,15 @@
+// Nutricionista uploads a blood-exam PDF or photos for a linked paciente.
+// Mirrors the patient-facing /api/labs/parse-pdf flow but:
+//   - validates the active nutri↔paciente link
+//   - writes lab_uploads/lab_results rows under the patient's user_id using
+//     the service-role client (RLS blocks cross-user inserts otherwise)
+//   - auto-saves every extracted marker since the nutri is the source of truth
+//     for this upload — they can edit individual rows later
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createServiceClient } from '@/lib/supabase/service'
 import {
   extractLabsFromPdf,
   extractLabsFromImages,
@@ -58,6 +67,27 @@ function extensionFor(mediaType: string): string {
   }
 }
 
+const KNOWN_LABELS: Record<string, string> = {
+  glucose: 'Glicose em jejum',
+  hba1c: 'Hemoglobina glicada (HbA1c)',
+  hdl: 'HDL',
+  ldl: 'LDL',
+  triglycerides: 'Triglicérides',
+  vitaminD: 'Vitamina D (25-OH)',
+  ferritin: 'Ferritina',
+  b12: 'Vitamina B12',
+}
+const KNOWN_UNITS: Record<string, string> = {
+  glucose: 'mg/dL',
+  hba1c: '%',
+  hdl: 'mg/dL',
+  ldl: 'mg/dL',
+  triglycerides: 'mg/dL',
+  vitaminD: 'ng/mL',
+  ferritin: 'ng/mL',
+  b12: 'pg/mL',
+}
+
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -66,11 +96,8 @@ export async function POST(request: NextRequest) {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          )
-        },
+        setAll: (toSet) =>
+          toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
       },
     },
   )
@@ -80,22 +107,47 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (profile?.role !== 'nutricionista') {
+    return NextResponse.json(
+      { error: 'Apenas nutricionistas podem enviar exames de pacientes.' },
+      { status: 403 },
+    )
+  }
+
   let formData: FormData
   try {
     formData = await request.formData()
   } catch {
-    return NextResponse.json({ error: 'Invalid multipart body' }, { status: 400 })
+    return NextResponse.json({ error: 'Corpo multipart inválido.' }, { status: 400 })
   }
 
-  // Accept either a single `file` (legacy) or many `files` entries. Mobile
-  // clients can attach multiple photos for a multi-page laudo.
+  const patientId = String(formData.get('patientId') ?? '').trim()
+  if (!patientId) {
+    return NextResponse.json({ error: 'patientId é obrigatório.' }, { status: 400 })
+  }
+
+  const { data: link } = await supabase
+    .from('nutri_patient_links')
+    .select('status')
+    .eq('nutri_id', user.id)
+    .eq('patient_id', patientId)
+    .eq('status', 'active')
+    .maybeSingle()
+  if (!link) {
+    return NextResponse.json({ error: 'Paciente não vinculado a você.' }, { status: 403 })
+  }
+
   const rawEntries: File[] = []
   const single = formData.get('file')
   if (single instanceof File) rawEntries.push(single)
   for (const entry of formData.getAll('files')) {
     if (entry instanceof File) rawEntries.push(entry)
   }
-
   if (rawEntries.length === 0) {
     return NextResponse.json({ error: 'Arquivo ausente.' }, { status: 400 })
   }
@@ -108,10 +160,7 @@ export async function POST(request: NextRequest) {
 
   if (unknownFiles.length > 0) {
     return NextResponse.json(
-      {
-        error:
-          'Aceitamos PDF ou fotos JPEG/PNG/WebP. Se a foto saiu em HEIC, escolha "Mais Compatível" nas configs da câmera do iPhone.',
-      },
+      { error: 'Aceitamos PDF ou fotos JPEG/PNG/WebP.' },
       { status: 400 },
     )
   }
@@ -122,10 +171,7 @@ export async function POST(request: NextRequest) {
     )
   }
   if (pdfFiles.length > 1) {
-    return NextResponse.json(
-      { error: 'Envie um PDF por vez. Se houver mais de um, junte-os antes.' },
-      { status: 400 },
-    )
+    return NextResponse.json({ error: 'Um PDF por vez.' }, { status: 400 })
   }
   if (imageFiles.length > MAX_IMAGES) {
     return NextResponse.json(
@@ -156,9 +202,7 @@ export async function POST(request: NextRequest) {
   for (const img of imageFiles) {
     if (img.size > MAX_IMAGE_BYTES) {
       return NextResponse.json(
-        {
-          error: `Foto "${img.name || 'sem nome'}" acima do limite (${MAX_IMAGE_BYTES / 1024 / 1024} MB).`,
-        },
+        { error: `Foto acima do limite (${MAX_IMAGE_BYTES / 1024 / 1024} MB).` },
         { status: 400 },
       )
     }
@@ -184,23 +228,25 @@ export async function POST(request: NextRequest) {
         })),
       )
 
-  const { data: profile } = await supabase
+  const service = createServiceClient()
+
+  const { data: patientProfile } = await service
     .from('profiles')
     .select('biological_sex, age')
-    .eq('id', user.id)
+    .eq('id', patientId)
     .maybeSingle()
-  const sex = profileSex(profile?.biological_sex)
-  const age = typeof profile?.age === 'number' ? profile.age : 30
+  const sex = profileSex(patientProfile?.biological_sex)
+  const age = typeof patientProfile?.age === 'number' ? patientProfile.age : 30
 
   const primaryName = isPdfMode
     ? pdfFiles[0].name?.slice(0, 255) || 'exame.pdf'
     : imageFiles[0]?.name?.slice(0, 255) || `exame-${imageFiles.length}-fotos`
   const primaryExt = isPdfMode ? 'pdf' : extensionFor(imageFiles[0]?.type || 'image/jpeg')
 
-  const { data: uploadRow, error: insertError } = await supabase
+  const { data: uploadRow, error: insertError } = await service
     .from('lab_uploads')
     .insert({
-      user_id: user.id,
+      user_id: patientId,
       storage_path: '',
       original_filename: primaryName,
       byte_size: totalBytes,
@@ -211,27 +257,24 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (insertError || !uploadRow) {
-    console.error('[labs/parse-pdf] lab_uploads insert failed', insertError)
+    console.error('[nutri/patient-labs] lab_uploads insert failed', insertError)
     return NextResponse.json({ error: 'Não foi possível registrar o upload.' }, { status: 500 })
   }
 
-  // Storage layout:
-  //   PDF mode → lab-pdfs/{user_id}/{upload_id}.pdf
-  //   image mode → lab-pdfs/{user_id}/{upload_id}-1.jpg, ...-2.jpg, ...
   const storagePathPrimary = isPdfMode
-    ? `${user.id}/${uploadRow.id}.pdf`
-    : `${user.id}/${uploadRow.id}-1.${primaryExt}`
+    ? `${patientId}/${uploadRow.id}.pdf`
+    : `${patientId}/${uploadRow.id}-1.${primaryExt}`
 
   if (isPdfMode && pdfBuffer) {
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await service.storage
       .from('lab-pdfs')
       .upload(storagePathPrimary, pdfBuffer, {
         contentType: 'application/pdf',
         upsert: false,
       })
     if (storageError) {
-      console.error('[labs/parse-pdf] storage upload failed', storageError)
-      await supabase.from('lab_uploads').delete().eq('id', uploadRow.id)
+      console.error('[nutri/patient-labs] storage upload failed', storageError)
+      await service.from('lab_uploads').delete().eq('id', uploadRow.id)
       return NextResponse.json({ error: 'Falha ao salvar o PDF.' }, { status: 500 })
     }
   } else {
@@ -239,8 +282,8 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < imagePayloads.length; i++) {
       const img = imagePayloads[i]
       const ext = extensionFor(img.mediaType)
-      const path = `${user.id}/${uploadRow.id}-${i + 1}.${ext}`
-      const { error } = await supabase.storage
+      const path = `${patientId}/${uploadRow.id}-${i + 1}.${ext}`
+      const { error } = await service.storage
         .from('lab-pdfs')
         .upload(path, img.buffer, { contentType: img.mediaType, upsert: false })
       if (error) {
@@ -249,13 +292,13 @@ export async function POST(request: NextRequest) {
       }
     }
     if (firstError) {
-      console.error('[labs/parse-pdf] image upload failed', firstError)
-      await supabase.from('lab_uploads').delete().eq('id', uploadRow.id)
+      console.error('[nutri/patient-labs] image upload failed', firstError)
+      await service.from('lab_uploads').delete().eq('id', uploadRow.id)
       return NextResponse.json({ error: 'Falha ao salvar as fotos.' }, { status: 500 })
     }
   }
 
-  await supabase
+  await service
     .from('lab_uploads')
     .update({ storage_path: storagePathPrimary })
     .eq('id', uploadRow.id)
@@ -273,7 +316,7 @@ export async function POST(request: NextRequest) {
       )
     }
   } catch (err) {
-    console.error('[labs/parse-pdf] anthropic extract failed', err)
+    console.error('[nutri/patient-labs] anthropic extract failed', err)
     return NextResponse.json(
       { error: 'extraction_failed', uploadId: uploadRow.id },
       { status: 502 },
@@ -281,32 +324,12 @@ export async function POST(request: NextRequest) {
   }
 
   const rawMarkers: RawMarker[] = []
-  const knownLabels: Record<string, string> = {
-    glucose: 'Glicose em jejum',
-    hba1c: 'Hemoglobina glicada (HbA1c)',
-    hdl: 'HDL',
-    ldl: 'LDL',
-    triglycerides: 'Triglicérides',
-    vitaminD: 'Vitamina D (25-OH)',
-    ferritin: 'Ferritina',
-    b12: 'Vitamina B12',
-  }
-  const knownUnits: Record<string, string> = {
-    glucose: 'mg/dL',
-    hba1c: '%',
-    hdl: 'mg/dL',
-    ldl: 'mg/dL',
-    triglycerides: 'mg/dL',
-    vitaminD: 'ng/mL',
-    ferritin: 'ng/mL',
-    b12: 'pg/mL',
-  }
   for (const [key, value] of Object.entries(extraction.extraction.known)) {
     if (value === null) continue
     rawMarkers.push({
-      marker: knownLabels[key] ?? key,
+      marker: KNOWN_LABELS[key] ?? key,
       value,
-      unit: knownUnits[key] ?? '',
+      unit: KNOWN_UNITS[key] ?? '',
     })
   }
   for (const x of extraction.extraction.extras) {
@@ -321,12 +344,58 @@ export async function POST(request: NextRequest) {
 
   const interpreted = interpretLabs(rawMarkers, sex, age)
 
+  // Auto-save all extracted markers under the patient — nutri uploaded the
+  // laudo so we trust the values. They can edit individual rows later.
+  const today = new Date().toISOString().slice(0, 10)
+  const measuredAt =
+    extraction.extraction.measured_at &&
+    /^\d{4}-\d{2}-\d{2}$/.test(extraction.extraction.measured_at)
+      ? extraction.extraction.measured_at
+      : today
+
+  const rows: Array<Record<string, unknown>> = []
+  for (const [key, value] of Object.entries(extraction.extraction.known)) {
+    if (value === null) continue
+    rows.push({
+      user_id: patientId,
+      marker: KNOWN_LABELS[key] ?? key,
+      value,
+      unit: KNOWN_UNITS[key] ?? '',
+      measured_at: measuredAt,
+      source: 'pdf_upload',
+      upload_id: uploadRow.id,
+    })
+  }
+  for (const x of extraction.extraction.extras) {
+    rows.push({
+      user_id: patientId,
+      marker: x.marker,
+      value: x.value,
+      unit: x.unit,
+      reference_min: x.reference_min,
+      reference_max: x.reference_max,
+      measured_at: measuredAt,
+      source: 'pdf_upload',
+      upload_id: uploadRow.id,
+    })
+  }
+
+  let savedCount = 0
+  if (rows.length > 0) {
+    const { error: rowsError } = await service.from('lab_results').insert(rows)
+    if (rowsError) {
+      console.error('[nutri/patient-labs] lab_results insert failed', rowsError)
+    } else {
+      savedCount = rows.length
+    }
+  }
+
   const knownExtractedCount = Object.values(extraction.extraction.known).filter(
     (v) => v !== null,
   ).length
   const markersExtracted = knownExtractedCount + extraction.extraction.extras.length
 
-  await supabase
+  await service
     .from('lab_uploads')
     .update({
       parsed_at: new Date().toISOString(),
@@ -347,6 +416,7 @@ export async function POST(request: NextRequest) {
       flags: interpreted.flags,
       rollup: interpreted.rollup,
     },
+    savedCount,
     usage: extraction.usage,
     attempts: extraction.attempts,
   })

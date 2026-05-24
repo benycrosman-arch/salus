@@ -21,6 +21,7 @@ import { AttachmentsUploader } from "./attachments-uploader"
 import { GoalsEditor } from "./goals-editor"
 import { EndRelationshipButton } from "./end-relationship-button"
 import { PatientChat } from "./patient-chat"
+import { LabsUploader } from "./labs-uploader"
 
 export const dynamic = "force-dynamic"
 
@@ -292,6 +293,8 @@ export default async function PacientePage({ params }: { params: Promise<Params>
         </Card>
 
         {/* Labs */}
+        <div className="space-y-4">
+          <LabsUploader patientId={patientId} />
         <Card className="border-0 shadow-md p-6">
           <h2 className="text-sm font-semibold text-[#1a3a2a] mb-4 flex items-center gap-2">
             <Beaker className="w-4 h-4" />
@@ -325,6 +328,7 @@ export default async function PacientePage({ params }: { params: Promise<Params>
             </ul>
           )}
         </Card>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
