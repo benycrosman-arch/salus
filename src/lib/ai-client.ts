@@ -32,6 +32,7 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   anthropic_model_not_found: "Modelo de IA indisponível. Estamos investigando.",
   anthropic_rate_limit: "Muitas requisições no momento. Aguarde alguns segundos e tente de novo.",
   anthropic_overloaded: "IA sobrecarregada. Tente novamente em alguns segundos.",
+  anthropic_billing: "Saldo de IA acabou. Avise o suporte (admin precisa adicionar créditos no Anthropic).",
   anthropic_invalid_request: "Não consegui processar essa imagem. Tente outra foto com mais luz e foco.",
   anthropic_5xx: "IA com problema temporário. Tente de novo em instantes.",
   anthropic_network: "Falha de rede ao falar com a IA. Tente de novo.",

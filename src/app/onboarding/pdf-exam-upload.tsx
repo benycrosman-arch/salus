@@ -120,6 +120,7 @@ const CODE_MESSAGES: Record<string, string> = {
   anthropic_overloaded: "IA sobrecarregada. Tente de novo em 30s ou preencha manual abaixo.",
   anthropic_rate_limit: "Muitas requisições. Tente em alguns segundos.",
   anthropic_network: "A IA demorou demais. Tente PDF/foto menor ou preencha manual.",
+  anthropic_billing: "Saldo de IA acabou. Avise o suporte (admin precisa adicionar créditos no Anthropic).",
   anthropic_invalid_request: "A IA não conseguiu processar o formato. Tente uma foto mais nítida.",
   anthropic_auth: "IA temporariamente desconfigurada. Avise o suporte.",
   api_key_missing: "IA temporariamente desconfigurada. Avise o suporte.",

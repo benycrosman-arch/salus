@@ -44,7 +44,8 @@ export type AnthropicErrorCode =
   | "anthropic_model_not_found" // 404
   | "anthropic_rate_limit"      // 429
   | "anthropic_overloaded"      // 529
-  | "anthropic_invalid_request" // 400
+  | "anthropic_billing"         // 400 + "credit_balance" / "billing" in message
+  | "anthropic_invalid_request" // 400 (everything else)
   | "anthropic_5xx"             // 500/502/503/504
   | "anthropic_network"         // fetch threw / aborted
   | "anthropic_unknown"
@@ -82,6 +83,7 @@ function statusForCode(code: AnthropicErrorCode): number {
     case "anthropic_auth":
     case "anthropic_model_not_found":
     case "anthropic_overloaded":
+    case "anthropic_billing":
       return 503
     case "anthropic_rate_limit":
       return 429
@@ -96,13 +98,27 @@ function statusForCode(code: AnthropicErrorCode): number {
 }
 
 function classify(upstreamStatus: number, body: string): AnthropicErrorCode {
-  // Prefer Anthropic's own error.type when present — status alone is ambiguous.
   let errorType: string | null = null
+  let errorMessage: string | null = null
   try {
-    const parsed = JSON.parse(body) as { error?: { type?: string } }
+    const parsed = JSON.parse(body) as { error?: { type?: string; message?: string } }
     errorType = parsed?.error?.type ?? null
+    errorMessage = parsed?.error?.message ?? null
   } catch {
     // body wasn't JSON; fall back to status-based mapping below
+  }
+
+  // Billing signals come back as invalid_request_error but the *real* fix is to
+  // top up the Anthropic account — different operator action, different UI copy.
+  // Examples seen in prod: "credit balance is too low", "Please go to Plans & Billing".
+  const msgLower = (errorMessage ?? body).toLowerCase()
+  const isBilling =
+    msgLower.includes("credit balance") ||
+    msgLower.includes("billing") ||
+    msgLower.includes("quota") ||
+    msgLower.includes("payment")
+  if (isBilling && (upstreamStatus === 400 || upstreamStatus === 402 || upstreamStatus === 403)) {
+    return "anthropic_billing"
   }
 
   if (errorType === "authentication_error" || errorType === "permission_error") return "anthropic_auth"

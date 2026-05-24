@@ -737,6 +737,7 @@ function friendlyMessage(code: string): string {
     case "anthropic_overloaded": return "IA sobrecarregada agora. O arquivo está salvo — preencha manual ou tente em 30s."
     case "anthropic_rate_limit": return "Muitas requisições. O arquivo está salvo — preencha manual ou tente em 30s."
     case "anthropic_network": return "A IA demorou demais. O arquivo está salvo — preencha manual ou tente outro PDF."
+    case "anthropic_billing": return "Saldo de IA acabou (admin precisa adicionar créditos no Anthropic). O arquivo está salvo — preencha manual abaixo."
     case "anthropic_invalid_request": return "A IA não conseguiu processar esse formato. O arquivo está salvo — preencha manual."
     case "anthropic_auth":
     case "api_key_missing": return "IA temporariamente desconfigurada. O arquivo está salvo — preencha manual ou avise o suporte."
