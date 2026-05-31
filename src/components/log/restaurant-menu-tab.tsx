@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react"
 import Image from "next/image"
 import {
   Loader2,
-  MapPin,
   CheckCircle,
   UtensilsCrossed,
   Zap,
@@ -16,7 +15,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import type { CalorieBias, ParsedFoodItem, TextLogResult } from "@/lib/types"
 import { AIClientError, callEdgeFunction } from "@/lib/ai-client"
@@ -27,9 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-type GeoPhase = "need_permission" | "loading" | "places_error" | "ready"
 type MenuLine = { id: string; name: string; priceText: string | null; section: string | null }
-type PlaceRow = { id: string; name: string; vicinity?: string; location: { lat: number; lng: number } }
 
 const SOURCE_LABELS: Record<string, string> = {
   usda: "USDA",
@@ -214,12 +210,6 @@ function ReasoningDialog({
 }
 
 export function RestaurantMenuTab() {
-  const [geoPhase, setGeoPhase] = useState<GeoPhase>("need_permission")
-  const [placesError, setPlacesError] = useState<string | null>(null)
-  const [places, setPlaces] = useState<PlaceRow[]>([])
-  const [selectedPlace, setSelectedPlace] = useState<PlaceRow | "none" | null>(null)
-  const [userLatLng, setUserLatLng] = useState<{ lat: number; lng: number } | null>(null)
-
   const [menuImage, setMenuImage] = useState<string | null>(null)
   const [menuLines, setMenuLines] = useState<MenuLine[]>([])
   const [scanMeta, setScanMeta] = useState<{ unreadable: boolean; rawNotes: string | null } | null>(null)
@@ -234,54 +224,6 @@ export function RestaurantMenuTab() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedParsed, setSelectedParsed] = useState<ParsedFoodItem | null>(null)
-
-  const restaurantNameForParse =
-    selectedPlace && selectedPlace !== "none" ? selectedPlace.name : undefined
-
-  const requestLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setPlacesError("Seu dispositivo não suporta localização.")
-      setGeoPhase("places_error")
-      return
-    }
-    setGeoPhase("loading")
-    setPlacesError(null)
-    setError(null)
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
-        setUserLatLng({ lat, lng })
-        try {
-          const res = await fetch("/api/places/nearby", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lat, lng, radiusMeters: 900 }),
-          })
-          const data = await res.json()
-          if (!res.ok) {
-            throw new Error(data.error || "Falha ao buscar restaurantes")
-          }
-          const list = data.places ?? []
-          setPlaces(list)
-          if (list.length === 0) {
-            setPlacesError("Nenhum restaurante encontrado por perto. Você ainda pode escanear o cardápio e registrar.")
-          } else {
-            setPlacesError(null)
-          }
-          setGeoPhase("ready")
-        } catch (e) {
-          setPlacesError(e instanceof Error ? e.message : "Erro ao carregar lugares")
-          setGeoPhase("places_error")
-        }
-      },
-      () => {
-        setPlacesError("Permissão de localização negada. Ative nas configurações do navegador para ver restaurantes próximos.")
-        setGeoPhase("places_error")
-      },
-      { timeout: 15000, maximumAge: 120000, enableHighAccuracy: false }
-    )
-  }, [])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0]
@@ -378,7 +320,6 @@ export function RestaurantMenuTab() {
       const data = await callEdgeFunction<TextLogResult>("ai-parse-text", {
         text,
         bias,
-        restaurant: restaurantNameForParse,
       })
       setParseResult(data)
     } catch (err) {
@@ -386,7 +327,7 @@ export function RestaurantMenuTab() {
     } finally {
       setParsing(false)
     }
-  }, [menuLines, selectedLineIds, bias, restaurantNameForParse])
+  }, [menuLines, selectedLineIds, bias])
 
   const saveMeal = useCallback(async () => {
     if (!parseResult) return
@@ -421,116 +362,6 @@ export function RestaurantMenuTab() {
 
   return (
     <div className="space-y-4">
-      {/* Location */}
-      <div className="rounded-2xl bg-white ring-1 ring-black/[0.04] p-4 space-y-3">
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#1a3a2a]/8 flex items-center justify-center flex-shrink-0">
-            <MapPin className="h-4 w-4 text-[#1a3a2a]" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-[#1a3a2a]">Restaurantes perto de você</p>
-            <p className="text-xs text-[#1a3a2a]/50 mt-0.5 leading-relaxed">
-              Precisamos da sua localização para listar opções próximas e ajustar porções no cálculo.
-            </p>
-          </div>
-        </div>
-
-        {geoPhase === "need_permission" && (
-          <Button
-            type="button"
-            className="w-full rounded-xl bg-[#1a3a2a] text-white font-semibold"
-            onClick={requestLocation}
-          >
-            Permitir localização
-          </Button>
-        )}
-
-        {geoPhase === "loading" && (
-          <div className="flex items-center justify-center gap-2 py-2 text-sm text-[#1a3a2a]/60">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Obtendo localização…
-          </div>
-        )}
-
-        {geoPhase === "places_error" && placesError && (
-          <div className="rounded-xl bg-[#c4614a]/8 border border-[#c4614a]/20 p-3 text-sm text-[#c4614a]">
-            {placesError}
-            <div className="mt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="rounded-lg border-[#1a3a2a]/20"
-                onClick={() => {
-                  setGeoPhase("need_permission")
-                  setPlacesError(null)
-                }}
-              >
-                Tentar de novo
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {geoPhase === "ready" && userLatLng && (
-          <div className="space-y-2">
-            {placesError && !places.length && (
-              <p className="text-xs text-[#1a3a2a]/45">{placesError}</p>
-            )}
-            {places.length > 0 && (
-              <>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#1a3a2a]/60">
-                  Onde você está? (opcional)
-                </p>
-                <ScrollArea className="h-[min(220px,40vh)] rounded-xl border border-[#e4ddd4] bg-[#faf8f4]/50 p-1">
-                  <div className="space-y-1 p-1">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPlace("none")}
-                      className={cn(
-                        "w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors",
-                        selectedPlace === "none"
-                          ? "bg-[#1a3a2a] text-white"
-                          : "hover:bg-white text-[#1a3a2a]/80"
-                      )}
-                    >
-                      Não listado
-                    </button>
-                    {places.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => setSelectedPlace(p)}
-                        className={cn(
-                          "w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors",
-                          selectedPlace !== "none" && selectedPlace?.id === p.id
-                            ? "bg-[#1a3a2a] text-white"
-                            : "hover:bg-white text-[#1a3a2a]/80"
-                        )}
-                      >
-                        <span className="font-medium block truncate">{p.name}</span>
-                        {p.vicinity && (
-                          <span
-                            className={cn(
-                              "text-xs block truncate mt-0.5",
-                              selectedPlace !== "none" && selectedPlace?.id === p.id
-                                ? "text-white/80"
-                                : "text-[#1a3a2a]/45"
-                            )}
-                          >
-                            {p.vicinity}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
       {/* Scan menu */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">

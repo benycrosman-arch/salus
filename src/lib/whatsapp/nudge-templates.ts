@@ -22,8 +22,12 @@ function fallbackPt(ctx: UserContext, slot: NudgeSlot): string {
       return `Janela do jantar começou. Inclui uma fonte de fibra (faltam ${fiberLeft}g) e mantém a proteína em pé — restam ${proteinLeft}g.`
     case 'hydration':
       return `Lembrete de água: ainda faltam ~${waterLeft} ml para fechar a meta de hidratação de hoje.`
-    case 'recap':
-      return `Fechamento do dia. Score médio: ${score ?? 'sem registro'}. Streak: ${streak} dia(s). ${proteinLeft === 0 ? 'Proteína batida.' : `Faltaram ${proteinLeft}g de proteína.`}`
+    case 'recap': {
+      const streakLine = streak >= 3
+        ? `Sequência de ${streak} dias 🔥 — não quebra agora.`
+        : streak > 0 ? `Streak: ${streak} dia(s).` : ''
+      return `Fechamento do dia. Score médio: ${score ?? 'sem registro'}. ${streakLine} ${proteinLeft === 0 ? 'Proteína batida.' : `Faltaram ${proteinLeft}g de proteína.`}`.trim()
+    }
   }
 }
 

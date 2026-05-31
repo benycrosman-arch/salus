@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Salus - Mensagens e Co-piloto IA</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#1a3a2a",
+                      "on-surface": "#1b1c1c",
+                      "secondary": "#5e5e5c",
+                      "on-surface-variant": "#424843",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed": "#e4e2de",
+                      "inverse-on-surface": "#f3f0f0",
+                      "secondary-container": "#e1dfdc",
+                      "on-primary-fixed-variant": "#2d4d3c",
+                      "on-secondary": "#ffffff",
+                      "inverse-primary": "#abcfb8",
+                      "background": "#fcf9f8",
+                      "on-tertiary-fixed-variant": "#7d2c19",
+                      "on-error": "#ffffff",
+                      "primary": "#032416",
+                      "on-primary-container": "#82a48f",
+                      "inverse-surface": "#303030",
+                      "surface-container-lowest": "#ffffff",
+                      "on-background": "#1b1c1c",
+                      "tertiary-fixed": "#ffdad2",
+                      "tertiary": "#420700",
+                      "on-tertiary-fixed": "#3d0600",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-container": "#e97e65",
+                      "on-error-container": "#93000a",
+                      "on-secondary-fixed-variant": "#474744",
+                      "outline": "#727973",
+                      "surface-container": "#f0eded",
+                      "on-primary-fixed": "#002113",
+                      "primary-fixed-dim": "#abcfb8",
+                      "secondary-fixed-dim": "#c8c6c3",
+                      "surface-variant": "#e4e2e1",
+                      "surface-bright": "#fcf9f8",
+                      "surface-container-highest": "#e4e2e1",
+                      "surface-container-high": "#eae7e7",
+                      "on-tertiary": "#ffffff",
+                      "surface-tint": "#456553",
+                      "tertiary-fixed-dim": "#ffb4a3",
+                      "tertiary-container": "#631908",
+                      "primary-fixed": "#c7ebd4",
+                      "on-secondary-container": "#636360",
+                      "surface-dim": "#dcd9d9",
+                      "surface": "#fcf9f8",
+                      "on-secondary-fixed": "#1b1c1a",
+                      "outline-variant": "#c1c8c2",
+                      "surface-container-low": "#f6f3f2",
+                      "error": "#ba1a1a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "md": "24px",
+                      "base": "8px",
+                      "xl": "64px",
+                      "lg": "48px",
+                      "sm": "12px",
+                      "margin-mobile": "16px",
+                      "xs": "4px",
+                      "margin-desktop": "40px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["DM Serif Display"],
+                      "body-sm": ["DM Sans"],
+                      "label-md": ["DM Sans"],
+                      "headline-lg": ["DM Serif Display"],
+                      "headline-md": ["DM Serif Display"],
+                      "body-md": ["DM Sans"],
+                      "button": ["DM Sans"],
+                      "display-lg": ["DM Serif Display"],
+                      "body-lg": ["DM Sans"]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "400"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "button": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar to keep it clean */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e4e2e1;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex justify-center bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiNlNGUyZTEiIGZpbGwtb3BhY2l0eT0iMC41Ii8+PC9zdmc+')]">
+<!-- Patient App Max-Width Container -->
+<main class="w-full max-w-[640px] h-screen bg-surface-container-lowest flex flex-col relative shadow-[0_0_40px_rgba(3,36,22,0.03)] border-x border-outline-variant/30">
+<!-- Header: Task-Focused, Nav Suppressed -->
+<header class="flex-none px-margin-mobile md:px-md py-sm border-b border-outline-variant/30 bg-surface-container-lowest/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<div class="flex items-center gap-sm">
+<div class="relative">
+<img alt="Avatar da Nutricionista" class="w-12 h-12 rounded-full object-cover border border-outline-variant/20" data-alt="A professional headshot of a female nutritionist in a well-lit, modern clinic environment. She has a warm, empathetic smile, wearing a subtle clinical white coat over a light blouse. The background is slightly blurred, featuring soft daylight and minimalist decor. High-key lighting, photorealistic, professional healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIzCXFbMkDpBq_z_HPUl5lFUL1Gugbe4xqr0korOr6BMqKyx58BvdpJ09AC27QDw9SeXISYn_fW1TNXHXhdZrSQ6SVu0PhiGhz6q5TnVEGzcw9BkcZbo7_b8uRWqotVaDYv3W7UBAGx_ice-zJk0G53-8_K2twAS5hMi7J78Z3KDOVBEA4t7fMMkjbYFRkcoV7iOTqvvHYjRRAzn77nqHqOdTNjY62B6yfzG8ga-dGp6LcKtQVoa4g8S-5FRFE5FsidxXxShUfHw"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-[#456553] border-2 border-surface-container-lowest rounded-full"></div>
+</div>
+<div>
+<h1 class="font-headline-md text-[18px] text-primary leading-tight">Dra. Helena Costa</h1>
+<p class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
+                            Nutricionista Clínica 
+                        </p>
+</div>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-secondary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[24px]">more_vert</span>
+</button>
+</header>
+<!-- Chat Canvas (Breathable, Spacious) -->
+<div class="flex-1 overflow-y-auto px-margin-mobile md:px-md py-lg flex flex-col gap-lg">
+<!-- Date Separator -->
+<div class="flex justify-center">
+<span class="font-label-md text-label-md text-secondary bg-surface-container-low px-4 py-1 rounded-full uppercase tracking-widest">Hoje</span>
+</div>
+<!-- Message Thread Wrapper -->
+<div class="flex flex-col gap-sm">
+<!-- Nutritionist Message -->
+<div class="flex items-start gap-sm max-w-[85%]">
+<img alt="Avatar da Nutricionista" class="w-8 h-8 rounded-full object-cover border border-outline-variant/20 flex-shrink-0 mt-1" data-alt="A professional headshot of a female nutritionist in a well-lit, modern clinic environment. She has a warm, empathetic smile, wearing a subtle clinical white coat over a light blouse. The background is slightly blurred, featuring soft daylight and minimalist decor. High-key lighting, photorealistic, professional healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg-rhnyop9qJdDRSMjNKgk63Hwo0f6G01CQvrkgXh7LefjPO9Fd5ba2ns8_l2LkwTvxvAZvC1z-M3WBuIjSG8pPj4FS70rQaKE2e01Hhu3diMu5R-bZmb3zNm4E4LT5rfZiYugiBg3gmfJSmEZSsHye1Uv0D7YzmoJ-W1QNGGgFxHNRj7nD__XAsQO5U2kJ-qmtezkkgNd7PYClogGkG9Gv44o82jJT8AhHCJWh3z_1a6NeFjtEn153Gsm_qmJI2a6HXyheBy2-A"/>
+<div class="flex flex-col gap-1">
+<div class="bg-surface-container-lowest border border-primary/10 rounded-2xl rounded-tl-sm p-4 text-on-surface shadow-[0_2px_10px_rgba(3,36,22,0.02)]">
+<p class="font-body-md text-body-md leading-relaxed">
+                                Olá! Como você está se sentindo hoje com a nova meta de hidratação? Notou alguma diferença na energia durante a tarde?
+                            </p>
+</div>
+<span class="font-label-md text-[11px] text-secondary-fixed-dim px-1">09:41</span>
+</div>
+</div>
+<!-- AI Copilot Suggestion (Threaded Contextually) -->
+<div class="flex justify-start pl-[44px] w-full">
+<div class="w-full max-w-[95%] bg-gradient-to-br from-[#fcf9f8] to-[#f6f3f2] border border-outline-variant/30 rounded-2xl p-5 relative overflow-hidden group">
+<!-- Decorative AI subtle background glow -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+<div class="flex items-center gap-2 mb-3">
+<div class="w-6 h-6 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[14px] icon-fill">auto_awesome</span>
+</div>
+<span class="font-headline-md text-[14px] text-primary tracking-wide">Co-piloto IA Salus</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-4">
+<strong class="text-primary font-medium">Dica de Precisão:</strong> Sua variabilidade de frequência cardíaca (VFC) está <span class="text-on-tertiary-container font-medium">baixa</span> hoje, indicando necessidade de recuperação. Priorize fontes de <strong class="text-primary font-medium">magnésio</strong> no jantar para auxiliar no relaxamento muscular e na qualidade do sono.
+                        </p>
+<div class="flex flex-wrap items-center gap-2">
+<button class="bg-surface-container-lowest border border-outline-variant/40 hover:border-primary/40 text-primary font-label-md text-label-md px-4 py-2 rounded-full transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+                                Adicionar Sementes de Abóbora ao Plano
+                            </button>
+<button class="text-secondary hover:text-primary font-label-md text-label-md px-3 py-2 rounded-full transition-colors">
+                                Ignorar
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Patient Message Placeholder (Simulating an earlier response to show contrast) -->
+<div class="flex flex-col gap-1 items-end mt-sm">
+<div class="bg-primary text-on-primary rounded-2xl rounded-tr-sm p-4 max-w-[85%] shadow-[0_2px_10px_rgba(3,36,22,0.08)]">
+<p class="font-body-md text-body-md leading-relaxed">
+                        Ainda me adaptando! Tomar 3 litros está sendo um desafio, mas a garrafa que você indicou ajuda muito.
+                    </p>
+</div>
+<span class="font-label-md text-[11px] text-secondary-fixed-dim px-1 flex items-center gap-1">
+                    09:45 <span class="material-symbols-outlined text-[14px] text-primary">done_all</span>
+</span>
+</div>
+<!-- Invisible spacer for bottom padding -->
+<div class="h-4"></div>
+</div>
+<!-- Input Area (Sticky Bottom, Glassmorphism influence) -->
+<div class="flex-none bg-surface-container-lowest/90 backdrop-blur-xl border-t border-outline-variant/20 p-sm md:p-md pb-6">
+<div class="flex items-end gap-2 bg-surface-container-low rounded-3xl p-1.5 border border-outline-variant/30 focus-within:border-primary/40 focus-within:bg-surface-container-lowest transition-all duration-300 shadow-[0_2px_8px_rgba(3,36,22,0.02)]">
+<!-- Media Attachment Button -->
+<button class="flex-none w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[22px]">add_photo_alternate</span>
+</button>
+<!-- Text Input -->
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 resize-none font-body-md text-body-md text-on-surface placeholder:text-secondary-fixed-dim min-h-[40px] max-h-[120px] py-2.5 px-2" placeholder="Escreva sua mensagem..." rows="1"></textarea>
+<!-- Voice/Send Actions -->
+<div class="flex items-center gap-1 flex-none pb-0.5 pr-0.5">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[22px]">mic</span>
+</button>
+<!-- Simulated 'Send' button state (visible when typing, normally hidden, but kept here for UI preview) -->
+<button class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:bg-primary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px] ml-1">send</span>
+</button>
+</div>
+</div>
+<div class="flex justify-center mt-3">
+<p class="font-label-md text-[10px] text-secondary-fixed-dim flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+                    Mensagens protegidas de ponta a ponta
+                </p>
+</div>
+</div>
+</main>
+</body></html>

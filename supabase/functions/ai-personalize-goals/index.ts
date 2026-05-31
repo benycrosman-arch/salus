@@ -7,6 +7,10 @@ import { filterOutput } from "../_shared/filter-output.ts"
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts"
 import { ABSOLUTE_RULES } from "../_shared/prompts.ts"
 import { logUsage } from "../_shared/log-usage.ts"
+import { interpretLabs, type RawMarker } from "../_shared/lab-interpret.ts"
+import type { Sex } from "../_shared/lab-ranges.ts"
+import { AnthropicError, callAnthropic, extractText, MODEL_ID, totalTokens } from "../_shared/anthropic.ts"
+import { anthropicErrorResponse } from "../_shared/anthropic-error.ts"
 
 /**
  * Personalize daily nutrition goals using Claude Sonnet 4.6.
@@ -22,7 +26,6 @@ import { logUsage } from "../_shared/log-usage.ts"
  */
 
 const FUNCTION_NAME = "ai-personalize-goals"
-const MODEL_ID = "claude-sonnet-4-6"
 
 type WearableRow = { metric: string; value: number | null; recorded_at: string; provider: string }
 
@@ -171,15 +174,28 @@ METHOD:
 9. PRIORITY MICROS (max 4), pick from: vit_d_mcg, iron_mg, vit_b12_mcg, magnesium_mg, calcium_mg, omega3_g, zinc_mg, vit_a_mcg, folate_mcg, vit_c_mg.
    - Brazilian women in reproductive age → iron + vit_d (POF/IBGE gaps).
    - Vegan/vegetarian → vit_b12 mandatory + iron + omega3.
-   - Lab results showing low vit_d / ferritin / b12 → bring those forward.
+   - Lab signals (status='low' OR 'critical_low' OR 'borderline_low') → bring the matching micro forward as the FIRST priority. Map: vitaminD→vit_d_mcg, ferritin/hemoglobin→iron_mg, b12→vit_b12_mcg, magnesium→magnesium_mg, folate→folate_mcg.
    - "longevity" or perimenopause → calcium + vit_d.
    - Athlete plant-based → vit_b12 + iron + omega3.
 
-10. FLAGS (max 3) — short tags: "high_protein_focus", "low_glycemic", "anti_inflammatory", "gut_repair", "iron_focus", "calcium_priority", "post_partum_recovery", "perimenopausa_support".
+10. FLAGS (max 3) — short tags: "high_protein_focus", "low_glycemic", "anti_inflammatory", "gut_repair", "iron_focus", "calcium_priority", "vit_d_priority", "b12_priority", "magnesium_priority", "cardio_focus", "renal_caution", "liver_caution", "low_purine", "post_partum_recovery", "perimenopausa_support".
+   - Lab signals come pre-tagged via lab.flags — if any are set, they take precedence over questionnaire-only flags. Order by clinical severity: critical_* > low/high > borderline_*.
 
-11. HABITS — 3 specific, actionable habits in pt-BR. Tied to THIS user's profile. If wearable signals are present, at least one habit must reference a measured signal (e.g. "Acrescente 30 g de proteína nos dias com >600 kcal ativos no relógio").
+11. LAB SIGNALS — when `lab_signals.markers[].status` is provided, treat the labs as the strongest individual evidence after the wearable. Specifically:
+    - HbA1c borderline_high or higher → force "low_glycemic" flag and carbs ≤ 30 % of kcal even if no glycemic goal was selected.
+    - LDL high or critical_high → force "cardio_focus" flag, fiber floor 30 g, mention soluble fiber in habits.
+    - Ferritin low → iron focus + at least one habit mentioning iron-rich foods + vit C pairing.
+    - Vitamin D low/borderline_low → vit_d_priority + suggest sun exposure habit + indicate suplementação as item para conversa com nutri/médico.
+    - B12 low/borderline_low → b12_priority + flag dietary B12 sources or supplement need.
+    - Creatinine high or critical_high → cap protein at 1.2 g/kg and add "renal_caution" flag (exception: if user data clearly indicates the patient is an athlete with high muscle mass and no renal disease, keep normal protein but flag for nutri review).
+    - ALT/AST high or critical_high → "liver_caution" flag; avoid high fructose habits.
+    - Uric acid borderline_high or higher → "low_purine" flag; mention reducing red meat / beer / shellfish.
+    - Triglycerides high or critical_high → reinforce low_glycemic + carbs ≤ 30 %.
+    - PCR-us high or critical_high → "anti_inflammatory" flag + omega-3 priority.
 
-12. RATIONALE — ONE short sentence in pt-BR. Must (a) state the protein target in g/kg and the strongest reason (e.g. "Proteína a 2,0 g/kg pelo objetivo de hipertrofia (Morton 2018)"), and (b) name the inputs that drove kcal — questionnaire only or questionnaire + wearable with the specific signal values that mattered.
+12. HABITS — 3 specific, actionable habits in pt-BR. Tied to THIS user's profile. If wearable signals are present, at least one habit must reference a measured signal (e.g. "Acrescente 30 g de proteína nos dias com >600 kcal ativos no relógio"). If lab signals are present with at least one out-of-range marker, at least one habit must reference that marker (e.g. "Inclua 1 fonte de ferro heme + vitamina C no almoço — sua ferritina de 18 ng/mL pede priorização").
+
+13. RATIONALE — ONE short sentence in pt-BR. Must (a) state the protein target in g/kg and the strongest reason (e.g. "Proteína a 2,0 g/kg pelo objetivo de hipertrofia (Morton 2018)"), and (b) name the inputs that drove kcal — questionnaire only, questionnaire + wearable, or questionnaire + lab signals (cite the most clinically relevant marker, e.g. "HbA1c 6,1 % puxou carbo para 25 % das kcal").
 
 Output is consumed deterministically — values must be integers (kcal, macros, fiber, water).
 
@@ -261,7 +277,10 @@ serve(async (req) => {
 
     const profile = profileRes.data
     const prefs = prefsRes.data
-    const labs = labsRes.data ?? []
+    const labs = (labsRes.data ?? []) as Array<{
+      marker: string; value: number; unit: string; measured_at: string
+      reference_min?: number | null; reference_max?: number | null
+    }>
     const wearableRows = (wearableRes.data ?? []) as Array<{
       metric: string; value: number | null; recorded_at: string; provider: string
     }>
@@ -274,6 +293,32 @@ serve(async (req) => {
         origin,
       )
     }
+
+    // Lab interpretation. Use the latest value per (canonical) marker — the
+    // labs query already orders by measured_at desc, so dedupe on the raw
+    // marker text and trust that ordering.
+    const profileSex: Sex =
+      profile.biological_sex === "male" ? "M"
+      : profile.biological_sex === "female" ? "F"
+      : "any"
+    const seenMarkers = new Set<string>()
+    const dedupedLabs: typeof labs = []
+    for (const lab of labs) {
+      const key = lab.marker.toLowerCase().trim()
+      if (seenMarkers.has(key)) continue
+      seenMarkers.add(key)
+      dedupedLabs.push(lab)
+    }
+    const rawMarkers: RawMarker[] = dedupedLabs
+      .filter((l) => typeof l.value === "number" && Number.isFinite(l.value))
+      .map((l) => ({
+        marker: l.marker,
+        value: Number(l.value),
+        unit: l.unit,
+        reference_min: l.reference_min ?? null,
+        reference_max: l.reference_max ?? null,
+      }))
+    const interpreted = interpretLabs(rawMarkers, profileSex, profile.age)
 
     // Skip if generated within last 7 days unless forced
     if (!body.force && profile.ai_goals_generated_at) {
@@ -292,11 +337,6 @@ serve(async (req) => {
       }
     }
 
-    const apiKey = Deno.env.get("ANTHROPIC_API_KEY")
-    if (!apiKey) {
-      return jsonResponse({ error: "AI not configured" }, 503, origin)
-    }
-
     const userPayload = {
       profile: {
         age: profile.age,
@@ -306,41 +346,36 @@ serve(async (req) => {
         activity_level: profile.activity_level,
       },
       preferences: prefs ?? null,
-      lab_results: labs,
+      // Raw rows kept for traceability + the AI sees the units/reference ranges
+      // exactly as they came from the laudo. Interpretations are the primary
+      // signal.
+      lab_results: dedupedLabs,
+      lab_signals: {
+        rollup: interpreted.rollup,
+        flags: interpreted.flags,
+        markers: interpreted.markers
+          .filter((m) => m.canonical || m.outOfRange)
+          .map((m) => ({
+            marker: m.label ?? m.rawMarker,
+            canonical: m.canonical,
+            value: m.value,
+            unit: m.unit,
+            status: m.status,
+            flag: m.flag,
+            message: m.message,
+            source: m.source,
+          })),
+      },
       wearable: wearableSummary,
     }
 
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: MODEL_ID,
-        max_tokens: 1200,
-        system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
-        messages: [{ role: "user", content: USER_PROMPT_TEMPLATE(userPayload) }],
-      }),
+    const aiData = await callAnthropic({
+      maxTokens: 1200,
+      system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: USER_PROMPT_TEMPLATE(userPayload) }],
     })
 
-    if (!anthropicRes.ok) {
-      const detail = await anthropicRes.text().catch(() => "")
-      console.error("Anthropic error:", anthropicRes.status, detail.slice(0, 200))
-      return jsonResponse({ error: "AI service error" }, 502, origin)
-    }
-
-    const aiData = await anthropicRes.json() as {
-      content: Array<{ type: string; text?: string }>
-      usage?: { input_tokens?: number; output_tokens?: number }
-    }
-    const block = aiData.content.find((c) => c.type === "text")
-    let rawText = block?.text?.trim() ?? ""
-    if (rawText.startsWith("```")) {
-      rawText = rawText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "")
-    }
-
+    const rawText = extractText(aiData)
     const filtered = filterOutput(rawText)
     if (!filtered.safe) {
       return jsonResponse({ error: "AI output rejected" }, 502, origin)
@@ -399,7 +434,7 @@ serve(async (req) => {
       return jsonResponse({ error: "Could not save goals" }, 500, origin)
     }
 
-    const tokens = (aiData.usage?.input_tokens ?? 0) + (aiData.usage?.output_tokens ?? 0)
+    const tokens = totalTokens(aiData)
     await logUsage(service, { userId: user.id, tokens, edgeFunction: FUNCTION_NAME })
 
     console.log(`ai-personalize-goals ok user=${user.id.slice(0, 8)} tokens=${tokens}`)
@@ -410,6 +445,9 @@ serve(async (req) => {
       origin,
     )
   } catch (err) {
+    if (err instanceof AnthropicError) {
+      return anthropicErrorResponse(err, origin, FUNCTION_NAME)
+    }
     console.error(`${FUNCTION_NAME} unexpected error:`, (err as Error).message)
     return jsonResponse({ error: "Internal server error" }, 500, origin)
   }

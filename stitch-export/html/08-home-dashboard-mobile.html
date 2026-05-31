@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#f3f0f0",
+                        "on-secondary-fixed-variant": "#474744",
+                        "secondary-fixed-dim": "#c8c6c3",
+                        "on-primary-container": "#82a48f",
+                        "secondary-fixed": "#e4e2de",
+                        "outline-variant": "#c1c8c2",
+                        "on-tertiary-fixed-variant": "#7d2c19",
+                        "surface-bright": "#fcf9f8",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#424843",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#456553",
+                        "surface-variant": "#e4e2e1",
+                        "inverse-surface": "#303030",
+                        "tertiary-container": "#631908",
+                        "surface-container": "#f0eded",
+                        "primary-container": "#1a3a2a",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#c7ebd4",
+                        "on-secondary-fixed": "#1b1c1a",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#420700",
+                        "surface-container-high": "#eae7e7",
+                        "tertiary-fixed-dim": "#ffb4a3",
+                        "primary-fixed-dim": "#abcfb8",
+                        "on-secondary-container": "#636360",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e4e2e1",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#002113",
+                        "tertiary-fixed": "#ffdad2",
+                        "outline": "#727973",
+                        "surface-container-low": "#f6f3f2",
+                        "on-background": "#1b1c1c",
+                        "secondary": "#5e5e5c",
+                        "background": "#fcf9f8",
+                        "on-tertiary-container": "#e97e65",
+                        "on-tertiary-fixed": "#3d0600",
+                        "inverse-primary": "#abcfb8",
+                        "on-surface": "#1b1c1c",
+                        "secondary-container": "#e1dfdc",
+                        "surface": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "primary": "#032416",
+                        "surface-dim": "#dcd9d9",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#2d4d3c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "lg": "48px",
+                        "gutter": "24px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["DM Sans"],
+                        "label-md": ["DM Sans"],
+                        "headline-lg-mobile": ["DM Serif Display"],
+                        "body-sm": ["DM Sans"],
+                        "headline-md": ["DM Serif Display"],
+                        "headline-lg": ["DM Serif Display"],
+                        "button": ["DM Sans"],
+                        "display-lg": ["DM Serif Display"],
+                        "body-md": ["DM Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "button": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #fcf9f8;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- Top Navigation App Bar (Context: Professional Dashboard) -->
+<header class="bg-surface sticky top-0 z-30 h-16 flex items-center justify-between px-margin-mobile border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-primary">Salus NutriGen</span>
+</div>
+<div class="flex items-center gap-sm">
+<button class="hover:bg-surface-container-high p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Avatar do Nutricionista" class="w-full h-full object-cover" data-alt="A professional headshot of a nutritionist in a clinical but warm environment. She wears a clean white coat with a subtle teal stethoscope around her neck. The background is a soft-focus modern office with plants and warm natural light. The overall mood is clinical excellence combined with approachable human warmth, aligning with the Salus brand palette of deep greens and off-whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUl_793BjvzxboSqUokQ1KbJuSthr9wCGkeFvxt4NXxxxOVRUbCQHgWi84a938NpAVoxHXbcBs_HWAHbn0m18Tjp1ozre0-myPe-N502Z0jLswzeF9kks6FP4cVpNhAr7sW0EtiKDCtRp5c_-b3yQqjtrPo0b-42Ymi5wi-hFbLHq1XFTzWqxNJRosdJ8LbGYk-rcETu00XWCGl-bIsUswMZXuUS5UrfGHM2H39zRQiCldOU2tWNBjBg4IFse8Fo-Fo4fyogJqWg"/>
+</div>
+</div>
+</header>
+<main class="px-margin-mobile pt-base flex flex-col gap-gutter">
+<!-- Daily Overview: Professional Status -->
+<section class="mt-base">
+<div class="flex flex-col gap-xs mb-md">
+<h1 class="font-headline-md text-headline-md text-primary">Olá, Dr. Silva</h1>
+<p class="font-body-sm text-body-sm text-secondary">Sexta-feira, 24 de Maio</p>
+</div>
+<div class="grid grid-cols-2 gap-base">
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant flex flex-col gap-xs">
+<span class="material-symbols-outlined text-primary-fixed-variant" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-display-lg text-display-lg text-primary leading-tight">08</span>
+<p class="font-label-md text-label-md text-secondary">Consultas Hoje</p>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant flex flex-col gap-xs">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-display-lg text-display-lg text-primary leading-tight">124</span>
+<p class="font-label-md text-label-md text-secondary">Pacientes Ativos</p>
+</div>
+</div>
+</section>
+<!-- AI Co-pilot: Priority Alerts -->
+<section>
+<div class="flex items-center justify-between mb-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-tertiary-container">psychology</span>
+<h2 class="font-headline-md text-headline-md text-primary">Co-piloto IA</h2>
+</div>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-sm py-xs rounded-full font-label-md text-label-md">2 Críticos</span>
+</div>
+<div class="flex flex-col gap-base">
+<!-- Alert Card 1 -->
+<div class="bg-surface-container-lowest p-md rounded-xl border-l-4 border-error border-y border-r border-outline-variant flex items-start gap-md">
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<h3 class="font-button text-button text-on-background">Mariana Costa</h3>
+<span class="text-error font-label-md text-label-md font-bold">15% Adesão</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">Queda brusca no registro de refeições nos últimos 3 dias.</p>
+</div>
+</div>
+<!-- Alert Card 2 -->
+<div class="bg-surface-container-lowest p-md rounded-xl border-l-4 border-on-tertiary-container border-y border-r border-outline-variant flex items-start gap-md">
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<h3 class="font-button text-button text-on-background">Carlos Mendes</h3>
+<span class="text-on-tertiary-container font-label-md text-label-md font-bold">Hidratação Crítica</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">Consumo de água 40% abaixo da meta estipulada no plano.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Quick Actions -->
+<section class="grid grid-cols-1 gap-base">
+<button class="bg-primary text-on-primary w-full py-md rounded-lg font-button text-button flex items-center justify-center gap-base transition-transform active:scale-95 shadow-sm">
+<span class="material-symbols-outlined">person_add</span>
+                Novo Paciente
+            </button>
+<button class="border-1.5 border-primary text-primary bg-transparent w-full py-md rounded-lg font-button text-button flex items-center justify-center gap-base transition-transform active:scale-95 border-2">
+<span class="material-symbols-outlined">event</span>
+                Agendar Consulta
+            </button>
+</section>
+<!-- Recent Messages -->
+<section>
+<div class="flex items-center justify-between mb-sm">
+<h2 class="font-headline-md text-headline-md text-primary">Mensagens Recentes</h2>
+<button class="text-primary font-label-md text-label-md uppercase tracking-wider font-bold">Ver Todas</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+<!-- Message 1 -->
+<div class="p-md flex items-center gap-md border-b border-outline-variant hover:bg-surface-container transition-colors">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold">AM</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex justify-between mb-xs">
+<h4 class="font-button text-button text-on-background truncate">Alice Meirelles</h4>
+<span class="font-label-md text-label-md text-secondary">10:24</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary truncate">"Doutor, posso substituir o arroz por quinoa no jantar?"</p>
+</div>
+</div>
+<!-- Message 2 -->
+<div class="p-md flex items-center gap-md hover:bg-surface-container transition-colors">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold">JP</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex justify-between mb-xs">
+<h4 class="font-button text-button text-on-background truncate">João Pedro</h4>
+<span class="font-label-md text-label-md text-secondary">Ontem</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary truncate">"Enviei os novos exames de sangue pelo portal."</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Patient Roster Summary -->
+<section class="mb-xl">
+<div class="flex items-center justify-between mb-sm">
+<h2 class="font-headline-md text-headline-md text-primary">Foco da Semana</h2>
+</div>
+<div class="flex flex-col gap-base">
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-md">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A close-up portrait of a middle-aged woman with a serene expression, representing a satisfied patient. The lighting is soft and natural, emphasizing health and wellness. The background consists of abstract, soft organic shapes in Primary Teal and Warm Beige, creating a professional and calming health-focused visual." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOkZGJvqitmKN58Z1rdACQrftIUx8enVjeoCkuQJDSTRDi4E6EcLoeQHqmqKAbvadg-ah6xozm74_WzNbJgq9QsDx_6lEswK3XdjIyoDNmdobGtYgYywmuyeCT3M8pCEvzELZv8_e7fPtpEHm450KY-Fwj8IxJ2tGzkXbEPSCXam4LYLtdT0BX7YxSLTpjhd0NPFKpEeBqi7WH4DgDxUB-rQ8wszGhXap29GxTLx7dFyCvsE2sWPhBgqD_da5ba9Yg28qtkW-m3Q"/>
+<div>
+<p class="font-button text-button text-on-background">Beatriz Lima</p>
+<p class="font-label-md text-label-md text-on-primary-container">Evolução: +12% massa</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary">chevron_right</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-md">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of a young athletic man smiling warmly, shot in high-key daylight. The style is modern corporate, focusing on genuine human emotion. The background incorporates subtle geometric patterns derived from nutritional charts in soft forest green tones, maintaining clinical precision and approachability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0TnHY7XEVpgM9vUgM_8IdCr6XJMxOTkhQ1-CLAWD_iIucAZgzqqbCcbzqIf4S6rCZfkvQMW4jpNuxMAtNJS3QDuzq3RZ6Ku3-0Vq4mFpWzNfric3eHdsBr4Il5KOLmsbkZFxQqk1KfBuMjR5lvfVOf0E4Ng46nYnyTGYzqG9JFc0LjTpPT_mho8nZmg6oIyAiUcGvKZuBG8AUy58jAHDJaT8y31nXYy3k-Ax5tS8D6Zu7zpisLfrNufZ27dB9y1SjCM5nbdmvHw"/>
+<div>
+<p class="font-button text-button text-on-background">Ricardo Alves</p>
+<p class="font-label-md text-label-md text-secondary">Última: 14 dias atrás</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary">chevron_right</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Mandatory Shell) -->
+<nav class="fixed bottom-0 left-0 right-0 h-16 bg-surface-container-lowest border-t border-outline-variant flex justify-around items-center z-40 md:hidden">
+<!-- Active Tab: Pacientes (Closest match for Dashboard/Home) -->
+<div class="flex flex-col items-center justify-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-md text-label-md font-bold">Pacientes</span>
+</div>
+<div class="flex flex-col items-center justify-center gap-1 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</div>
+<div class="flex flex-col items-center justify-center gap-1 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-md text-label-md">Plano</span>
+</div>
+<div class="flex flex-col items-center justify-center gap-1 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-md text-label-md">IA</span>
+</div>
+<div class="flex flex-col items-center justify-center gap-1 text-secondary hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">mail</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+<span class="font-label-md text-label-md">Chat</span>
+</div>
+</nav>
+</body></html>

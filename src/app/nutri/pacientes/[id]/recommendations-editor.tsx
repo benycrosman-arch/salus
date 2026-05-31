@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Loader2, Save, History, Sparkles } from "lucide-react"
@@ -33,6 +33,16 @@ export function RecommendationsEditor({ patientId, initialRecommendations }: Pro
   const tooLong = len > MAX
   const unchanged = active && draft.trim() === active.body.trim()
   const canSave = !saving && !tooShort && !tooLong && len >= MIN && !unchanged
+
+  useEffect(() => {
+    if (unchanged || len === 0) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+    window.addEventListener("beforeunload", handler)
+    return () => window.removeEventListener("beforeunload", handler)
+  }, [unchanged, len])
 
   async function handleSave() {
     if (!canSave) return
@@ -94,11 +104,13 @@ export function RecommendationsEditor({ patientId, initialRecommendations }: Pro
           "Ex.: Reduzir ultraprocessados nas próximas 2 semanas. Priorizar 30g de proteína por refeição. Café da manhã com ovos ou iogurte natural. Hidratar 2L/dia. Evitar refrigerante."
         }
         rows={8}
-        className="w-full rounded-xl border border-[#e4ddd4] bg-white px-3.5 py-2.5 text-sm text-[#1a3a2a] placeholder:text-[#1a3a2a]/30 focus:outline-none focus:ring-2 focus:ring-[#1a3a2a]/20 font-body"
+        aria-invalid={tooShort || tooLong}
+        aria-describedby="recommendations-help"
+        className="w-full rounded-xl border border-[#e4ddd4] bg-white px-3.5 py-2.5 text-sm text-[#1a3a2a] placeholder:text-[#1a3a2a]/30 focus:outline-none focus:ring-2 focus:ring-[#1a3a2a]/20 font-body aria-invalid:border-[#c4614a]/60"
         disabled={saving}
       />
       <div className="flex items-center justify-between mt-2">
-        <div className="text-[11px] text-[#1a3a2a]/40 font-body">
+        <div id="recommendations-help" className="text-[11px] text-[#1a3a2a]/40 font-body" aria-live="polite">
           {len}/{MAX} caracteres
           {tooShort && <span className="text-[#c4614a] ml-2">mínimo {MIN}</span>}
           {tooLong && <span className="text-[#c4614a] ml-2">acima do limite</span>}
@@ -107,6 +119,7 @@ export function RecommendationsEditor({ patientId, initialRecommendations }: Pro
           type="button"
           onClick={handleSave}
           disabled={!canSave}
+          aria-busy={saving}
           size="sm"
           className="rounded-xl gap-1.5"
         >

@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import {
   Camera, Upload, Loader2, ArrowRight, Zap, Leaf, AlertTriangle,
   RotateCcw, ChevronRight, CheckCircle2, AlertCircle, HelpCircle,
-  MapPin, CheckCircle,
+  CheckCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -215,20 +215,6 @@ function TotalsBar({ totals }: { totals: TextLogResult["totals"] }) {
   )
 }
 
-async function detectNearbyRestaurant(lat: number, lon: number): Promise<string | null> {
-  const radius = 100 // meters
-  const query = `[out:json][timeout:5];node(around:${radius},${lat},${lon})[amenity=restaurant];out 1;`
-  try {
-    const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`)
-    if (!res.ok) return null
-    const data = await res.json()
-    const name = data?.elements?.[0]?.tags?.name
-    return name ?? null
-  } catch {
-    return null
-  }
-}
-
 function TextLogTab() {
   const router = useRouter()
   const [text, setText] = useState("")
@@ -239,29 +225,8 @@ function TextLogTab() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [restaurant, setRestaurant] = useState<string | null>(null)
-  const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'found' | 'none'>('idle')
   const [paywallOpen, setPaywallOpen] = useState(false)
   const pro = useProStatus()
-
-  // Silently try geolocation on mount
-  useEffect(() => {
-    if (!navigator.geolocation) return
-    setGeoStatus('loading')
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const name = await detectNearbyRestaurant(pos.coords.latitude, pos.coords.longitude)
-        if (name) {
-          setRestaurant(name)
-          setGeoStatus('found')
-        } else {
-          setGeoStatus('none')
-        }
-      },
-      () => setGeoStatus('none'),
-      { timeout: 6000, maximumAge: 60000 }
-    )
-  }, [])
 
   const parseFoods = useCallback(async () => {
     if (!text.trim()) return
@@ -272,14 +237,14 @@ function TextLogTab() {
     setParsing(true)
     setError(null)
     try {
-      const data = await callEdgeFunction<TextLogResult>("ai-parse-text", { text, bias, restaurant })
+      const data = await callEdgeFunction<TextLogResult>("ai-parse-text", { text, bias })
       setResult(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro desconhecido")
     } finally {
       setParsing(false)
     }
-  }, [text, bias, restaurant, pro.loaded, pro.isPro])
+  }, [text, bias, pro.loaded, pro.isPro])
 
   const removeItem = useCallback((id: string) => {
     setResult((prev) => {
@@ -346,23 +311,6 @@ function TextLogTab() {
 
   return (
     <div className="space-y-4">
-      {/* Restaurant pill */}
-      {geoStatus === 'found' && restaurant && (
-        <div className="flex items-center gap-2 rounded-xl bg-[#1a3a2a]/5 px-3.5 py-2.5">
-          <MapPin className="h-3.5 w-3.5 text-[#1a3a2a]/50 flex-shrink-0" />
-          <p className="text-xs text-[#1a3a2a]/70 flex-1">
-            Detectado: <span className="font-semibold text-[#1a3a2a]">{restaurant}</span>
-            <span className="text-[#1a3a2a]/60"> — porções ajustadas para restaurante</span>
-          </p>
-          <button
-            onClick={() => { setRestaurant(null); setGeoStatus('none') }}
-            className="text-[#1a3a2a]/50 hover:text-[#1a3a2a]/50 text-base leading-none"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
       {/* Bias picker */}
       <div className="space-y-1.5">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-[#1a3a2a]/60">

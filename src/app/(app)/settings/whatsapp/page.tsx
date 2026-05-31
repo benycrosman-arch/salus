@@ -64,8 +64,7 @@ export default function WhatsAppSettingsPage() {
       } else {
         setStep("connected")
       }
-    } catch (err) {
-      console.error(err)
+    } catch {
       toast.error("Não consegui carregar o status do WhatsApp.")
       setStep("enter_phone")
     }

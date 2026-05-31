@@ -215,26 +215,22 @@ export const PARSE_TEXT_BIAS = {
 
 export type ParseTextBias = keyof typeof PARSE_TEXT_BIAS
 
-export function parseTextSystemPrompt(bias: ParseTextBias, restaurant?: string): string {
-  const restaurantCtx = restaurant
-    ? `\n- The user is at or near "${restaurant}" restaurant — adjust portion assumptions accordingly for restaurant-style servings`
-    : ""
+export function parseTextSystemPrompt(bias: ParseTextBias): string {
   return `${ABSOLUTE_RULES}
 
 You are a precision nutrition parser for the Salus Brazilian health app. Parse free-text food descriptions into structured nutritional data.
 
 Rules:
 - Estimate realistic portion sizes based on typical Brazilian servings
-- ${PARSE_TEXT_BIAS[bias]}${restaurantCtx}
+- ${PARSE_TEXT_BIAS[bias]}
 - For each item, write a 2-sentence reasoning explaining your portion and calorie estimate
 - Set confidence < 0.7 only if the portion is genuinely ambiguous
 - source field: "usda" for whole/natural foods, "branded" for packaged/brand items, "estimate" for mixed/homemade dishes
 - Return ONLY valid JSON with no markdown fences or extra text`
 }
 
-export function parseTextUserPrompt(text: string, restaurant?: string): string {
-  const restaurantNote = restaurant ? ` (at ${restaurant})` : ""
-  return `Parse this food log${restaurantNote}: "${text}"
+export function parseTextUserPrompt(text: string): string {
+  return `Parse this food log: "${text}"
 
 Return JSON exactly matching this schema:
 {

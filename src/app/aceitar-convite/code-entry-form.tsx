@@ -82,7 +82,7 @@ export function CodeEntryForm({
           aria-label="Código de acesso"
           aria-invalid={!!error}
         />
-        {error && <p className="text-xs text-[#c4614a] mt-2">{error}</p>}
+        {error && <p role="alert" aria-live="polite" className="text-xs text-[#c4614a] mt-2">{error}</p>}
       </div>
       <Button
         type="submit"

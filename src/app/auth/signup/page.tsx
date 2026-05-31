@@ -105,7 +105,6 @@ function SignUpInner() {
       }
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : t('errorGeneric')
-      console.error("signUp error:", err)
       let friendly = raw
       if (raw === "User already registered") {
         friendly = t('errorAlreadyRegistered')
@@ -327,6 +326,8 @@ function SignUpInner() {
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   required minLength={8} className="h-12 pr-11 rounded-xl border-[#e4ddd4] bg-[#faf8f4] focus:border-[#1a3a2a] focus:ring-[#1a3a2a]" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  aria-pressed={showPassword}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a3a2a]/50 hover:text-[#1a3a2a] transition-colors">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>

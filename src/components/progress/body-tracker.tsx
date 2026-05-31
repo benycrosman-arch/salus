@@ -178,7 +178,10 @@ export function BodyTracker() {
               <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button
+                onClick={handleSave}
+                disabled={saving || !(form.weight_kg || form.body_fat_pct || form.muscle_mass_kg || form.water_pct || form.visceral_fat)}
+              >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
               </Button>
             </DialogFooter>

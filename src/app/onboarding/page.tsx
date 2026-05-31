@@ -410,8 +410,9 @@ export default function OnboardingPage() {
                     onChange={(e) => setData({ ...data, nutriProtocol: e.target.value.slice(0, 4000) })}
                     rows={10}
                     className="font-body resize-none"
+                    aria-describedby="protocol-counter"
                   />
-                  <div className="flex items-center justify-between text-xs text-muted-foreground font-body">
+                  <div id="protocol-counter" aria-live="polite" className="flex items-center justify-between text-xs text-muted-foreground font-body">
                     <span>{data.nutriProtocol.trim().length < 60
                       ? `Mínimo 60 caracteres (${data.nutriProtocol.trim().length}/60)`
                       : "✓ Suficiente"}
@@ -661,8 +662,8 @@ export default function OnboardingPage() {
                     </div>
                   ))}
                 </div>
-                <Button type="button" variant="ghost" className="w-full text-muted-foreground font-body" onClick={handleNext}>
-                  Pular por enquanto
+                <Button type="button" variant="ghost" className="w-full text-muted-foreground font-body" onClick={handleNext} disabled={saving}>
+                  Concluir sem exames
                 </Button>
               </div>
             )}

@@ -99,14 +99,15 @@ export function formatWeeklyReportPt(name: string, data: WeeklyReportData): stri
     return [
       `Oi ${name || 'tudo bem'} 👋`,
       '',
-      `Semana sem refeições registradas no Salus. Tudo bem — recomeça hoje com uma foto do café da manhã.`,
+      `Semana em branco no Salus. Sem julgamento — quem cuida da saúde recomeça. Manda a foto do café da manhã quando começar hoje.`,
     ].join('\n')
   }
 
   const lines: string[] = []
   lines.push(`Oi ${name || ''}, seu resumo da semana no Salus:`)
   lines.push('')
-  lines.push(`• ${data.mealsCount} refeição${data.mealsCount === 1 ? '' : 'ões'} em ${data.daysLogged} dia${data.daysLogged === 1 ? '' : 's'}`)
+  const consistencyPct = Math.round((data.daysLogged / 7) * 100)
+  lines.push(`• ${data.mealsCount} refeição${data.mealsCount === 1 ? '' : 'ões'} em ${data.daysLogged}/7 dias (${consistencyPct}% de consistência)`)
   if (data.avgScore !== null) {
     lines.push(`• Score médio: ${data.avgScore}/100`)
   }
@@ -124,6 +125,10 @@ export function formatWeeklyReportPt(name: string, data: WeeklyReportData): stri
     lines.push(`• Streak atual: ${data.streakDays} dia${data.streakDays === 1 ? '' : 's'} 🔥`)
   }
   lines.push('')
-  lines.push('Bora pra mais uma semana? Manda a foto do café da manhã quando começar.')
+  lines.push(
+    data.streakDays >= 7
+      ? `Você é oficialmente alguém que registra todo dia. Não quebra a sequência hoje 🔥`
+      : 'Bora pra mais uma semana? Manda a foto do café da manhã quando começar.'
+  )
   return lines.join('\n')
 }

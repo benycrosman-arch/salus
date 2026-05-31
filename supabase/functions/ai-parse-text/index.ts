@@ -7,6 +7,7 @@ import { sanitizeText, validateTextRequest } from "../_shared/sanitize.ts"
 import { filterOutput } from "../_shared/filter-output.ts"
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts"
 import { callAnthropic, extractText, totalTokens, AnthropicError } from "../_shared/anthropic.ts"
+import { anthropicErrorResponse } from "../_shared/anthropic-error.ts"
 import { logAbuse, logUsage } from "../_shared/log-usage.ts"
 import {
   parseTextSystemPrompt,
@@ -73,20 +74,18 @@ serve(async (req) => {
     const bias: ParseTextBias = (Object.keys(PARSE_TEXT_BIAS) as ParseTextBias[]).includes(biasInput)
       ? biasInput
       : "balanced"
-    const restaurantRaw = typeof body.restaurant === "string" ? body.restaurant.slice(0, 80).trim() : ""
-    const restaurant = restaurantRaw || undefined
 
     const resp = await callAnthropic({
       maxTokens: 2000,
       system: [
         {
           type: "text",
-          text: parseTextSystemPrompt(bias, restaurant),
+          text: parseTextSystemPrompt(bias),
           cache_control: { type: "ephemeral" },
         },
       ],
       messages: [
-        { role: "user", content: parseTextUserPrompt(sanitized.sanitized, restaurant) },
+        { role: "user", content: parseTextUserPrompt(sanitized.sanitized) },
       ],
     })
 
@@ -123,7 +122,7 @@ serve(async (req) => {
     return jsonResponse(parsed, 200, origin)
   } catch (err) {
     if (err instanceof AnthropicError) {
-      return jsonResponse({ error: "AI service error" }, err.status, origin)
+      return anthropicErrorResponse(err, origin, FUNCTION_NAME)
     }
     console.error("ai-parse-text unexpected error:", (err as Error).message)
     return jsonResponse({ error: "Internal server error" }, 500, origin)

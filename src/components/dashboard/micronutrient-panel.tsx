@@ -49,8 +49,8 @@ export function MicronutrientPanel() {
     <Card className="border-0 shadow-md p-5 space-y-3">
       <div className="flex items-center gap-2">
         <Beaker className="w-4 h-4 text-[#1a3a2a]/60" />
-        <h2 className="text-sm font-semibold text-foreground">Vitaminas e minerais hoje</h2>
-        <span className="text-[11px] text-muted-foreground ml-auto font-body">
+        <h2 className="text-[11px] font-semibold tracking-widest uppercase text-[#1a3a2a]/70">Vitaminas e minerais hoje</h2>
+        <span className="text-[11px] text-muted-foreground ml-auto font-body tabular-nums">
           {tracked.length} de {MICRONUTRIENTS.length}
         </span>
       </div>
@@ -63,11 +63,11 @@ export function MicronutrientPanel() {
           const def = MICRO_BY_KEY[m.key]
           const fillColor =
             status === "over"
-              ? "bg-red-500"
+              ? "bg-score-danger"
               : status === "high"
-                ? "bg-amber-500"
+                ? "bg-score-good"
                 : status === "ok"
-                  ? "bg-green-600"
+                  ? "bg-score-great"
                   : "bg-[#1a3a2a]/30"
           return (
             <div key={m.key}>

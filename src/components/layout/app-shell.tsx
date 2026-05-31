@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 bg-[#faf8f4]/90 backdrop-blur-md border-b border-[#e4ddd4]/60 lg:hidden">
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2 group">
-            <Image src="/logo.png" alt="Salus Logo" width={120} height={32} className="h-7 w-auto object-contain mix-blend-multiply" />
+            <Image src="/logo.png" alt="Salus Logo" width={140} height={36} className="h-8 w-auto object-contain mix-blend-multiply" />
           </Link>
           <div className="flex items-center gap-1">
             <LanguageSwitcher />
@@ -127,7 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all duration-200 relative",
                   isLog && "px-4",
-                  isActive ? "text-[#1a3a2a]" : "text-[#1a3a2a]/60 hover:text-[#1a3a2a]/60"
+                  isActive ? "text-[#1a3a2a]" : "text-[#1a3a2a]/60 hover:text-[#1a3a2a] active:scale-95"
                 )}
               >
                 {isLog ? (

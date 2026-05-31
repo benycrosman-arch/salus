@@ -99,6 +99,7 @@ export function DeleteAccountCard() {
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting || confirm !== "EXCLUIR"}
+              aria-busy={deleting}
             >
               {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Excluir permanentemente"}
             </Button>

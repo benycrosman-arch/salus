@@ -81,6 +81,7 @@ export function EndRelationshipButton({
             <Button
               onClick={revoke}
               disabled={revoking}
+              aria-busy={revoking}
               className="bg-[#c4614a] hover:bg-[#c4614a]/90 text-white"
             >
               {revoking ? <Loader2 className="w-4 h-4 animate-spin" /> : "Encerrar vínculo"}

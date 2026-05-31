@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,16 @@ export function ProtocoloEditor({ initial }: { initial: string }) {
   const [saving, setSaving] = useState(false)
   const dirty = text !== initial
   const valid = text.trim().length >= 60
+
+  useEffect(() => {
+    if (!dirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+    window.addEventListener("beforeunload", handler)
+    return () => window.removeEventListener("beforeunload", handler)
+  }, [dirty])
 
   const handleSave = async () => {
     if (!valid) {
@@ -59,7 +69,7 @@ export function ProtocoloEditor({ initial }: { initial: string }) {
         <span>{text.length}/4000</span>
       </div>
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={!dirty || !valid || saving} className="gap-2">
+        <Button onClick={handleSave} disabled={!dirty || !valid || saving} aria-busy={saving} className="gap-2">
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Salvar
         </Button>

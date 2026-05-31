@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Perfil do Paciente - Salus NutriGen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=DM+Serif+Display&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#1a3a2a",
+                      "on-surface": "#1b1c1c",
+                      "secondary": "#5e5e5c",
+                      "on-surface-variant": "#424843",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed": "#e4e2de",
+                      "inverse-on-surface": "#f3f0f0",
+                      "secondary-container": "#e1dfdc",
+                      "on-primary-fixed-variant": "#2d4d3c",
+                      "on-secondary": "#ffffff",
+                      "inverse-primary": "#abcfb8",
+                      "background": "#fcf9f8",
+                      "on-tertiary-fixed-variant": "#7d2c19",
+                      "on-error": "#ffffff",
+                      "primary": "#032416",
+                      "on-primary-container": "#82a48f",
+                      "inverse-surface": "#303030",
+                      "surface-container-lowest": "#ffffff",
+                      "on-background": "#1b1c1c",
+                      "tertiary-fixed": "#ffdad2",
+                      "tertiary": "#420700",
+                      "on-tertiary-fixed": "#3d0600",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-container": "#e97e65",
+                      "on-error-container": "#93000a",
+                      "on-secondary-fixed-variant": "#474744",
+                      "outline": "#727973",
+                      "surface-container": "#f0eded",
+                      "on-primary-fixed": "#002113",
+                      "primary-fixed-dim": "#abcfb8",
+                      "secondary-fixed-dim": "#c8c6c3",
+                      "surface-variant": "#e4e2e1",
+                      "surface-bright": "#fcf9f8",
+                      "surface-container-highest": "#e4e2e1",
+                      "surface-container-high": "#eae7e7",
+                      "on-tertiary": "#ffffff",
+                      "surface-tint": "#456553",
+                      "tertiary-fixed-dim": "#ffb4a3",
+                      "tertiary-container": "#631908",
+                      "primary-fixed": "#c7ebd4",
+                      "on-secondary-container": "#636360",
+                      "surface-dim": "#dcd9d9",
+                      "surface": "#fcf9f8",
+                      "on-secondary-fixed": "#1b1c1a",
+                      "outline-variant": "#c1c8c2",
+                      "surface-container-low": "#f6f3f2",
+                      "error": "#ba1a1a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "md": "24px",
+                      "base": "8px",
+                      "xl": "64px",
+                      "lg": "48px",
+                      "sm": "12px",
+                      "margin-mobile": "16px",
+                      "xs": "4px",
+                      "margin-desktop": "40px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["DM Serif Display"],
+                      "body-sm": ["DM Sans"],
+                      "label-md": ["DM Sans"],
+                      "headline-lg": ["DM Serif Display"],
+                      "headline-md": ["DM Serif Display"],
+                      "body-md": ["DM Sans"],
+                      "button": ["DM Sans"],
+                      "display-lg": ["DM Serif Display"],
+                      "body-lg": ["DM Sans"]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                      "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                      "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                      "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                      "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "400" }],
+                      "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                      "button": ["16px", { "lineHeight": "24px", "fontWeight": "700" }],
+                      "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+                      "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased overflow-x-hidden flex">
+<!-- SideNavBar (Shared Component) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface dark:bg-surface-container-lowest border-r border-outline-variant dark:border-outline z-20 hidden md:flex flex-col">
+<div class="flex flex-col h-full py-6">
+<!-- Brand -->
+<div class="px-6 mb-8 flex flex-col items-start gap-2">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Foto de perfil do nutricionista" class="w-full h-full object-cover" data-alt="A close-up portrait of a female nutritionist in a clinical setting. She wears a white coat over a light blue shirt. The background is slightly blurred showing a modern office. Lighting is bright, soft, and professional, conveying a trustworthy and clinical mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRW5nd2s9VZTxmKTExfpllFr-W7yKJPwUjcQlAWr-7nkplEp9f2dd4Wfg5ao7YM_9v5PmGtWzUxmsU1HTeFkj-3CyNbTp19KryUJpHcLrvmBzvxxg1gYeHPjWtovbX_IXMb2PVAlK9mKfelFmCgQP1nkklQyEp20GNPcY2VS3u-wqIWSRiwedSIj_ZdMiNMwfP7jk3fmHtCKH1BDlEPFWnlwWI1qXHnYuFBSB40CV3gecX2rjShFjGYng5kp3D6N9uE4m5QNd5QQ"/>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Salus NutriGen</h1>
+<p class="font-label-md text-label-md text-secondary">Portal do Profissional</p>
+</div>
+<!-- CTA -->
+<div class="px-4 mb-6">
+<button class="w-full bg-tertiary-container hover:bg-tertiary text-on-tertiary font-button text-button py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    Novo Paciente
+                </button>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 flex flex-col gap-1 px-2">
+<a class="flex items-center gap-3 px-4 py-3 text-primary dark:text-primary-fixed font-bold border-r-4 border-primary dark:border-primary-fixed bg-primary-container/10 rounded-r-lg opacity-90 scale-[0.99] transition-transform" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Pacientes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Perfil</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-md text-label-md">Plano</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-md text-label-md">Co-piloto IA</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">mail</span>
+<span class="font-label-md text-label-md">Mensagens</span>
+</a>
+</nav>
+<!-- Footer Links -->
+<div class="mt-auto px-2 flex flex-col gap-1 border-t border-outline-variant pt-4 mx-4">
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Sair</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 ml-0 md:ml-64 flex flex-col min-h-screen">
+<!-- TopAppBar (Shared Component) -->
+<header class="docked full-width top-0 h-16 bg-surface dark:bg-surface-container-lowest border-b border-outline-variant dark:border-outline z-10 sticky">
+<div class="flex items-center justify-between px-gutter w-full h-full">
+<!-- Search (on_left) -->
+<div class="flex items-center gap-3 max-w-md w-full focus-within:ring-2 focus-within:ring-primary rounded-lg px-3 py-2 bg-surface-container-low border border-outline-variant/50">
+<span class="material-symbols-outlined text-secondary">search</span>
+<input class="bg-transparent border-none outline-none w-full text-body-md font-body-md text-on-surface placeholder:text-secondary" placeholder="Buscar pacientes, métricas..." type="text"/>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-2">
+<button class="text-secondary dark:text-secondary-fixed-dim hover:bg-surface-container-high dark:hover:bg-surface-container p-2 rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-secondary dark:text-secondary-fixed-dim hover:bg-surface-container-high dark:hover:bg-surface-container p-2 rounded-full transition-colors hidden sm:block">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="flex-1 p-gutter bg-background overflow-y-auto">
+<!-- Patient Header / Title Area -->
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-lg">
+<div class="flex items-center gap-md">
+<div class="w-20 h-20 rounded-full overflow-hidden border-2 border-primary-container shrink-0">
+<img alt="Ana Paula Silva" class="w-full h-full object-cover" data-alt="A bright, professional headshot of a middle-aged woman with dark hair, smiling warmly. She is wearing a simple, elegant blouse. The background is a soft, neutral grey to keep the focus on her face. The lighting is flattering and studio-quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDW20-gosLHCxHeYKLtZqRq6xq5Nid__hCyu1h5UMb3ZFGf2VgIaNM-6ZmS417M-FCeICvIkkafvV5I25CJ8chfEy8w7TEqnWSgJkCP5OuV3L6yE16XbprdKau7EoQAXicHuwpCUwxiosaLVmxwOgZeIfc3CL8cB0yap2LqrWq33TyekE7qVLpNRexU_waUavXD-xfUF16Z9UolD47JMBLrLQyej5y25C7jgCczxL1Lv25ztXcj72aVG4bfI75XdIUMS6WhjPNLvA"/>
+</div>
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-1">Ana Paula Silva</h2>
+<div class="flex items-center gap-3 text-secondary font-body-sm text-body-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">calendar_today</span> 34 anos</span>
+<span>•</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">monitor_weight</span> Objetivo: Emagrecimento</span>
+<span>•</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-bold tracking-wider">ATIVO</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex gap-3">
+<button class="px-4 py-2 border border-primary text-primary font-button text-button rounded-lg hover:bg-primary/5 transition-colors">Agendar Retorno</button>
+<button class="px-4 py-2 bg-tertiary-container text-on-tertiary font-button text-button rounded-lg hover:bg-tertiary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">edit_document</span> Ajustar Plano
+                    </button>
+</div>
+</div>
+<!-- In-Page Navigation Tabs -->
+<div class="border-b border-outline-variant mb-md">
+<nav class="flex gap-6 overflow-x-auto pb-[-1px]">
+<a class="border-b-2 border-primary py-4 text-primary font-label-md text-label-md whitespace-nowrap" href="#">Visão Geral</a>
+<a class="border-b-2 border-transparent py-4 text-secondary hover:text-primary font-label-md text-label-md whitespace-nowrap transition-colors" href="#">Diário de Nutrição</a>
+<a class="border-b-2 border-transparent py-4 text-secondary hover:text-primary font-label-md text-label-md whitespace-nowrap transition-colors" href="#">Biometria</a>
+<a class="border-b-2 border-transparent py-4 text-secondary hover:text-primary font-label-md text-label-md whitespace-nowrap transition-colors" href="#">Plano</a>
+<a class="border-b-2 border-transparent py-4 text-secondary hover:text-primary font-label-md text-label-md whitespace-nowrap transition-colors" href="#">Mensagens</a>
+</nav>
+</div>
+<!-- Layout Grid for Dashboard -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-md items-start">
+<!-- Main Content Column (Left - 8 cols) -->
+<div class="xl:col-span-8 flex flex-col gap-md">
+<!-- Top Metric Cards Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Weight Card -->
+<div class="bg-surface-container-lowest border border-primary/10 rounded-xl p-md flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-[18px] text-on-surface">Peso Atual</h3>
+<span class="material-symbols-outlined text-secondary">monitor_weight</span>
+</div>
+<div class="flex items-end gap-2 mb-1">
+<span class="font-display-lg text-[36px] leading-none text-primary">68.4</span>
+<span class="text-secondary font-body-sm mb-1">kg</span>
+</div>
+<div class="flex items-center gap-1 text-tertiary font-label-md">
+<span class="material-symbols-outlined text-[16px]">trending_down</span>
+<span>-1.2 kg este mês</span>
+</div>
+</div>
+<!-- HRV Card -->
+<div class="bg-surface-container-lowest border border-primary/10 rounded-xl p-md flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-[18px] text-on-surface">VFC (Média)</h3>
+<span class="material-symbols-outlined text-secondary">favorite</span>
+</div>
+<div class="flex items-end gap-2 mb-1">
+<span class="font-display-lg text-[36px] leading-none text-primary">52</span>
+<span class="text-secondary font-body-sm mb-1">ms</span>
+</div>
+<div class="flex items-center gap-1 text-primary-container font-label-md">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>+4 ms vs semana ant.</span>
+</div>
+</div>
+<!-- Adherence Card -->
+<div class="bg-surface-container-lowest border border-primary/10 rounded-xl p-md flex flex-col justify-center items-center relative overflow-hidden">
+<h3 class="font-headline-md text-[18px] text-on-surface self-start absolute top-md left-md">Adesão</h3>
+<!-- Simple SVG Donut Chart -->
+<div class="relative w-24 h-24 mt-4">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<!-- Background Circle -->
+<path class="text-surface-variant stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="4"></path>
+<!-- Progress Circle -->
+<path class="text-primary-container stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="85, 100" stroke-linecap="round" stroke-width="4"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center flex-col">
+<span class="font-headline-md text-[20px] text-on-surface leading-none">85%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Macro Chart Section (Faux Chart via layout) -->
+<div class="bg-surface-container-lowest border border-primary/10 rounded-xl p-md">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface">Evolução de Peso &amp; VFC</h3>
+<select class="border border-outline-variant rounded-md text-body-sm text-secondary bg-surface px-2 py-1 outline-none">
+<option>Últimos 3 meses</option>
+<option>Últimos 6 meses</option>
+</select>
+</div>
+<!-- Chart Placeholder Area -->
+<div class="h-64 w-full relative flex items-end gap-2 pt-4">
+<!-- Y-axis labels -->
+<div class="absolute left-0 top-0 h-full flex flex-col justify-between text-secondary font-label-md text-[10px] pb-6">
+<span>75kg</span>
+<span>70kg</span>
+<span>65kg</span>
+</div>
+<!-- Graph Lines (Decorative CSS representation) -->
+<div class="flex-1 h-full ml-8 border-l border-b border-outline-variant relative flex items-end justify-between px-4 pb-6">
+<!-- Data Points (Bars for visual interest) -->
+<div class="w-8 bg-primary/20 h-[80%] rounded-t-sm relative group hover:bg-primary/40 transition-colors">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-surface border border-outline px-2 py-1 rounded text-[10px] hidden group-hover:block z-10 shadow-sm">Jan</div>
+</div>
+<div class="w-8 bg-primary/20 h-[75%] rounded-t-sm relative group hover:bg-primary/40 transition-colors">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-surface border border-outline px-2 py-1 rounded text-[10px] hidden group-hover:block z-10 shadow-sm">Fev</div>
+</div>
+<div class="w-8 bg-primary/20 h-[65%] rounded-t-sm relative group hover:bg-primary/40 transition-colors">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-surface border border-outline px-2 py-1 rounded text-[10px] hidden group-hover:block z-10 shadow-sm">Mar</div>
+</div>
+<div class="w-8 bg-primary/30 h-[50%] rounded-t-sm relative group hover:bg-primary/50 transition-colors">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-surface border border-outline px-2 py-1 rounded text-[10px] hidden group-hover:block z-10 shadow-sm">Abr</div>
+</div>
+<!-- Trend line overlay -->
+<svg class="absolute inset-0 h-[calc(100%-24px)] w-full" preserveaspectratio="none">
+<path class="drop-shadow-sm" d="M 20,40 L 150,60 L 280,100 L 410,140" fill="none" stroke="#abcfb8" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+<!-- Gold Target Line -->
+<line stroke="#d4af37" stroke-dasharray="5,5" stroke-width="2" x1="0" x2="100%" y1="160" y2="160"></line>
+</svg>
+</div>
+</div>
+<div class="flex justify-center gap-6 mt-4">
+<div class="flex items-center gap-2 font-label-md text-secondary">
+<span class="w-3 h-3 rounded-full bg-primary/30"></span> Peso
+                            </div>
+<div class="flex items-center gap-2 font-label-md text-secondary">
+<span class="w-3 h-0.5 bg-inverse-primary"></span> VFC Tendência
+                            </div>
+<div class="flex items-center gap-2 font-label-md text-secondary">
+<span class="w-3 h-0.5 bg-[#d4af37] border-dashed border"></span> Meta (65kg)
+                            </div>
+</div>
+</div>
+<!-- Photo Gallery (Recent Meals) -->
+<div class="bg-surface-container-lowest border border-primary/10 rounded-xl p-md">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-headline-md text-headline-md text-on-surface">Refeições Recentes</h3>
+<button class="text-primary font-label-md hover:underline">Ver Diário Completo</button>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<!-- Photo Item -->
+<div class="relative group rounded-lg overflow-hidden border border-outline-variant aspect-square">
+<img alt="Almoço" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="A top-down view of a healthy, colorful salad bowl containing mixed greens, cherry tomatoes, sliced avocado, and grilled chicken breast. The dish is presented on a clean white ceramic plate, resting on a light wooden table. The lighting is bright and natural, highlighting the freshness of the ingredients in a clean, modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJOWITe_hUGTg9SLqaKuZzvaMAZJ4H8H_SsrROmdT6pC8z4OXiCA1tV5CaN0xYBhu2BHnYXCajlapAWMsKoFca0TC_oNCUQqFuSb2uCJn4AeGq9wbUulJcEOVLttUWBE3vzUIdwrU-8QVU9q5cNufaQtxcNkz4tGIwk6wnnjST2uHE5EvDU2RYQ0SUuv33HRBEyOme-_ptyNTfcDKTilS74jNQDN9l_kOPJnMc3dM2hnf4LL4HjNG-4hLu0hRuumpywC6EsPWrPg"/>
+<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<p class="font-label-md text-[10px]">Hoje, 12:30</p>
+<p class="font-body-sm text-[12px] font-bold">Almoço</p>
+</div>
+</div>
+<!-- Photo Item -->
+<div class="relative group rounded-lg overflow-hidden border border-outline-variant aspect-square">
+<img alt="Jantar" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="A beautifully plated dinner featuring a small portion of grilled salmon, a side of roasted asparagus, and quinoa. The setting is a minimalist dining table with soft, warm evening lighting. The overall mood is sophisticated and healthy, adhering to a clean, modern visual style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCROeECsqgguR6ZGS0BvMReIO6e9_xvaHf6b1HidXxdZTCbGfrdjWUHYAoh3uwsaYEkVmaEjNdMPRXezeldbSyLOsNCli9GL8IaE-pw-mpyj4uB7WQfZk73Q5m3HiM5kTvvlYYdxSyrfz6jJ1QQh7_twE58U3TnXNyj04p6QOAeAdWQ3VFbbdj_mCAYlN0VjVni0DYLXpAcUcBqFauRHhbpLqoYxE2_j17IFZAKdKkfdvS071h0hpgGwKn9UwDiUOX7VqJyg5WK1Q"/>
+<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<p class="font-label-md text-[10px]">Ontem, 19:45</p>
+<p class="font-body-sm text-[12px] font-bold">Jantar</p>
+</div>
+</div>
+<!-- Photo Item -->
+<div class="relative group rounded-lg overflow-hidden border border-outline-variant aspect-square">
+<img alt="Café da Manhã" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="A bright, overhead shot of a breakfast spread featuring a bowl of oatmeal topped with fresh berries, sliced almonds, and a drizzle of honey. A cup of black coffee sits beside it. The background is a bright, white marble countertop. The lighting is crisp morning light, emphasizing a fresh, energizing start to the day." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCbQqz07q2EI2OcCw-ibEne_2u64c8jy57yR_GPFEA0blxP_ueKLZvf0JSFoKz2UbMJjfP0__wR54jXv3duo2JqgDi1fpK4UwVvqcT-o2NyLBYvFoLHLiv5AF9Ey7xnadFPz3v3iBES85M_U8e5a-2FrVxT0LAcGNDyOMTwZ5UV7ISMoMc7b5XKyZaUZutH_Tm7SBe2UTgqrNVkLLsEaWI6uW9vPJeBjWUpYLuV9j9-g7k7nSTzyrpojyye1KdgrcjJP4ZAllfpw"/>
+<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<p class="font-label-md text-[10px]">Ontem, 08:15</p>
+<p class="font-body-sm text-[12px] font-bold">Café da Manhã</p>
+</div>
+</div>
+<!-- Photo Item Placeholder/More -->
+<div class="relative rounded-lg overflow-hidden border border-outline-variant aspect-square bg-surface-container flex items-center justify-center cursor-pointer hover:bg-surface-container-high transition-colors">
+<div class="text-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">photo_library</span>
+<p class="font-label-md mt-1">+14 fotos</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Drawer / AI Copilot Panel (Right - 4 cols) -->
+<div class="xl:col-span-4 flex flex-col gap-md">
+<!-- Painel Co-piloto IA -->
+<div class="bg-surface-container-low border border-inverse-primary rounded-xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(3,36,22,0.05)] sticky top-24">
+<!-- AI Header -->
+<div class="bg-primary-container p-4 flex items-center gap-3">
+<span class="material-symbols-outlined text-on-primary-container" data-weight="fill">psychology</span>
+<h3 class="font-headline-md text-[18px] text-on-primary">Painel Co-piloto IA</h3>
+</div>
+<div class="p-4 flex flex-col gap-4">
+<p class="text-body-sm text-secondary italic">Analisando dados dos últimos 14 dias (Wearable + Diário)</p>
+<!-- Insight Item: Warning -->
+<div class="bg-surface border-l-4 border-tertiary-container p-3 rounded-r-lg shadow-sm">
+<div class="flex items-start gap-2 mb-1">
+<span class="material-symbols-outlined text-tertiary-container text-[18px] mt-0.5">warning</span>
+<h4 class="font-label-md text-on-surface font-bold">Padrão Detectado</h4>
+</div>
+<p class="text-body-sm text-on-surface-variant ml-7">Aumento significativo na ingestão de sódio durante os fins de semana, correlacionado com queda na qualidade do sono (VFC reduzida no domingo à noite).</p>
+<div class="ml-7 mt-3 flex gap-2">
+<button class="text-[12px] font-bold text-tertiary border border-tertiary-container rounded px-2 py-1 hover:bg-tertiary-container/10">Revisar Diário</button>
+</div>
+</div>
+<!-- Insight Item: Positive -->
+<div class="bg-surface border-l-4 border-primary p-3 rounded-r-lg shadow-sm">
+<div class="flex items-start gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5">trending_up</span>
+<h4 class="font-label-md text-on-surface font-bold">Progresso Notável</h4>
+</div>
+<p class="text-body-sm text-on-surface-variant ml-7">Consistência na ingestão de proteínas alcançou 92% da meta nesta semana. O peso apresenta leve tendência de queda mantendo a massa magra.</p>
+</div>
+<!-- AI Suggested Actions -->
+<div class="mt-2 border-t border-outline-variant pt-4">
+<h4 class="font-label-md text-secondary mb-3 uppercase tracking-widest">Ações Sugeridas</h4>
+<ul class="flex flex-col gap-2">
+<li class="flex items-center justify-between p-2 hover:bg-surface rounded-lg transition-colors cursor-pointer border border-transparent hover:border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[16px]">chat</span>
+<span class="text-body-sm text-on-surface">Enviar dica sobre hidratação no fds</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[16px]">chevron_right</span>
+</li>
+<li class="flex items-center justify-between p-2 hover:bg-surface rounded-lg transition-colors cursor-pointer border border-transparent hover:border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[16px]">tune</span>
+<span class="text-body-sm text-on-surface">Ajustar meta de macronutrientes</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[16px]">chevron_right</span>
+</li>
+</ul>
+</div>
+<!-- Generate Summary CTA -->
+<button class="w-full mt-2 py-2 border border-primary-container text-primary-container font-button text-button rounded-lg hover:bg-primary-container hover:text-on-primary transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">summarize</span> Gerar Relatório IA
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

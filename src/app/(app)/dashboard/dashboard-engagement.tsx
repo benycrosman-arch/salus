@@ -124,7 +124,7 @@ export function DashboardEngagement({ userId, userCreatedAt, aiGoalsGeneratedAt,
     return (
       <div className="flex items-center gap-2.5 rounded-2xl bg-[#4a7c4a]/10 px-4 py-3 ring-1 ring-[#4a7c4a]/20 animate-in fade-in duration-500">
         <CheckCircle2 className="w-4 h-4 text-[#4a7c4a] shrink-0" />
-        <p className="text-xs text-[#1a3a2a] font-body font-semibold">Suas metas foram personalizadas ✨</p>
+        <p className="text-xs text-[#1a3a2a] font-body font-semibold">Seu plano único acabou de ficar pronto ✨</p>
       </div>
     )
   }

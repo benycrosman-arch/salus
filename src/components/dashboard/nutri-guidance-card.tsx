@@ -78,11 +78,11 @@ export async function NutriGuidanceCard({ userId }: { userId: string }) {
 
   return (
     <section className="rounded-2xl border-0 shadow-md bg-gradient-to-br from-[#1a3a2a]/[0.04] to-[#4a7c4a]/[0.04] ring-1 ring-[#1a3a2a]/10 p-6">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-full bg-[#1a3a2a]/10 flex items-center justify-center">
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="w-8 h-8 rounded-full bg-[#1a3a2a]/10 ring-1 ring-[#1a3a2a]/5 flex items-center justify-center">
           <Sparkles className="w-3.5 h-3.5 text-[#1a3a2a]" />
         </div>
-        <h2 className="text-sm font-semibold text-[#1a3a2a]">Orientações da sua nutri</h2>
+        <h2 className="text-[11px] font-semibold tracking-widest uppercase text-[#1a3a2a]/70">Orientações da sua nutri</h2>
       </div>
 
       {rec?.body && (

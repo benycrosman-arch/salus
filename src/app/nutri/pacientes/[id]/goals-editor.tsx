@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -65,6 +65,16 @@ export function GoalsEditor({
     values.carbs_g !== toInputValue(initial?.carbs_g ?? null) ||
     values.fat_g !== toInputValue(initial?.fat_g ?? null) ||
     (values.notes ?? "") !== (initial?.notes ?? "")
+
+  useEffect(() => {
+    if (!dirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+    window.addEventListener("beforeunload", handler)
+    return () => window.removeEventListener("beforeunload", handler)
+  }, [dirty])
 
   const save = async () => {
     const payload: Record<string, unknown> = { patient_id: patientId }
@@ -150,6 +160,7 @@ export function GoalsEditor({
         <Button
           onClick={save}
           disabled={saving || pending || !dirty}
+          aria-busy={saving}
           className="bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 text-white"
         >
           {saving ? (

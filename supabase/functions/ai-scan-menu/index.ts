@@ -7,6 +7,7 @@ import { validateImageRequest } from "../_shared/sanitize.ts"
 import { filterOutput } from "../_shared/filter-output.ts"
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts"
 import { callAnthropic, extractText, totalTokens, AnthropicError } from "../_shared/anthropic.ts"
+import { anthropicErrorResponse } from "../_shared/anthropic-error.ts"
 import { logUsage } from "../_shared/log-usage.ts"
 import { MENU_SYSTEM, MENU_USER_PROMPT } from "../_shared/prompts.ts"
 import { parseMediaType } from "../_shared/score.ts"
@@ -128,7 +129,7 @@ serve(async (req) => {
     )
   } catch (err) {
     if (err instanceof AnthropicError) {
-      return jsonResponse({ error: "AI service error" }, err.status, origin)
+      return anthropicErrorResponse(err, origin, FUNCTION_NAME)
     }
     console.error("ai-scan-menu unexpected error:", (err as Error).message)
     return jsonResponse({ error: "Internal server error" }, 500, origin)

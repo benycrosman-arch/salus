@@ -252,6 +252,12 @@ export default function MealResultPage() {
 
   const mealTypeLabel = MEAL_TYPE_LABEL[meal.meal_type ?? "other"] ?? "Refeição"
 
+  const celebrationLine =
+    meal.score >= 90 ? "Mandou bem — refeição de quem leva a sério." :
+    meal.score >= 75 ? "Boa escolha. Mais uma no caminho certo." :
+    meal.score >= 60 ? "Registrado. Pequenos ajustes fazem diferença." :
+    "Registrado. Amanhã a gente melhora — uma refeição por vez."
+
   return (
     <div className="page-enter space-y-6 pb-8">
       {/* Header */}
@@ -261,7 +267,7 @@ export default function MealResultPage() {
         </Button>
         <div>
           <h1 className="text-xl font-bold text-foreground font-sans">{mealTypeLabel} salvo</h1>
-          <p className="text-sm text-muted-foreground font-body">Hoje às {formatTime(meal.logged_at)}</p>
+          <p className="text-sm text-muted-foreground font-body">{celebrationLine} · {formatTime(meal.logged_at)}</p>
         </div>
       </div>
 
@@ -271,7 +277,7 @@ export default function MealResultPage() {
         {delta !== null && delta !== 0 && (
           <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${delta > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
             {delta > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-            {delta > 0 ? "+" : ""}{delta} vs. sua média
+            {delta > 0 ? `+${delta} acima da sua média` : `${delta} abaixo da sua média`}
           </div>
         )}
         <div className="text-center">

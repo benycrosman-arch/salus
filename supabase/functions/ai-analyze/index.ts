@@ -6,7 +6,8 @@ import { checkKillSwitches } from "../_shared/kill-switch.ts"
 import { validateImageRequest } from "../_shared/sanitize.ts"
 import { filterOutput } from "../_shared/filter-output.ts"
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts"
-import { callAnthropic, extractText, totalTokens, AnthropicError, MODEL_OPUS } from "../_shared/anthropic.ts"
+import { callAnthropic, extractText, totalTokens, AnthropicError, MODEL_ID, MODEL_OPUS } from "../_shared/anthropic.ts"
+import { anthropicErrorResponse } from "../_shared/anthropic-error.ts"
 import { logUsage } from "../_shared/log-usage.ts"
 import {
   ANALYZE_STAGE1_SYSTEM,
@@ -103,6 +104,7 @@ serve(async (req) => {
     // (mashed potatoes vs eggs, etc.), and Brazilian dish recognition.
     const stage1Resp = await callAnthropic({
       model: MODEL_OPUS,
+      fallbackModel: MODEL_ID,
       maxTokens: 2000,
       system: [
         {
@@ -341,7 +343,7 @@ serve(async (req) => {
     )
   } catch (err) {
     if (err instanceof AnthropicError) {
-      return jsonResponse({ error: "AI service error" }, err.status, origin)
+      return anthropicErrorResponse(err, origin, FUNCTION_NAME)
     }
     console.error(`${FUNCTION_NAME} unexpected error:`, (err as Error).message)
     return jsonResponse({ error: "Internal server error" }, 500, origin)

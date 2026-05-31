@@ -181,7 +181,14 @@ export default function MensagensPage() {
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 space-y-3">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto py-4 space-y-3"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label={`Conversa com ${nutriName}`}
+      >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-6 gap-3">
             <MessageCircle className="w-10 h-10 text-[#1a3a2a]/30" />
@@ -222,6 +229,7 @@ export default function MensagensPage() {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder={`Mensagem para ${nutriName}...`}
+          aria-label={`Mensagem para ${nutriName}`}
           className="min-h-[44px] max-h-32 resize-none rounded-2xl border-[#e4ddd4] bg-white text-sm font-body"
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {

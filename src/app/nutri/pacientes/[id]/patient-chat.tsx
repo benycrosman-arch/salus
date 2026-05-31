@@ -122,6 +122,10 @@ export function PatientChat({
       <div
         ref={scrollRef}
         className="border border-[#e4ddd4] rounded-2xl h-80 overflow-y-auto p-4 bg-[#faf8f4] space-y-2 mb-3"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label={`Conversa com ${patientName}`}
       >
         {loading ? (
           <div className="flex items-center justify-center h-full">
@@ -166,6 +170,7 @@ export function PatientChat({
       <div className="flex items-end gap-2">
         <Textarea
           placeholder="Escreva uma mensagem..."
+          aria-label={`Mensagem para ${patientName}`}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -175,12 +180,14 @@ export function PatientChat({
             }
           }}
           rows={2}
+          disabled={sending}
           className="flex-1 resize-none"
         />
         <Button
           onClick={() => void send()}
           disabled={!draft.trim() || sending}
           size="icon"
+          aria-label="Enviar mensagem"
           className="rounded-xl bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 h-10 w-10"
         >
           {sending ? (

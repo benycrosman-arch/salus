@@ -147,7 +147,7 @@ export default function ConfirmInvitePage() {
               necessário para concluir a vinculação.
             </p>
             {error?.message && (
-              <p className="text-xs text-[#c4614a] mt-3">{error.message}</p>
+              <p role="alert" aria-live="polite" className="text-xs text-[#c4614a] mt-3">{error.message}</p>
             )}
             <form
               className="mt-5 space-y-3"

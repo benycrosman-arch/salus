@@ -88,8 +88,7 @@ export default function SettingsPage() {
       URL.revokeObjectURL(url)
       track("data_exported")
       toast.success("Seu relatório em PDF foi baixado. Você pode enviá-lo ao seu médico ou nutricionista.")
-    } catch (err) {
-      console.error(err)
+    } catch {
       toast.error("Erro ao exportar dados.")
     } finally {
       setExporting(false)
@@ -111,8 +110,7 @@ export default function SettingsPage() {
       toast.success("Conta excluída. Adeus.")
       router.push("/")
       router.refresh()
-    } catch (err) {
-      console.error(err)
+    } catch {
       toast.error("Erro ao excluir a conta.")
     } finally {
       setDeleting(false)

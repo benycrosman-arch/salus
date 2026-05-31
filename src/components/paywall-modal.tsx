@@ -35,7 +35,7 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
         {/* Header */}
         <div className="bg-gradient-to-b from-[#faf8f4] to-white px-8 pt-8 pb-6 text-center">
           <p className="font-serif text-lg italic text-[#1a3a2a] mb-3">{t('brand')}</p>
-          <h2 className="text-2xl font-bold text-[#1a3a2a]">{t('headline')}</h2>
+          <h2 className="font-serif text-3xl italic text-[#1a3a2a] tracking-tight">{t('headline')}</h2>
           <p className="mt-2 text-sm text-[#1a3a2a]/60">{t('subline')}</p>
         </div>
 
@@ -49,7 +49,9 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
                 key={plan}
                 type="button"
                 onClick={() => setSelected(plan)}
-                className={`relative w-full text-left rounded-2xl border-2 px-5 py-4 transition-colors ${
+                aria-pressed={isSelected}
+                aria-label={tp(`${plan}.name`)}
+                className={`relative w-full text-left rounded-2xl border-2 px-5 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4a7c4a] focus-visible:ring-offset-2 ${
                   isSelected
                     ? 'border-[#4a7c4a] bg-[#4a7c4a]/5'
                     : 'border-[#e4ddd4] bg-white hover:border-[#1a3a2a]/20'

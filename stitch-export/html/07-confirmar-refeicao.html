@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Salus NutriGen - Análise de Refeição</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&amp;family=DM+Serif+Display&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "primary-container": "#1a3a2a",
+                            "on-surface": "#1b1c1c",
+                            "secondary": "#5e5e5c",
+                            "on-surface-variant": "#424843",
+                            "on-primary": "#ffffff",
+                            "secondary-fixed": "#e4e2de",
+                            "inverse-on-surface": "#f3f0f0",
+                            "secondary-container": "#e1dfdc",
+                            "on-primary-fixed-variant": "#2d4d3c",
+                            "on-secondary": "#ffffff",
+                            "inverse-primary": "#abcfb8",
+                            "background": "#fcf9f8",
+                            "on-tertiary-fixed-variant": "#7d2c19",
+                            "on-error": "#ffffff",
+                            "primary": "#032416",
+                            "on-primary-container": "#82a48f",
+                            "inverse-surface": "#303030",
+                            "surface-container-lowest": "#ffffff",
+                            "on-background": "#1b1c1c",
+                            "tertiary-fixed": "#ffdad2",
+                            "tertiary": "#420700",
+                            "on-tertiary-fixed": "#3d0600",
+                            "error-container": "#ffdad6",
+                            "on-tertiary-container": "#e97e65",
+                            "on-error-container": "#93000a",
+                            "on-secondary-fixed-variant": "#474744",
+                            "outline": "#727973",
+                            "surface-container": "#f0eded",
+                            "on-primary-fixed": "#002113",
+                            "primary-fixed-dim": "#abcfb8",
+                            "secondary-fixed-dim": "#c8c6c3",
+                            "surface-variant": "#e4e2e1",
+                            "surface-bright": "#fcf9f8",
+                            "surface-container-highest": "#e4e2e1",
+                            "surface-container-high": "#eae7e7",
+                            "on-tertiary": "#ffffff",
+                            "surface-tint": "#456553",
+                            "tertiary-fixed-dim": "#ffb4a3",
+                            "tertiary-container": "#631908",
+                            "primary-fixed": "#c7ebd4",
+                            "on-secondary-container": "#636360",
+                            "surface-dim": "#dcd9d9",
+                            "surface": "#fcf9f8",
+                            "on-secondary-fixed": "#1b1c1a",
+                            "outline-variant": "#c1c8c2",
+                            "surface-container-low": "#f6f3f2",
+                            "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "gutter": "24px",
+                            "md": "24px",
+                            "base": "8px",
+                            "xl": "64px",
+                            "lg": "48px",
+                            "sm": "12px",
+                            "margin-mobile": "16px",
+                            "xs": "4px",
+                            "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                            "headline-lg-mobile": ["DM Serif Display"],
+                            "body-sm": ["DM Sans"],
+                            "label-md": ["DM Sans"],
+                            "headline-lg": ["DM Serif Display"],
+                            "headline-md": ["DM Serif Display"],
+                            "body-md": ["DM Sans"],
+                            "button": ["DM Sans"],
+                            "display-lg": ["DM Serif Display"],
+                            "body-lg": ["DM Sans"]
+                    },
+                    "fontSize": {
+                            "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                            "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "400" }],
+                            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                            "button": ["16px", { "lineHeight": "24px", "fontWeight": "700" }],
+                            "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+                            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e4e2e1;
+            border-radius: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased flex justify-center min-h-screen">
+<!-- Mobile-First Container (Max 640px as per patient app guidelines) -->
+<main class="w-full max-w-[640px] bg-surface relative min-h-screen flex flex-col shadow-sm">
+<!-- Focused Header (Transactional flow = suppressed nav) -->
+<header class="flex items-center px-md py-sm sticky top-0 bg-surface/90 backdrop-blur z-20 border-b border-outline-variant/30">
+<button aria-label="Voltar" class="p-2 -ml-2 rounded-full hover:bg-surface-container transition-colors text-on-surface">
+<span class="material-symbols-outlined">close</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-on-surface ml-2">Análise Concluída</h1>
+</header>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto pb-32">
+<!-- Hero Image / AI Scan View -->
+<section class="relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A top-down view of a healthy, beautifully plated meal consisting of a perfectly grilled salmon fillet with grill marks, a neat mound of fluffy cooked quinoa, and bright green steamed asparagus spears. The meal is served on a clean, minimalist white ceramic plate resting on a light wooden table. The lighting is bright, natural, and soft, creating a fresh and appetizing mood suitable for a clinical yet warm health app. The overall aesthetic emphasizes clean eating, precision nutrition, and modern wellness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwVxF6swUI21J4B6573nUUgBz6trjjfWS58JuHGypeEjakTmIqb0RQ7JorgET4ouHAv0ZXaETPSvlxb1PDfGU6C3nqXyBV7t81jSnAmTwh_2AUkJ7VzYE3AOIaSmHrZUK4ECnuTps-eBd5iBa2Nlhqaun7f0EhHpHe93RUWCCsik8sbKe00ug4DoI75VdpAq2jxZafxFCeM-XCXhtD1N20zNr_rSHg1CQxw6Wod2BRJvr6t3X0Dae4VnVoweGsBhc0aSIHudPrhw"/>
+<!-- AI overlay visual cue -->
+<div class="absolute inset-0 border-[2px] border-primary/20 m-4 rounded-xl pointer-events-none"></div>
+<div class="absolute top-4 left-4 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary text-[18px]">document_scanner</span>
+<span class="font-label-md text-label-md text-primary">IA NutriGen Ativa</span>
+</div>
+</section>
+<div class="p-md space-y-lg">
+<!-- Title & Context -->
+<div class="text-center">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-2">Refeição Detectada</h2>
+<p class="font-body-md text-body-md text-secondary">Verifique as porções estimadas antes de registrar. Nossa IA prioriza a precisão clínica dos macronutrientes.</p>
+</div>
+<!-- Detected Items List -->
+<div class="space-y-sm">
+<!-- Item 1: Salmon -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-body-lg text-body-lg font-medium text-on-surface">Salmão Grelhado</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-1">Porção estimada: 150g</p>
+</div>
+<button aria-label="Editar item" class="p-1 rounded-full text-secondary hover:text-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="px-2 py-1 bg-primary-container/10 text-primary rounded-md font-label-md text-label-md border border-primary/10">33g Proteína</span>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant rounded-md font-label-md text-label-md">0g Carboidrato</span>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant rounded-md font-label-md text-label-md">19g Gordura</span>
+</div>
+</div>
+<!-- Item 2: Quinoa -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-body-lg text-body-lg font-medium text-on-surface">Quinoa</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-1">Porção estimada: 100g</p>
+</div>
+<button aria-label="Editar item" class="p-1 rounded-full text-secondary hover:text-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant rounded-md font-label-md text-label-md">4g Proteína</span>
+<span class="px-2 py-1 bg-primary-container/10 text-primary rounded-md font-label-md text-label-md border border-primary/10">21g Carboidrato</span>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant rounded-md font-label-md text-label-md">2g Gordura</span>
+</div>
+</div>
+<!-- Item 3: Asparagus -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-body-lg text-body-lg font-medium text-on-surface">Aspargos</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-1">Porção estimada: 80g</p>
+</div>
+<button aria-label="Editar item" class="p-1 rounded-full text-secondary hover:text-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant rounded-md font-label-md text-label-md">2g Proteína</span>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant rounded-md font-label-md text-label-md">4g Carboidrato</span>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant rounded-md font-label-md text-label-md">0g Gordura</span>
+</div>
+</div>
+</div>
+<!-- Total Macro Summary -->
+<div class="bg-surface-container-low rounded-xl p-5 border border-outline-variant/30 flex justify-between items-center mt-lg">
+<div>
+<span class="block font-label-md text-label-md text-secondary uppercase tracking-wider mb-1">Calorias Totais</span>
+<span class="block font-headline-md text-headline-md text-on-surface">364 kcal</span>
+</div>
+<div class="flex gap-4 sm:gap-6 text-center">
+<div>
+<span class="block font-label-md text-label-md text-secondary mb-1">PRO</span>
+<span class="block font-body-lg text-body-lg text-on-surface font-medium">39g</span>
+</div>
+<div>
+<span class="block font-label-md text-label-md text-secondary mb-1">CAR</span>
+<span class="block font-body-lg text-body-lg text-on-surface font-medium">25g</span>
+</div>
+<div>
+<span class="block font-label-md text-label-md text-secondary mb-1">GOR</span>
+<span class="block font-body-lg text-body-lg text-on-surface font-medium">21g</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Bottom Action Area -->
+<div class="fixed bottom-0 w-full max-w-[640px] bg-surface/95 backdrop-blur-md border-t border-outline-variant/30 p-md flex flex-col gap-3 z-20 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+<button class="w-full bg-primary text-on-primary font-button text-button py-4 rounded-full flex items-center justify-center gap-2 hover:bg-on-primary-fixed-variant transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+                Confirmar e Registrar
+            </button>
+<button class="w-full bg-transparent text-primary font-button text-button py-3.5 rounded-full flex items-center justify-center gap-2 border border-primary hover:bg-primary-container/5 transition-colors">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+                Editar Detalhes
+            </button>
+</div>
+</main>
+</body></html>

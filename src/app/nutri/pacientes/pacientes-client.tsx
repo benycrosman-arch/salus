@@ -490,7 +490,7 @@ function PatientColumnCard({ column, patients }: { column: PatientColumn; patien
       </div>
       <div className="space-y-2 min-h-[60px]">
         {patients.length === 0 ? (
-          <p className="text-[11px] text-[#1a3a2a]/40 text-center py-6 font-body">Vazio</p>
+          <p className="text-[11px] text-[#1a3a2a]/40 text-center py-8 font-body italic border border-dashed border-[#1a3a2a]/10 rounded-xl">Vazio por aqui</p>
         ) : (
           patients.map((p) => (
             <Link
@@ -553,7 +553,7 @@ function InviteColumn({
       </div>
       <div className="space-y-2 min-h-[60px]">
         {invites.length === 0 ? (
-          <p className="text-[11px] text-[#1a3a2a]/40 text-center py-6 font-body">Vazio</p>
+          <p className="text-[11px] text-[#1a3a2a]/40 text-center py-8 font-body italic border border-dashed border-[#1a3a2a]/10 rounded-xl">Vazio por aqui</p>
         ) : (
           invites.map((inv) => (
             <div
