@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const tokenHash = searchParams.get('token_hash')
   const typeRaw = searchParams.get('type')
-  const next = searchParams.get('next') ?? '/dashboard'
+  const rawNext = searchParams.get('next') ?? '/dashboard'
+  const next =
+    rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard'
+  const isRecovery = searchParams.get('recovery') === '1'
 
   // Supabase passes errors back via query params when its hosted /auth/v1/verify
   // step fails before redirecting here.
@@ -74,6 +77,12 @@ export async function GET(request: NextRequest) {
       userEmail = data.user.email ?? null
       userMeta = (data.user.user_metadata ?? null) as Record<string, unknown> | null
       didAuth = true
+
+      // Password recovery via PKCE email link — short-circuit to the reset
+      // step before the profile/onboarding gating below kicks in.
+      if (isRecovery) {
+        return NextResponse.redirect(`${origin}/auth/forgot-password?step=reset`)
+      }
     } else {
       // Common: PKCE verifier missing (cross-device email click)
       // or code already used (link clicked twice)

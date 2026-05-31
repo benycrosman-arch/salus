@@ -45,7 +45,11 @@ function useAuthErrorToast() {
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirectTo") || "/dashboard"
+  const rawRedirect = searchParams.get("redirectTo")
+  const redirectTo =
+    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/dashboard"
   const supabase = createClient()
   const t = useTranslations('auth.login')
   const tCommon = useTranslations('common')
@@ -171,6 +175,8 @@ function LoginForm() {
               value={password} onChange={(e) => setPassword(e.target.value)}
               required className="h-12 pr-11 rounded-xl border-[#e4ddd4] bg-[#faf8f4] focus:border-[#1a3a2a] focus:ring-[#1a3a2a]" />
             <button type="button" onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              aria-pressed={showPassword}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a3a2a]/50 hover:text-[#1a3a2a] transition-colors">
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
