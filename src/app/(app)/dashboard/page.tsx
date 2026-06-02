@@ -262,6 +262,7 @@ async function getDashboardData() {
     userCreatedAt: user.created_at ?? null,
     aiGoalsGeneratedAt: profile?.ai_goals_generated_at ?? null,
     profileComplete,
+    hasLabs: labs.length > 0,
   }
 }
 
@@ -485,6 +486,15 @@ export default async function DashboardPage() {
                 </span>
               ))}
             </div>
+          )}
+          {data.hasLabs && (
+            <Link
+              href="/exames"
+              className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white"
+            >
+              Ver como seus exames moldam essa dieta
+              <ArrowRight className="h-3 w-3" />
+            </Link>
           )}
         </div>
       )}

@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/mensagens", icon: MessageCircle, label: t('messages') },
     { href: "/insights", icon: Sparkles, label: t('insights') },
     { href: "/progress", icon: BarChart3, label: t('progress') },
-    { href: "/health-data", icon: FlaskConical, label: t('exams') },
+    { href: "/exames", icon: FlaskConical, label: t('exams') },
     { href: "/profile", icon: User, label: t('profile') },
     { href: "/settings", icon: Settings, label: t('settings') },
   ]

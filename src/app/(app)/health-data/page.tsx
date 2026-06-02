@@ -1,13 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { AlertCircle, FlaskConical, HelpCircle, Loader2 } from "lucide-react"
+import { AlertCircle, ArrowRight, FlaskConical, HelpCircle, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
+import { callEdgeFunction } from "@/lib/ai-client"
 import {
   PdfExamUpload,
   type ParsedPdfResult,
@@ -38,18 +41,29 @@ type LabValues = Partial<Record<KnownLabKey, string>>
 
 export default function HealthDataPage() {
   const supabase = createClient()
+  const router = useRouter()
   const [labValues, setLabValues] = useState<LabValues>({})
   const [extraLabs, setExtraLabs] = useState<ExtraLab[]>([])
   const [labUploadId, setLabUploadId] = useState<string | null>(null)
   const [labMeasuredAt, setLabMeasuredAt] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [hasAnyExam, setHasAnyExam] = useState(false)
+  const [lastSavedCount, setLastSavedCount] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (cancelled) return
-      setUserId(data.user?.id ?? null)
+      const uid = data.user?.id ?? null
+      setUserId(uid)
+      if (uid) {
+        const { count } = await supabase
+          .from("lab_results")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", uid)
+        if (!cancelled) setHasAnyExam((count ?? 0) > 0)
+      }
     })
     return () => { cancelled = true }
   }, [supabase])
@@ -129,8 +143,17 @@ export default function HealthDataPage() {
     }
 
     toast.success(`${rows.length} marcador${rows.length > 1 ? "es" : ""} salvo${rows.length > 1 ? "s" : ""}.`)
+    setLastSavedCount(rows.length)
+    setHasAnyExam(true)
     setLabValues({})
     handleResetUpload()
+
+    // Recalcula as metas diárias com base nos novos marcadores. O usuário não
+    // espera por isso — a interpretação por marcador na /exames já funciona
+    // mesmo sem o regen rodar; ele só ajusta kcal/macros do dashboard.
+    callEdgeFunction("ai-personalize-goals", { force: true })
+      .then(() => router.refresh())
+      .catch(() => {})
   }
 
   return (
@@ -143,6 +166,26 @@ export default function HealthDataPage() {
       </div>
 
       <PdfExamUpload onParsed={handleParsed} onReset={handleResetUpload} />
+
+      {(hasAnyExam || lastSavedCount > 0) && (
+        <Link
+          href="/exames"
+          className="block rounded-xl border border-primary/30 bg-primary/5 p-4 hover:bg-primary/10 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <FlaskConical className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                {lastSavedCount > 0 ? "Veja sua interpretação completa" : "Ver interpretação do último exame"}
+              </p>
+              <p className="text-[11px] text-muted-foreground font-body">
+                Cada marcador traduzido em ações concretas pra sua dieta.
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-primary shrink-0" />
+          </div>
+        </Link>
+      )}
 
       <div className="space-y-3">
         {labMarkers.map((marker) => (

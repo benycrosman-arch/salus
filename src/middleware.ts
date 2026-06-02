@@ -114,7 +114,7 @@ export async function middleware(request: NextRequest) {
     // patients don't belong on the nutri panel. Shared routes (settings, profile,
     // auth, public) fall through. Admins bypass both directions.
     if (onboardingDone && !isAdmin) {
-      const PATIENT_ONLY = ['/dashboard', '/log', '/plan', '/grocery', '/progress', '/health-data', '/insights', '/meal-result', '/mensagens']
+      const PATIENT_ONLY = ['/dashboard', '/log', '/plan', '/grocery', '/progress', '/health-data', '/insights', '/meal-result', '/mensagens', '/exames']
       const onPatientArea = PATIENT_ONLY.some((p) => pathname === p || pathname.startsWith(p + '/'))
       if (isNutri && onPatientArea) {
         return NextResponse.redirect(new URL('/nutri', request.url))
