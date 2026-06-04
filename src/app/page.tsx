@@ -192,8 +192,13 @@ export default function NutriLandingPage() {
                 <LanguageSwitcher />
               </motion.div>
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
-                <Link href="/auth/login" className="text-sm font-medium text-[#1a3a2a]/60 hover:text-[#1a3a2a] transition-colors hidden sm:block">
-                  Entrar
+                <Link href="/auth/login">
+                  <Button
+                    variant="outline"
+                    className="h-9 rounded-full border-[#1a3a2a]/20 bg-white px-4 text-sm font-semibold text-[#1a3a2a] hover:bg-[#1a3a2a]/5 hover:border-[#1a3a2a]/40 transition-all"
+                  >
+                    Sou paciente
+                  </Button>
                 </Link>
               </motion.div>
               <motion.div
@@ -201,11 +206,11 @@ export default function NutriLandingPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
               >
-                <a href={BETA_MAILTO}>
+                <Link href="/nutri">
                   <Button className="h-9 rounded-full bg-[#1a3a2a] px-5 text-sm font-semibold text-white hover:bg-[#1a3a2a]/90 transition-all">
-                    Pedir convite
+                    Entrar
                   </Button>
-                </a>
+                </Link>
               </motion.div>
             </div>
           </div>
@@ -648,8 +653,9 @@ export default function NutriLandingPage() {
                 </div>
                 <span className="font-serif text-lg italic text-[#1a3a2a]">Salus</span>
               </Link>
-              <div className="flex gap-6 text-xs text-[#1a3a2a]/60">
+              <div className="flex flex-wrap gap-6 text-xs text-[#1a3a2a]/60 justify-center">
                 <Link href="/paciente" className="hover:text-[#1a3a2a] transition-colors">Para pacientes</Link>
+                <Link href="/auth/login" className="hover:text-[#1a3a2a] transition-colors">Sou paciente · Entrar</Link>
                 <Link href="/privacidade" className="hover:text-[#1a3a2a] transition-colors">Privacidade</Link>
                 <Link href="/termos" className="hover:text-[#1a3a2a] transition-colors">Termos</Link>
                 <a href="mailto:suporte@nulllabs.org" className="hover:text-[#1a3a2a] transition-colors">Suporte</a>
