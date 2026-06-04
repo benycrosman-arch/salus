@@ -192,7 +192,7 @@ export default function NutriLandingPage() {
                 <LanguageSwitcher />
               </motion.div>
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
-                <Link href="/auth/login">
+                <Link href="/auth/login?role=user">
                   <Button
                     variant="outline"
                     className="h-9 rounded-full border-[#1a3a2a]/20 bg-white px-4 text-sm font-semibold text-[#1a3a2a] hover:bg-[#1a3a2a]/5 hover:border-[#1a3a2a]/40 transition-all"
@@ -206,7 +206,7 @@ export default function NutriLandingPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
               >
-                <Link href="/nutri">
+                <Link href="/auth/login?role=nutricionista">
                   <Button className="h-9 rounded-full bg-[#1a3a2a] px-5 text-sm font-semibold text-white hover:bg-[#1a3a2a]/90 transition-all">
                     Entrar
                   </Button>

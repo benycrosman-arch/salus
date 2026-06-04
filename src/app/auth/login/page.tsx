@@ -50,6 +50,13 @@ function LoginForm() {
     rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
       ? rawRedirect
       : "/dashboard"
+  // role hint vindo da landing (?role=nutricionista|user) só pré-seleciona o tipo
+  // de conta no link de cadastro; o login em si roteia pelo profiles.role.
+  const roleHint = searchParams.get("role")
+  const signupHref =
+    roleHint === "nutricionista" || roleHint === "user"
+      ? `/auth/signup?role=${roleHint}`
+      : "/auth/signup"
   const supabase = createClient()
   const t = useTranslations('auth.login')
   const tCommon = useTranslations('common')
@@ -241,7 +248,7 @@ function LoginForm() {
 
       <p className="text-center text-sm text-[#1a3a2a]/50 pt-1">
         {t('noAccount')}{" "}
-        <Link href="/auth/signup" className="font-semibold text-[#1a3a2a] hover:underline">
+        <Link href={signupHref} className="font-semibold text-[#1a3a2a] hover:underline">
           {t('signupCta')}
         </Link>
       </p>
