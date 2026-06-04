@@ -206,7 +206,7 @@ export default function NutriLandingPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
               >
-                <Link href="/auth/login?role=nutricionista">
+                <Link href="/nutri">
                   <Button className="h-9 rounded-full bg-[#1a3a2a] px-5 text-sm font-semibold text-white hover:bg-[#1a3a2a]/90 transition-all">
                     Entrar
                   </Button>

@@ -50,12 +50,15 @@ function LoginForm() {
     rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
       ? rawRedirect
       : "/dashboard"
-  // role hint vindo da landing (?role=nutricionista|user) só pré-seleciona o tipo
-  // de conta no link de cadastro; o login em si roteia pelo profiles.role.
+  // Contexto de nutri vem do ?role=nutricionista explícito ou do redirectTo=/nutri
+  // (botão Entrar da landing manda pro painel; deslogado passa por aqui). Só
+  // pré-seleciona o tipo no link de cadastro — o login em si roteia pelo profiles.role.
   const roleHint = searchParams.get("role")
-  const signupHref =
-    roleHint === "nutricionista" || roleHint === "user"
-      ? `/auth/signup?role=${roleHint}`
+  const isNutriContext = roleHint === "nutricionista" || redirectTo.startsWith("/nutri")
+  const signupHref = isNutriContext
+    ? "/auth/signup?role=nutricionista"
+    : roleHint === "user"
+      ? "/auth/signup?role=user"
       : "/auth/signup"
   const supabase = createClient()
   const t = useTranslations('auth.login')
@@ -99,10 +102,10 @@ function LoginForm() {
         .single()
       identify(data.user.id, { email: data.user.email, role: profile?.role ?? 'user' })
       track('login', { method: 'password', role: profile?.role ?? 'user' })
-      if (!profile?.onboarding_completed) {
-        router.push('/onboarding')
-      } else if (profile.role === 'nutricionista') {
+      if (profile?.role === 'nutricionista') {
         router.push('/nutri')
+      } else if (!profile?.onboarding_completed) {
+        router.push('/onboarding')
       } else {
         router.push(redirectTo)
       }
