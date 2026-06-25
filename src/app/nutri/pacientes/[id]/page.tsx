@@ -17,6 +17,7 @@ import {
   Beaker,
 } from "lucide-react"
 import { RecommendationsEditor } from "./recommendations-editor"
+import { MealsEditor } from "./meals-editor"
 import { AttachmentsUploader } from "./attachments-uploader"
 import { GoalsEditor } from "./goals-editor"
 import { EndRelationshipButton } from "./end-relationship-button"
@@ -61,7 +62,7 @@ export default async function PacientePage({ params }: { params: Promise<Params>
   const since30Iso = since30Date.toISOString()
   const since7Iso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [patientRes, mealsRes, labsRes, recsRes, attsRes, goalsRes] = await Promise.all([
+  const [patientRes, mealsRes, labsRes, recsRes, attsRes, goalsRes, mealOptionsRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, name, email, height_cm, weight_kg, biological_sex, birth_date, city")
@@ -98,6 +99,15 @@ export default async function PacientePage({ params }: { params: Promise<Params>
       .eq("nutri_id", user.id)
       .eq("patient_id", patientId)
       .maybeSingle(),
+    supabase
+      .from("nutri_meal_options")
+      .select("id, meal_type, title, description, macros, source, parent_option_id, is_active, created_at")
+      .eq("patient_id", patientId)
+      .eq("is_active", true)
+      .order("meal_type", { ascending: true })
+      .order("position", { ascending: true })
+      .order("created_at", { ascending: true })
+      .limit(100),
   ])
 
   const patient = patientRes.data
@@ -108,6 +118,7 @@ export default async function PacientePage({ params }: { params: Promise<Params>
   const initialRecommendations = recsRes.data ?? []
   const initialAttachments = attsRes.data ?? []
   const initialGoals = goalsRes.data ?? null
+  const initialMealOptions = mealOptionsRes.data ?? []
 
   // Daily stats and user_preferences are owner-only via RLS, so derive
   // everything we can from meals (which the nutri can read for linked patients).
@@ -184,6 +195,11 @@ export default async function PacientePage({ params }: { params: Promise<Params>
           initialAttachments={initialAttachments}
         />
       </div>
+
+      <MealsEditor
+        patientId={patientId}
+        initialOptions={initialMealOptions as Parameters<typeof MealsEditor>[0]["initialOptions"]}
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <KpiCard
