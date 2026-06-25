@@ -15,6 +15,7 @@ import {
   MessageCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PLANS_ACTIVE } from "@/lib/pro"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { TrialBanner } from "@/components/trial-banner"
 
@@ -93,15 +94,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          <div className="p-4 border-t border-[#e4ddd4]/60">
-            <div className="rounded-2xl bg-[#1a3a2a]/[0.04] p-4 ring-1 ring-[#1a3a2a]/[0.06]">
-              <p className="text-xs font-semibold text-[#1a3a2a] mb-1">{t('upgradeTitle')}</p>
-              <p className="text-[11px] text-[#1a3a2a]/50 leading-relaxed">{t('upgradeBody')}</p>
-              <Link href="/settings" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#c4614a] hover:underline">
-                {t('viewPlans')}
-              </Link>
+          {PLANS_ACTIVE && (
+            <div className="p-4 border-t border-[#e4ddd4]/60">
+              <div className="rounded-2xl bg-[#1a3a2a]/[0.04] p-4 ring-1 ring-[#1a3a2a]/[0.06]">
+                <p className="text-xs font-semibold text-[#1a3a2a] mb-1">{t('upgradeTitle')}</p>
+                <p className="text-[11px] text-[#1a3a2a]/50 leading-relaxed">{t('upgradeBody')}</p>
+                <Link href="/settings" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#c4614a] hover:underline">
+                  {t('viewPlans')}
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
         </aside>
 
         {/* Main content */}

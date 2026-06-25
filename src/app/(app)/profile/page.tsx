@@ -13,6 +13,7 @@ import {
   CreditCard, FlaskConical, AlertCircle, CheckCircle, User, Phone,
 } from "lucide-react"
 import { SignOutButton } from "./sign-out-button"
+import { PLANS_ACTIVE } from "@/lib/pro"
 
 const GOAL_LABELS: Record<string, string> = {
   "lose-weight": "Perder peso",
@@ -79,7 +80,10 @@ export default async function ProfilePage() {
 
   const name = profile?.name || user.email?.split('@')[0] || 'Usuário'
   const initials = name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
-  const planLabel = profile?.plan === 'pro' ? 'Pro' : profile?.plan === 'nutri_pro' ? 'Nutri Pro' : 'Gratuito'
+  // While plans are inactivated, every account is Pro (nutris stay Nutri Pro).
+  const planLabel = !PLANS_ACTIVE
+    ? (profile?.plan === 'nutri_pro' ? 'Nutri Pro' : 'Pro')
+    : profile?.plan === 'pro' ? 'Pro' : profile?.plan === 'nutri_pro' ? 'Nutri Pro' : 'Gratuito'
   const memberSince = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
     : '—'
@@ -308,15 +312,17 @@ export default async function ProfilePage() {
           </h3>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Link href="/settings" className="contents">
-            <Button
-              variant="outline"
-              className="w-full justify-start rounded-xl border-[#1a3a2a]/10 text-[#1a3a2a] hover:bg-[#1a3a2a]/5"
-            >
-              <CreditCard className="mr-2 h-4 w-4" />
-              Gerenciar assinatura
-            </Button>
-          </Link>
+          {PLANS_ACTIVE && (
+            <Link href="/settings" className="contents">
+              <Button
+                variant="outline"
+                className="w-full justify-start rounded-xl border-[#1a3a2a]/10 text-[#1a3a2a] hover:bg-[#1a3a2a]/5"
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                Gerenciar assinatura
+              </Button>
+            </Link>
+          )}
           <Link href="/health-data" className="contents">
             <Button
               variant="outline"

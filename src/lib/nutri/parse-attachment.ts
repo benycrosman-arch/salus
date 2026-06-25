@@ -17,7 +17,7 @@ export interface AttachmentExtraction {
   usage: { input_tokens: number; output_tokens: number }
 }
 
-const SYSTEM_PT = `Você recebe um PDF entregue por um nutricionista para o paciente dele (plano alimentar, plano de treino, orientação clínica ou material educativo).
+const SYSTEM_PT = `Você recebe um material (PDF ou foto) entregue por um nutricionista para o paciente dele (plano alimentar, plano de treino, orientação clínica ou material educativo).
 
 Extraia o conteúdo textual em PT-BR de forma fiel e estruturada. Foque em:
 - Listas de alimentos permitidos / proibidos
@@ -55,6 +55,64 @@ export async function extractTextFromAttachment(
               type: 'base64',
               media_type: 'application/pdf',
               data: pdfBase64,
+            },
+          },
+          {
+            type: 'text',
+            text: 'Extraia o conteúdo textual seguindo as regras.',
+          },
+        ],
+      },
+    ],
+  })
+
+  const raw = res.content
+    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+    .map((b) => b.text)
+    .join('\n')
+    .trim()
+
+  return {
+    text: raw.slice(0, MAX_EXTRACTED_CHARS),
+    usage: {
+      input_tokens: res.usage?.input_tokens ?? 0,
+      output_tokens: res.usage?.output_tokens ?? 0,
+    },
+  }
+}
+
+export const SUPPORTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+] as const
+export type ImageMediaType = (typeof SUPPORTED_IMAGE_TYPES)[number]
+
+export async function extractTextFromImage(
+  imageBase64: string,
+  mediaType: ImageMediaType,
+): Promise<AttachmentExtraction> {
+  const res = await client().messages.create({
+    model: NUTRI_ATTACHMENT_MODEL,
+    max_tokens: 4000,
+    system: [
+      {
+        type: 'text',
+        text: SYSTEM_PT,
+        cache_control: { type: 'ephemeral' },
+      },
+    ],
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: mediaType,
+              data: imageBase64,
             },
           },
           {

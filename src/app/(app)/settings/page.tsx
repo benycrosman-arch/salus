@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
+import { PLANS_ACTIVE } from "@/lib/pro"
 import { useRouter } from "next/navigation"
 import { resetIdentity, track } from "@/lib/posthog"
 import { useTranslations } from "next-intl"
@@ -126,7 +127,35 @@ export default function SettingsPage() {
 
       <MyNutriCard />
 
-      {/* Subscription */}
+      {/* Subscription. While plans are inactivated (PLANS_ACTIVE === false) every
+          account is Pro with all features, so we show a "Plano Pro · Ativo" card
+          instead of the upgrade pitch. The original upgrade card is preserved
+          below and renders again once plans are re-enabled. */}
+      {!PLANS_ACTIVE ? (
+        <Card className="border-0 shadow-md overflow-hidden">
+          <div className="bg-gradient-to-br from-primary to-[#3d5a3d] p-5 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-accent" />
+                <span className="font-semibold">Plano Pro</span>
+              </div>
+              <Badge className="bg-white/20 text-white border-0 text-xs rounded-full">Ativo</Badge>
+            </div>
+            <p className="text-white/80 text-sm font-body">
+              Todos os recursos estão liberados na sua conta.
+            </p>
+          </div>
+          <div className="p-5 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Recursos incluídos</p>
+            {["Fotos ilimitadas de refeições", "Planos alimentares personalizados", "Lista de compras automática", "Insights avançados e tendências", "Dados de saúde e wearables"].map((item, i) => (
+              <div key={i} className="flex items-center gap-2.5">
+                <Check className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-sm font-body text-foreground">{item}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : (
       <Card className="border-0 shadow-md overflow-hidden">
         <div className="bg-gradient-to-br from-primary to-[#3d5a3d] p-5 text-white">
           <div className="flex items-center justify-between mb-3">
@@ -173,6 +202,7 @@ export default function SettingsPage() {
           ))}
         </div>
       </Card>
+      )}
 
       {/* Language */}
       <Card className="border-0 shadow-md p-5">

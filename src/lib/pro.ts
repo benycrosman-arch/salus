@@ -36,12 +36,15 @@ interface ProInputs {
   role?: string | null
 }
 
-// Kill switch — flip to true to re-enable subscription gating across the app.
-// While false, every non-nutri user is treated as a paying Pro subscriber so
-// the paywall modal, feature-blocker, trial banner, and quota checks all
-// short-circuit to allow. Nutricionistas still resolve to tier='nutri' via
-// the role check below.
-const SUBSCRIPTION_GATING_ENABLED = false
+// Master switch for the entire subscription/plan system. Flip to true to
+// re-enable plans end-to-end — nothing here is deleted, only gated.
+// While false, plans are "inactivated": every non-nutri user is treated as a
+// paying Pro subscriber so the paywall modal, feature-blocker, trial banner,
+// and quota checks all short-circuit to allow, and the plan/upgrade UI
+// (settings, profile, sidebar) hides itself by reading this flag.
+// Nutricionistas still resolve to tier='nutri' via the role check below.
+export const PLANS_ACTIVE = false
+const SUBSCRIPTION_GATING_ENABLED = PLANS_ACTIVE
 
 const SUB_ACTIVE = new Set(['active', 'trialing', 'in_grace_period'])
 

@@ -88,7 +88,7 @@ export default async function PacientePage({ params }: { params: Promise<Params>
       .limit(50),
     supabase
       .from("nutri_patient_attachments")
-      .select("id, storage_path, original_filename, byte_size, page_count, kind, extracted_at, created_at")
+      .select("id, storage_path, original_filename, byte_size, page_count, kind, media_kind, extracted_at, created_at")
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
       .limit(50),

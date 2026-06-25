@@ -350,6 +350,7 @@ export default function LandingPage() {
               <div className="rounded-2xl bg-white p-6 ring-1 ring-black/[0.04]">
                 <div className="flex justify-around items-center">
                   {[
+                    { label: "Calorias", val: 85, color: "#c8a538" },
                     { label: "Proteína", val: 78, color: "#1a3a2a" },
                     { label: "Fibras", val: 92, color: "#c4614a" },
                     { label: "Gordura", val: 61, color: "#4a7c4a" },
