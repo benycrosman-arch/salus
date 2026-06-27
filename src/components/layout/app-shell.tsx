@@ -13,11 +13,13 @@ import {
   Settings,
   FlaskConical,
   MessageCircle,
+  Bot,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PLANS_ACTIVE } from "@/lib/pro"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { TrialBanner } from "@/components/trial-banner"
+import { NotificationBell } from "@/components/layout/notification-bell"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -25,15 +27,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const mobileNavItems = [
     { href: "/dashboard", icon: Home, label: t('dashboard') },
+    { href: "/coach", icon: Bot, label: t('coach') },
     { href: "/log", icon: Camera, label: t('log') },
     { href: "/mensagens", icon: MessageCircle, label: t('messages') },
-    { href: "/insights", icon: Sparkles, label: t('insights') },
     { href: "/profile", icon: User, label: t('profile') },
   ]
 
   const desktopNavItems = [
     { href: "/dashboard", icon: Home, label: t('dashboard') },
     { href: "/log", icon: Camera, label: t('log') },
+    { href: "/coach", icon: Bot, label: t('coach') },
     { href: "/mensagens", icon: MessageCircle, label: t('messages') },
     { href: "/insights", icon: Sparkles, label: t('insights') },
     { href: "/progress", icon: BarChart3, label: t('progress') },
@@ -51,6 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Image src="/logo.png" alt="Salus Logo" width={140} height={36} className="h-8 w-auto object-contain mix-blend-multiply" />
           </Link>
           <div className="flex items-center gap-1">
+            <NotificationBell />
             <LanguageSwitcher />
             <Link href="/settings" className="w-8 h-8 flex items-center justify-center rounded-xl text-[#1a3a2a]/60 hover:text-[#1a3a2a] hover:bg-[#1a3a2a]/5 transition-all">
               <Settings className="h-4 w-4" />
@@ -69,7 +73,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <p className="text-[10px] font-medium tracking-widest uppercase text-[#1a3a2a]/50 mt-1">{t('tagline')}</p>
               </div>
             </Link>
-            <LanguageSwitcher />
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <nav className="flex-1 px-3 space-y-0.5">

@@ -51,6 +51,7 @@ export type SalusEvent =
   | "personalized_goals_ready"
   | "nutri_message_sent"
   | "nutri_message_received"
+  | "coach_message_sent"
   | "ai_report_submitted"
   | "paywall_viewed"
   | "paywall_cta_clicked"
