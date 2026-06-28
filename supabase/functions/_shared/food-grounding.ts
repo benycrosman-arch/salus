@@ -23,6 +23,9 @@ export type Stage1Food = {
   confidence: "high" | "medium" | "low"
   visualReasoning?: string
   alternative_name?: string | null
+  // 2–4 plausible identities (best guess first) when confidence is not high.
+  // Drives the in-app disambiguation quiz instead of asking for typed context.
+  candidates?: string[]
 }
 
 export type GroundedFood = {
@@ -33,6 +36,7 @@ export type GroundedFood = {
   confidence: "high" | "medium" | "low"
   visualReasoning?: string
   alternative?: string | null
+  candidates?: string[]
 
   // From DB lookup
   food_id: string | null
@@ -133,6 +137,7 @@ export async function groundFoods(
       confidence: food.confidence,
       visualReasoning: food.visualReasoning,
       alternative: food.alternative_name ?? null,
+      candidates: food.candidates ?? [],
       food_id: String(match.id),
       resolved_name: String(match.name),
       match_score: Number(match.match_score),

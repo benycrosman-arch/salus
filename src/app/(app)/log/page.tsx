@@ -2,10 +2,11 @@
 
 import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { AnimatePresence, motion } from "framer-motion"
 import {
   Camera, Upload, Loader2, ArrowRight, Zap, Leaf, AlertTriangle,
   RotateCcw, ChevronRight, CheckCircle2, AlertCircle, HelpCircle,
-  CheckCircle,
+  CheckCircle, Check, ArrowLeft, Sparkles, Pencil,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -14,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
-import type { MealAnalysis, FoodItem, ParsedFoodItem, TextLogResult, CalorieBias } from "@/lib/types"
+import type { MealAnalysis, FoodItem, ParsedFoodItem, TextLogResult, CalorieBias, MealClarification } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { toast } from "sonner"
@@ -427,14 +428,203 @@ function TextLogTab() {
   )
 }
 
-// ─── Photo mode (unchanged logic) ─────────────────────────────────────────────
+// ─── Disambiguation quiz ──────────────────────────────────────────────────────
+// When the AI isn't sure about an item, ask the paciente to tap the right one
+// instead of making them type context. One question per ambiguous item.
+
+const OTHER = "__other__"
+
+function DisambiguationQuiz({
+  image,
+  clarifications,
+  onComplete,
+  onSkip,
+}: {
+  image: string
+  clarifications: MealClarification[]
+  onComplete: (answers: Record<number, string>) => void
+  onSkip: () => void
+}) {
+  const [step, setStep] = useState(0)
+  const [answers, setAnswers] = useState<Record<number, string>>({})
+  const [picked, setPicked] = useState<string | null>(null)
+  const [otherText, setOtherText] = useState("")
+
+  const total = clarifications.length
+  const c = clarifications[step]
+  const isLast = step === total - 1
+
+  const commit = (foodIndex: number, value: string) => {
+    const next = { ...answers, [foodIndex]: value }
+    setAnswers(next)
+    setPicked(null)
+    setOtherText("")
+    if (isLast) {
+      onComplete(next)
+    } else {
+      setStep((s) => s + 1)
+    }
+  }
+
+  const choose = (value: string) => {
+    setPicked(value)
+    // brief highlight before advancing, so the tap feels acknowledged
+    window.setTimeout(() => commit(c.food_index, value), 220)
+  }
+
+  return (
+    <div className="space-y-5 page-enter">
+      <div className="flex items-center gap-3">
+        <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-2xl ring-1 ring-black/[0.06]">
+          <Image src={image} alt="Sua refeição" fill className="object-cover" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1.5 font-serif text-xl italic text-[#1a3a2a]">
+            <Sparkles className="h-4 w-4 text-[#c8a538]" />
+            Me ajuda a confirmar?
+          </p>
+          <p className="text-xs text-[#1a3a2a]/60">
+            Tenho quase certeza — só preciso conferir {total === 1 ? "um item" : `${total} itens`}.
+          </p>
+        </div>
+      </div>
+
+      {/* Progress */}
+      <div className="flex items-center gap-1.5">
+        {clarifications.map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "h-1.5 flex-1 rounded-full transition-colors",
+              i < step ? "bg-[#1a3a2a]" : i === step ? "bg-[#1a3a2a]/40" : "bg-[#e4ddd4]"
+            )}
+          />
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="rounded-3xl bg-white ring-1 ring-black/[0.04] p-5 space-y-4"
+        >
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#1a3a2a]/50">
+              Pergunta {step + 1} de {total}
+            </p>
+            <p className="mt-1 font-serif text-2xl italic text-[#1a3a2a]">{c.question}</p>
+            {c.hint && (
+              <p className="mt-1.5 text-xs text-[#1a3a2a]/55 leading-relaxed">{c.hint}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            {c.options.map((opt, i) => {
+              const active = picked === opt
+              return (
+                <button
+                  key={opt}
+                  onClick={() => choose(opt)}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all",
+                    active
+                      ? "border-[#1a3a2a] bg-[#1a3a2a] text-white shadow-lg"
+                      : "border-[#e4ddd4] bg-[#faf8f4] text-[#1a3a2a] hover:border-[#1a3a2a]/30 hover:bg-white active:scale-[0.99]"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                      active ? "bg-white text-[#1a3a2a]" : "bg-white text-[#1a3a2a]/70 ring-1 ring-black/[0.06]"
+                    )}
+                  >
+                    {active ? <Check className="h-3.5 w-3.5" /> : String.fromCharCode(65 + i)}
+                  </span>
+                  <span className="flex-1 text-sm font-semibold capitalize">{opt}</span>
+                  {i === 0 && !active && (
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-[#c8a538]">
+                      Meu palpite
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+
+            {/* Escape hatch — type the real food */}
+            {picked === OTHER ? (
+              <div className="flex items-center gap-2 rounded-2xl border border-[#1a3a2a]/30 bg-white p-1.5 pl-4">
+                <Pencil className="h-4 w-4 flex-shrink-0 text-[#1a3a2a]/40" />
+                <input
+                  autoFocus
+                  value={otherText}
+                  onChange={(e) => setOtherText(e.target.value.slice(0, 60))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && otherText.trim()) commit(c.food_index, otherText.trim())
+                  }}
+                  placeholder="Digite o que é…"
+                  className="flex-1 bg-transparent text-sm font-medium text-[#1a3a2a] outline-none placeholder:text-[#1a3a2a]/40"
+                />
+                <Button
+                  size="sm"
+                  className="rounded-xl bg-[#1a3a2a] px-4 font-semibold text-white"
+                  disabled={!otherText.trim()}
+                  onClick={() => commit(c.food_index, otherText.trim())}
+                >
+                  {isLast ? "Concluir" : "Próximo"}
+                </Button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setPicked(OTHER); setOtherText("") }}
+                className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-[#e4ddd4] px-4 py-3 text-left text-sm font-semibold text-[#1a3a2a]/60 transition-colors hover:border-[#1a3a2a]/30 hover:text-[#1a3a2a]"
+              >
+                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-[#1a3a2a]/50 ring-1 ring-black/[0.06]">
+                  <Pencil className="h-3 w-3" />
+                </span>
+                Outro / nenhum desses
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="flex items-center justify-between">
+        {step > 0 ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-xl font-semibold text-[#1a3a2a]/60 hover:text-[#1a3a2a]"
+            onClick={() => { setStep((s) => s - 1); setPicked(null) }}
+          >
+            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+            Voltar
+          </Button>
+        ) : <span />}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="rounded-xl font-semibold text-[#1a3a2a]/50 hover:text-[#1a3a2a]/70"
+          onClick={onSkip}
+        >
+          Pular e usar meu palpite
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Photo mode ───────────────────────────────────────────────────────────────
 
 function PhotoLogTab() {
   const router = useRouter()
   const [image, setImage] = useState<string | null>(null)
-  const [photoText, setPhotoText] = useState("")
   const [analyzing, setAnalyzing] = useState(false)
+  const [refining, setRefining] = useState(false)
   const [result, setResult] = useState<MealAnalysis | null>(null)
+  const [quiz, setQuiz] = useState<MealClarification[] | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
@@ -448,35 +638,69 @@ function PhotoLogTab() {
     const selected = e.target.files?.[0]
     if (!selected) return
     setResult(null)
+    setQuiz(null)
     const reader = new FileReader()
     reader.onloadend = () => setImage(reader.result as string)
     reader.readAsDataURL(selected)
   }
 
-  const analyzeMeal = async () => {
+  // First pass (no corrections) may surface a disambiguation quiz. A second
+  // pass carries the paciente's confirmed answers and never re-quizzes.
+  const analyzeMeal = async (corrections?: { name: string; chosen: string }[]) => {
     if (!image) return
-    if (quota.loaded && quota.blocked) {
-      setBlockerOpen(true)
-      return
+    const isRefine = !!corrections
+    if (!isRefine) {
+      if (quota.loaded && quota.blocked) {
+        setBlockerOpen(true)
+        return
+      }
+      if (pro.loaded && !pro.isPro && !quota.loaded) {
+        setPaywallOpen(true)
+        return
+      }
     }
-    if (pro.loaded && !pro.isPro && !quota.loaded) {
-      setPaywallOpen(true)
-      return
-    }
-    setAnalyzing(true)
+    if (isRefine) setRefining(true)
+    else setAnalyzing(true)
     try {
       const data = await callEdgeFunction<MealAnalysis>("ai-analyze", {
         image,
-        text: photoText.trim() || undefined,
+        ...(corrections ? { corrections } : {}),
       })
-      setResult(data)
+      if (!isRefine && data.clarifications && data.clarifications.length > 0) {
+        setResult(data)        // stash — revealed if the user keeps every guess
+        setQuiz(data.clarifications)
+        track("meal_photo_clarify_shown", { items: data.clarifications.length })
+      } else {
+        setResult(data)
+        setQuiz(null)
+      }
     } catch (err) {
       console.error("Analysis failed", err)
       toast.error(err instanceof Error ? err.message : "Análise falhou")
+      setQuiz(null)
     } finally {
       setAnalyzing(false)
-      void quota.refetch()
+      setRefining(false)
+      if (!isRefine) void quota.refetch()
     }
+  }
+
+  // Quiz finished: if every answer matches the AI's first guess, just reveal the
+  // already-computed result; otherwise re-analyze with the confirmed labels.
+  const onQuizComplete = (answers: Record<number, string>) => {
+    const cls = quiz ?? []
+    const changed = cls.some((c) => (answers[c.food_index] ?? c.options[0]) !== c.options[0])
+    track("meal_photo_clarify_done", { items: cls.length, changed })
+    if (!changed) {
+      setQuiz(null)
+      return
+    }
+    const corrections = cls.map((c) => ({
+      name: c.name,
+      chosen: answers[c.food_index] ?? c.options[0],
+    }))
+    setQuiz(null)
+    void analyzeMeal(corrections)
   }
 
   const saveMeal = async () => {
@@ -533,8 +757,8 @@ function PhotoLogTab() {
 
   const resetLog = () => {
     setImage(null)
-    setPhotoText("")
     setResult(null)
+    setQuiz(null)
     setSaved(false)
   }
 
@@ -548,7 +772,7 @@ function PhotoLogTab() {
   return (
     <div className="space-y-4">
       {/* Upload Area */}
-      {!result && (
+      {!result && !quiz && !analyzing && !refining && (
         <div
           className={cn(
             "relative overflow-hidden rounded-3xl border-2 border-dashed transition-all cursor-pointer",
@@ -570,21 +794,6 @@ function PhotoLogTab() {
               <div className="relative aspect-[4/3]">
                 <Image src={image} alt="Foto da refeição" fill className="object-cover rounded-3xl" />
               </div>
-              {/* Optional context — improves Opus 4.7 disambiguation */}
-              <div onClick={(e) => e.stopPropagation()} className="px-1 pb-1">
-                <Textarea
-                  value={photoText}
-                  onChange={(e) => setPhotoText(e.target.value.slice(0, 300))}
-                  placeholder="Opcional: adicione contexto. Ex.: 'arroz integral com feijão preto, frango grelhado e salada'"
-                  rows={2}
-                  className="resize-none text-sm rounded-2xl border-[#e4ddd4] bg-[#faf8f4] focus:border-[#1a3a2a]/30"
-                  disabled={analyzing}
-                />
-                <div className="flex items-center justify-between mt-1.5 text-[10px] text-muted-foreground font-body px-1">
-                  <span>Ajuda a IA a identificar pratos parecidos.</span>
-                  <span className="tabular-nums">{photoText.length}/300</span>
-                </div>
-              </div>
               <div className="flex gap-3 px-1 pb-1">
                 <Button
                   variant="secondary"
@@ -593,19 +802,14 @@ function PhotoLogTab() {
                   onClick={(e) => { e.stopPropagation(); resetLog() }}
                 >
                   <RotateCcw className="h-4 w-4 mr-2" />
-                  Refazer
+                  Trocar foto
                 </Button>
                 <Button
                   size="sm"
                   className="flex-1 rounded-xl bg-[#1a3a2a] text-white shadow-lg font-semibold"
                   onClick={(e) => { e.stopPropagation(); analyzeMeal() }}
-                  disabled={analyzing}
                 >
-                  {analyzing ? (
-                    <><Loader2 className="h-4 w-4 animate-spin mr-2" />Analisando...</>
-                  ) : (
-                    <><Zap className="h-4 w-4 mr-2" />Analisar prato</>
-                  )}
+                  <Zap className="h-4 w-4 mr-2" />Analisar prato
                 </Button>
               </div>
             </div>
@@ -617,7 +821,7 @@ function PhotoLogTab() {
               <div>
                 <p className="font-serif text-2xl italic text-[#1a3a2a]">Fotografe seu prato</p>
                 <p className="text-sm text-[#1a3a2a]/60 mt-2 max-w-sm">
-                  A IA identifica alimentos, estima porções e pontua a refeição em segundos
+                  A IA identifica os alimentos sozinha. Se ficar na dúvida, ela te pergunta — é só tocar na resposta certa.
                 </p>
               </div>
               <Button
@@ -634,16 +838,30 @@ function PhotoLogTab() {
         </div>
       )}
 
+      {/* Disambiguation quiz */}
+      {quiz && image && !refining && (
+        <DisambiguationQuiz
+          image={image}
+          clarifications={quiz}
+          onComplete={onQuizComplete}
+          onSkip={() => setQuiz(null)}
+        />
+      )}
+
       {/* Loading */}
-      {analyzing && (
+      {(analyzing || refining) && (
         <div className="rounded-3xl bg-white ring-1 ring-black/[0.04] p-12 flex flex-col items-center gap-5">
           <div className="w-20 h-20 rounded-2xl bg-[#1a3a2a]/5 flex items-center justify-center">
             <Loader2 className="h-10 w-10 text-[#1a3a2a] animate-spin" />
           </div>
           <div className="text-center">
-            <p className="font-serif text-2xl italic text-[#1a3a2a]">Analisando seu prato...</p>
+            <p className="font-serif text-2xl italic text-[#1a3a2a]">
+              {refining ? "Atualizando com sua resposta..." : "Analisando seu prato..."}
+            </p>
             <p className="text-sm text-[#1a3a2a]/60 mt-2">
-              Identificando alimentos, estimando porções e calculando score
+              {refining
+                ? "Recalculando porções e score com o que você confirmou"
+                : "Identificando alimentos, estimando porções e calculando score"}
             </p>
           </div>
         </div>
@@ -651,7 +869,7 @@ function PhotoLogTab() {
 
       {/* Results */}
       {/* Quota indicator (gated tiers only — free + essencial) */}
-      {quota.loaded && !quota.isUnlimited && quota.limit > 0 && !result && !analyzing && (
+      {quota.loaded && !quota.isUnlimited && quota.limit > 0 && !result && !quiz && !analyzing && !refining && (
         <div className="flex items-center justify-between rounded-2xl bg-[#1a3a2a]/[0.04] px-4 py-2.5 text-xs">
           <span className="font-medium text-[#1a3a2a]/70">
             {quota.tier === 'essencial'
@@ -670,7 +888,7 @@ function PhotoLogTab() {
         </div>
       )}
 
-      {result && (
+      {result && !quiz && !refining && (
         <div className="space-y-4 page-enter">
           {/* Score card */}
           <div className="rounded-3xl bg-white ring-1 ring-black/[0.04] p-8 flex flex-col items-center gap-5">

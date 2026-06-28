@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import {
   Mail, Calendar, Target, Activity, UtensilsCrossed,
-  CreditCard, FlaskConical, AlertCircle, CheckCircle, User, Phone,
+  CreditCard, FlaskConical, AlertCircle, CheckCircle, User, Phone, ArrowRight,
 } from "lucide-react"
 import { SignOutButton } from "./sign-out-button"
 import { PLANS_ACTIVE } from "@/lib/pro"
@@ -211,6 +211,7 @@ export default async function ProfilePage() {
 
             {/* Lab results */}
             {keyLabs.length > 0 && (
+              <>
               <div className="grid gap-3 sm:grid-cols-2">
                 {keyLabs.map((lab) => {
                   const isAbnormal =
@@ -255,6 +256,17 @@ export default async function ProfilePage() {
                   )
                 })}
               </div>
+              <Link
+                href="/exames"
+                className="flex items-center justify-between rounded-2xl border border-[#1a3a2a]/10 bg-[#1a3a2a]/[0.03] px-4 py-3 text-sm font-medium text-[#1a3a2a] transition-colors hover:bg-[#1a3a2a]/5"
+              >
+                <span className="flex items-center gap-2">
+                  <FlaskConical className="h-4 w-4" />
+                  Ver análise completa dos exames
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              </>
             )}
           </div>
         </Card>

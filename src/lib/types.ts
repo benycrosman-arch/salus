@@ -43,6 +43,16 @@ export interface FoodItem {
   cookingMethod?: string
   visualReasoning?: string
   alternative?: string | null
+  candidates?: string[]
+}
+
+// One multiple-choice disambiguation question for an item the AI wasn't sure of.
+export interface MealClarification {
+  food_index: number
+  name: string
+  question: string
+  hint?: string | null
+  options: string[]
 }
 
 export interface MealMacros {
@@ -65,6 +75,7 @@ export interface MealAnalysis {
   swapSuggestions?: string[]
   photoQualityIssue?: boolean
   correctionPrompt?: string | null
+  clarifications?: MealClarification[]
 }
 
 export interface DailyScoreData {

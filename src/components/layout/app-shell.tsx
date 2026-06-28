@@ -11,8 +11,6 @@ import {
   BarChart3,
   Sparkles,
   Settings,
-  FlaskConical,
-  MessageCircle,
   Bot,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -29,7 +27,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/dashboard", icon: Home, label: t('dashboard') },
     { href: "/coach", icon: Bot, label: t('coach') },
     { href: "/log", icon: Camera, label: t('log') },
-    { href: "/mensagens", icon: MessageCircle, label: t('messages') },
     { href: "/profile", icon: User, label: t('profile') },
   ]
 
@@ -37,10 +34,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/dashboard", icon: Home, label: t('dashboard') },
     { href: "/log", icon: Camera, label: t('log') },
     { href: "/coach", icon: Bot, label: t('coach') },
-    { href: "/mensagens", icon: MessageCircle, label: t('messages') },
     { href: "/insights", icon: Sparkles, label: t('insights') },
     { href: "/progress", icon: BarChart3, label: t('progress') },
-    { href: "/exames", icon: FlaskConical, label: t('exams') },
     { href: "/profile", icon: User, label: t('profile') },
     { href: "/settings", icon: Settings, label: t('settings') },
   ]

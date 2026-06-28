@@ -14,6 +14,7 @@ import {
   buildStage1UserPrompt,
   ANALYZE_STAGE2_SYSTEM,
   ANALYZE_STAGE2_USER_PROMPT,
+  type FoodConfirmation,
 } from "../_shared/prompts.ts"
 import { sanitizeText } from "../_shared/sanitize.ts"
 import { logAbuse } from "../_shared/log-usage.ts"
@@ -77,23 +78,27 @@ serve(async (req) => {
       return jsonResponse({ error: mediaError }, 400, origin)
     }
 
-    // Optional user-provided text — sanitised against prompt injection
-    let userText = ""
-    if (typeof body.text === "string" && body.text.trim().length > 0) {
-      const trimmed = body.text.trim().slice(0, 500)
-      const safe = sanitizeText(trimmed, "User context")
-      if (!safe.safe) {
-        const service = serviceClient()
-        await logAbuse(service, {
-          userId: user.id,
-          type: "prompt_injection",
-          content: trimmed,
-          edgeFunction: FUNCTION_NAME,
-        })
-        // Don't fail the request — just drop the text and continue with image only
-        console.warn(`Stage1 text sanitised user=${user.id.slice(0, 8)}`)
-      } else {
-        userText = trimmed
+    // Quiz answers from the in-app disambiguation step. Each is { name, chosen }
+    // where the user tapped to confirm an item's identity. Sanitised against
+    // prompt injection; bad entries are dropped, never executed.
+    const confirmations: FoodConfirmation[] = []
+    if (Array.isArray(body.corrections)) {
+      for (const raw of body.corrections.slice(0, 12)) {
+        const name = typeof raw?.name === "string" ? raw.name.trim().slice(0, 80) : ""
+        const chosen = typeof raw?.chosen === "string" ? raw.chosen.trim().slice(0, 80) : ""
+        if (!chosen) continue
+        const safe = sanitizeText(`${name} ${chosen}`, "Food confirmation")
+        if (!safe.safe) {
+          const service = serviceClient()
+          await logAbuse(service, {
+            userId: user.id,
+            type: "prompt_injection",
+            content: `${name} -> ${chosen}`,
+            edgeFunction: FUNCTION_NAME,
+          })
+          continue
+        }
+        confirmations.push({ name, chosen })
       }
     }
 
@@ -118,7 +123,7 @@ serve(async (req) => {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-            { type: "text", text: buildStage1UserPrompt(userText) },
+            { type: "text", text: buildStage1UserPrompt(confirmations) },
           ],
         },
       ],
@@ -200,6 +205,7 @@ serve(async (req) => {
             confidence: unmatched[i]?.confidence ?? "low",
             visualReasoning: unmatched[i]?.visualReasoning,
             alternative: unmatched[i]?.alternative_name ?? null,
+            candidates: unmatched[i]?.candidates ?? [],
             food_id: null,
             resolved_name: null,
             match_score: 0,
@@ -280,6 +286,36 @@ serve(async (req) => {
 
     const mealScore = calculateMealScore(fiberDiversity, glycemic, processed)
 
+    // ─── DISAMBIGUATION QUIZ ────────────────────────────────
+    // For every item the model wasn't sure about, surface a multiple-choice
+    // question so the paciente can tap to confirm instead of typing context.
+    // food_index aligns with the `foods` array in the response (same order).
+    const confirmedNames = new Set(confirmations.map((c) => c.chosen.toLowerCase()))
+    const clarifications = allFoods
+      .map((f, food_index) => ({ f, food_index }))
+      .filter(({ f }) => {
+        if (f.confidence === "high") return false
+        const opts = (f.candidates ?? []).map((c) => String(c).trim()).filter(Boolean)
+        if (opts.length < 2) return false
+        // Already resolved by a prior quiz answer — don't re-ask.
+        return !confirmedNames.has(String(f.name).toLowerCase())
+      })
+      .map(({ f, food_index }) => {
+        const seen = new Set<string>()
+        const options = (f.candidates ?? [])
+          .map((c) => String(c).trim())
+          .filter((c) => c && !seen.has(c.toLowerCase()) && seen.add(c.toLowerCase()))
+          .slice(0, 4)
+        return {
+          food_index,
+          name: f.name,
+          question: "O que é este item?",
+          hint: f.visualReasoning ?? null,
+          options,
+        }
+      })
+      .filter((c) => c.options.length >= 2)
+
     // ─── LOG USAGE ──────────────────────────────────────────
     const tokens = totalTokens(stage1Resp) + fallbackTokens + totalTokens(stage2Resp)
     const service = serviceClient()
@@ -310,6 +346,7 @@ serve(async (req) => {
           cookingMethod: f.cooking_method ?? "",
           visualReasoning: f.visualReasoning ?? "",
           alternative: f.alternative,
+          candidates: f.candidates ?? [],
           food_id: f.food_id,
           source: f.source,
           match_reason: f.match_reason,
@@ -331,6 +368,7 @@ serve(async (req) => {
         swapSuggestions: Array.isArray(stage2.swapSuggestions) ? stage2.swapSuggestions.slice(0, 2) : [],
         photoQualityIssue: false,
         correctionPrompt: null,
+        clarifications,
         food_refs,
         groundingStats: {
           total: allFoods.length,

@@ -41,6 +41,8 @@ export type SalusEvent =
   | "role_picked"
   | "meal_scanned_photo"
   | "meal_scanned_text"
+  | "meal_photo_clarify_shown"
+  | "meal_photo_clarify_done"
   | "meal_logged"
   | "first_meal_logged"
   | "meal_deleted"
