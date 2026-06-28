@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { Stethoscope, CheckCircle, AlertCircle } from 'lucide-react'
 import { getInviteByToken } from '@/lib/nutri-invites'
+import { SalusMark } from '@/components/brand/logo'
 import { CodeEntryForm } from './code-entry-form'
 
 export const dynamic = 'force-dynamic'
@@ -80,9 +81,7 @@ export default async function AceitarConvitePage({
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#1a3a2a] flex items-center justify-center text-white font-bold">
-              S
-            </div>
+            <SalusMark size={34} priority />
             <span className="font-serif italic text-2xl text-[#1a3a2a]">Salus</span>
           </div>
         </div>

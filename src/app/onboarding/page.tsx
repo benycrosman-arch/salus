@@ -10,8 +10,8 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
+import { SalusMark } from "@/components/brand/logo"
 import {
-  Leaf,
   User,
   UserCircle,
   Minus,
@@ -297,9 +297,7 @@ export default function OnboardingPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Leaf className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <SalusMark size={38} priority />
             <h1 className="text-2xl font-bold text-primary font-sans tracking-tight">Salus</h1>
           </div>
           <p className="text-muted-foreground font-body">

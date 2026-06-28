@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { SalusMark } from "@/components/brand/logo"
 import { ChevronDown, ArrowRight, Sparkles, MessageCircle, Eye, TrendingUp } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -154,12 +155,9 @@ export default function NutriLandingPage() {
               <motion.div
                 whileHover={{ rotate: 12 }}
                 transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                className="w-8 h-8 rounded-lg bg-[#1a3a2a] flex items-center justify-center"
+                className="flex items-center justify-center"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2 2 4.5c.5 2.5 0 4.5-1 6" />
-                  <path d="M15.8 17a7 7 0 0 1-12.6-3" />
-                </svg>
+                <SalusMark size={32} priority />
               </motion.div>
               <span className="font-serif text-xl text-[#1a3a2a] italic">Salus</span>
               <span className="hidden sm:inline-block text-[10px] font-semibold tracking-widest uppercase text-[#c4614a] border border-[#c4614a]/30 rounded-full px-2 py-0.5 ml-1">
@@ -645,12 +643,7 @@ export default function NutriLandingPage() {
           <FadeUp>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               <Link href="/" className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-[#1a3a2a] flex items-center justify-center">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2 2 4.5c.5 2.5 0 4.5-1 6" />
-                    <path d="M15.8 17a7 7 0 0 1-12.6-3" />
-                  </svg>
-                </div>
+                <SalusMark size={28} />
                 <span className="font-serif text-lg italic text-[#1a3a2a]">Salus</span>
               </Link>
               <div className="flex flex-wrap gap-6 text-xs text-[#1a3a2a]/60 justify-center">

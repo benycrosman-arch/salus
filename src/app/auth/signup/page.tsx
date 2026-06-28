@@ -13,6 +13,7 @@ import { toast } from "sonner"
 import { identify, track } from "@/lib/posthog"
 import { useTranslations } from "next-intl"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { SalusMark } from "@/components/brand/logo"
 
 type Role = "user" | "nutricionista"
 
@@ -226,12 +227,7 @@ function SignUpInner() {
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-5">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-[#1a3a2a] flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2 2 4.5c.5 2.5 0 4.5-1 6" />
-                <path d="M15.8 17a7 7 0 0 1-12.6-3" />
-              </svg>
-            </div>
+            <SalusMark size={34} />
             <span className="font-serif text-2xl italic text-[#1a3a2a]">Salus</span>
           </Link>
           <div className="text-center">
@@ -412,12 +408,7 @@ function RolePicker() {
       <div className="w-full max-w-lg space-y-8">
         <div className="flex flex-col items-center gap-5">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-[#1a3a2a] flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2 2 4.5c.5 2.5 0 4.5-1 6" />
-                <path d="M15.8 17a7 7 0 0 1-12.6-3" />
-              </svg>
-            </div>
+            <SalusMark size={34} />
             <span className="font-serif text-2xl italic text-[#1a3a2a]">Salus</span>
           </Link>
           <div className="text-center">

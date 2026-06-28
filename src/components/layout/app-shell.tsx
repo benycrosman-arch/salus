@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
 import {
@@ -18,6 +17,7 @@ import { PLANS_ACTIVE } from "@/lib/pro"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { TrialBanner } from "@/components/trial-banner"
 import { NotificationBell } from "@/components/layout/notification-bell"
+import { SalusLogo } from "@/components/brand/logo"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 bg-[#faf8f4]/90 backdrop-blur-md border-b border-[#e4ddd4]/60 lg:hidden">
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2 group">
-            <Image src="/logo.png" alt="Salus Logo" width={140} height={36} className="h-8 w-auto object-contain mix-blend-multiply" />
+            <SalusLogo size={30} wordClassName="text-xl" priority />
           </Link>
           <div className="flex items-center gap-1">
             <NotificationBell />
@@ -63,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside className="hidden lg:flex flex-col w-64 border-r border-[#e4ddd4]/60 bg-[#faf8f4] sticky top-0 h-screen">
           <div className="p-6 pb-8 flex items-start justify-between gap-2">
             <Link href="/dashboard" className="flex flex-col gap-1 group">
-              <Image src="/logo.png" alt="Salus Logo" width={140} height={38} className="h-9 w-auto object-contain object-left mix-blend-multiply" />
+              <SalusLogo size={34} wordClassName="text-2xl" priority />
               <div>
                 <p className="text-[10px] font-medium tracking-widest uppercase text-[#1a3a2a]/50 mt-1">{t('tagline')}</p>
               </div>

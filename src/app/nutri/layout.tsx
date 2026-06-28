@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 import Link from "next/link"
 import { LayoutDashboard, Users, Settings, FileText } from "lucide-react"
+import { SalusMark } from "@/components/brand/logo"
 
 export default async function NutriLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -34,9 +35,7 @@ export default async function NutriLayout({ children }: { children: React.ReactN
       <header className="border-b border-[#e4ddd4] bg-white">
         <div className="mx-auto max-w-6xl px-5 sm:px-8 h-14 flex items-center justify-between">
           <Link href="/nutri" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#1a3a2a] flex items-center justify-center">
-              <span className="text-white font-bold text-xs">N</span>
-            </div>
+            <SalusMark size={28} priority />
             <span className="font-serif italic text-lg text-[#1a3a2a]">Salus Nutri</span>
           </Link>
           <nav className="flex items-center gap-1">
