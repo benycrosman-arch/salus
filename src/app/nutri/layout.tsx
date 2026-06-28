@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 import Link from "next/link"
-import { LayoutDashboard, Users, Settings, FileText } from "lucide-react"
+import { LayoutDashboard, Users, Settings, FileText } from "@/components/icons"
 import { SalusMark } from "@/components/brand/logo"
 
 export default async function NutriLayout({ children }: { children: React.ReactNode }) {

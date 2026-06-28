@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Loader2, Sparkles, Plus, Trash2, Utensils, Check, X, Wand2 } from "lucide-react"
+import { Loader2, Sparkles, Plus, Trash2, Utensils, Check, X, Wand2 } from "@/components/icons"
 import { toast } from "sonner"
 
 const MEAL_TYPES = ["breakfast", "snack1", "lunch", "snack2", "dinner"] as const

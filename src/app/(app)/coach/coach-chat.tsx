@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet"
 import {
   Loader2, Send, Sparkles, Plus, History, MessageCircle, Trash2,
-} from "lucide-react"
+} from "@/components/icons"
 import { toast } from "sonner"
 import { track } from "@/lib/posthog"
 import { cn } from "@/lib/utils"

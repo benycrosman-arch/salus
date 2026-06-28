@@ -12,7 +12,7 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
-} from "lucide-react"
+} from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"

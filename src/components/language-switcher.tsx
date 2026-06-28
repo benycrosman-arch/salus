@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl'
 import { useTransition } from 'react'
-import { Globe } from 'lucide-react'
+import { Globe } from '@/components/icons'
 import { setLocale } from '@/i18n/actions'
 import {
   DropdownMenu,

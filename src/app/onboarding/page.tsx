@@ -39,7 +39,7 @@ import {
   Stethoscope,
   Users,
   FileText,
-} from "lucide-react"
+} from "@/components/icons"
 import { Textarea } from "@/components/ui/textarea"
 import { callEdgeFunction } from "@/lib/ai-client"
 import { createClient } from "@/lib/supabase/client"

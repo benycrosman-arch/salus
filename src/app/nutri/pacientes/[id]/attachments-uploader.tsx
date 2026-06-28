@@ -12,7 +12,7 @@ import {
   Upload,
   AlertCircle,
   Paperclip,
-} from "lucide-react"
+} from "@/components/icons"
 import { toast } from "sonner"
 
 type MediaKind = "pdf" | "image" | "text"

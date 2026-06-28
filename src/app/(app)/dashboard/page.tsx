@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Camera, ArrowRight, Flame, TrendingUp, Leaf, Lightbulb, Sparkles } from "lucide-react"
+import { Camera, ArrowRight, Flame, TrendingUp, Leaf, Lightbulb, Sparkles } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
 import { createServerClient } from "@supabase/ssr"

@@ -14,7 +14,7 @@ import {
   FileText,
   X,
   Plus,
-} from "lucide-react"
+} from "@/components/icons"
 import { toast } from "sonner"
 import { AIClientError, callEdgeFunction } from "@/lib/ai-client"
 

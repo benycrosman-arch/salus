@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Apple, Smartphone, Check } from 'lucide-react'
+import { Apple, Smartphone, Check } from '@/components/icons'
 import { track } from '@/lib/posthog'
 
 interface PaywallModalProps {

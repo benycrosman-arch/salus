@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, ArrowRight } from "lucide-react"
+import { Loader2, ArrowRight } from "@/components/icons"
 
 const ALLOWED = /[A-Z2-9]/
 

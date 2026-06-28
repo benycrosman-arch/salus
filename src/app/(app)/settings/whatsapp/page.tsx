@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import {
   ArrowLeft, MessageCircle, Loader2, Crown, Phone, ShieldCheck,
-} from "lucide-react"
+} from "@/components/icons"
 import { toast } from "sonner"
 
 type Step = "loading" | "disabled_globally" | "needs_pro" | "enter_phone" | "enter_code" | "connected"

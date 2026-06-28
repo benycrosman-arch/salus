@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { Loader2, Bot, Stethoscope } from "lucide-react"
+import { Loader2, Bot, Stethoscope } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { CoachChat } from "./coach-chat"
 import { NutriChat } from "./nutri-chat"

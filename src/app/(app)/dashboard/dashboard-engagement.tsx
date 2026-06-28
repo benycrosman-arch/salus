@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Sparkles, CheckCircle2 } from "lucide-react"
+import { Sparkles, CheckCircle2 } from "@/components/icons"
 import { createClient } from "@/lib/supabase/client"
 import { track } from "@/lib/posthog"
 

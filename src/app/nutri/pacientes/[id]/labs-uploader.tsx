@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
-import { Beaker } from "lucide-react"
+import { Beaker } from "@/components/icons"
 import { toast } from "sonner"
 import {
   PdfExamUpload,

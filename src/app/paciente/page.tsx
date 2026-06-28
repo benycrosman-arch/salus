@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ContainerScroll } from "@/components/ui/container-scroll-animation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { SalusMark } from "@/components/brand/logo"
-import { Check, ChevronDown, ArrowRight, Star, Sparkles } from "lucide-react"
+import { Check, ChevronDown, ArrowRight, Star, Sparkles } from "@/components/icons"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   FadeUp,

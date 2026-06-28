@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
-import { Loader2, Beaker, ChevronDown, ChevronUp } from "lucide-react"
+import { Loader2, Beaker, ChevronDown, ChevronUp } from "@/components/icons"
 import { MICRONUTRIENTS, microPercent, microStatus, MICRO_BY_KEY } from "@/lib/micronutrients"
 
 type Totals = Record<string, number>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Loader2, Save } from "lucide-react"
+import { Loader2, Save } from "@/components/icons"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 

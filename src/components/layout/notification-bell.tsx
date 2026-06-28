@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Bell, Sparkles } from "lucide-react"
+import { Bell, Sparkles } from "@/components/icons"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"

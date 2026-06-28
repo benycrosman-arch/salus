@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { isAdminEmail } from '@/lib/admin'
 
-const PUBLIC_ROUTES = ['/', '/auth/login', '/auth/signup', '/aceitar-convite']
+const PUBLIC_ROUTES = ['/', '/auth/login', '/auth/signup', '/aceitar-convite', '/icones']
 const AUTH_ROUTES = ['/auth/login', '/auth/signup']
 
 export async function middleware(request: NextRequest) {

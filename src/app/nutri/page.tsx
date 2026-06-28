@@ -8,7 +8,7 @@ import {
   FileText,
   AlertTriangle,
   Activity,
-} from "lucide-react"
+} from "@/components/icons"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { listInvitesForNutri } from "@/lib/nutri-invites"

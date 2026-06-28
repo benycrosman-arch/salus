@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr"
 import { redirect } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
-import { Mail, Phone, IdCard } from "lucide-react"
+import { Mail, Phone, IdCard } from "@/components/icons"
 import { SignOutButton } from "@/app/(app)/profile/sign-out-button"
 import { DeleteAccountCard } from "./delete-account-card"
 

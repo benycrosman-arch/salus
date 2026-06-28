@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Droplet } from "lucide-react"
+import { Droplet } from "@/components/icons"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 

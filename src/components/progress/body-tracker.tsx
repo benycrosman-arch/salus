@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine } from "recharts"
-import { Plus, Loader2, Scale, Activity, TrendingDown, TrendingUp } from "lucide-react"
+import { Plus, Loader2, Scale, Activity, TrendingDown, TrendingUp } from "@/components/icons"
 import { toast } from "sonner"
 
 type BodyLog = {

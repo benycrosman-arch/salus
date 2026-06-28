@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import {
   Bell, Shield, LogOut, ChevronRight, Globe,
   Download, Trash2, Crown, Check, Apple, Smartphone, Loader2, MessageCircle
-} from "lucide-react"
+} from "@/components/icons"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { PLANS_ACTIVE } from "@/lib/pro"

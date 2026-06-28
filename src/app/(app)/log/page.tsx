@@ -7,7 +7,7 @@ import {
   Camera, Upload, Loader2, ArrowRight, Zap, Leaf, AlertTriangle,
   RotateCcw, ChevronRight, CheckCircle2, AlertCircle, HelpCircle,
   CheckCircle, Check, ArrowLeft, Sparkles, Pencil,
-} from "lucide-react"
+} from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"

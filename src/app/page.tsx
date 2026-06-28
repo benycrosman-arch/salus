@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { SalusMark } from "@/components/brand/logo"
-import { ChevronDown, ArrowRight, Sparkles, MessageCircle, Eye, TrendingUp } from "lucide-react"
+import { ChevronDown, ArrowRight, Sparkles, MessageCircle, Eye, TrendingUp } from "@/components/icons"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   FadeUp,

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { SearchField } from "@/components/ui/search-field"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
@@ -19,7 +20,7 @@ import {
   X,
   ShieldCheck,
   Trash2,
-} from "lucide-react"
+} from "@/components/icons"
 import {
   Dialog,
   DialogContent,
@@ -133,16 +134,29 @@ export function PacientesClient({
   const [confirmingCancel, setConfirmingCancel] = useState<Invite | null>(null)
   const [cancelling, setCancelling] = useState(false)
 
+  const [query, setQuery] = useState("")
+
   const grouped = useMemo(() => {
     const out: Record<PatientColumn, Patient[]> = { engajado: [], atencao: [], inativo: [] }
-    for (const p of patients) out[p.column].push(p)
+    const q = query.trim().toLowerCase()
+    const visible = q
+      ? patients.filter(
+          (p) =>
+            (p.name ?? "").toLowerCase().includes(q) ||
+            (p.email ?? "").toLowerCase().includes(q),
+        )
+      : patients
+    for (const p of visible) out[p.column].push(p)
     // Sort: engajados by most recent log first; atenção by lowest score first;
     // inativos by oldest log first (most urgent re-engagement).
     out.engajado.sort((a, b) => (b.lastLoggedAt ?? "").localeCompare(a.lastLoggedAt ?? ""))
     out.atencao.sort((a, b) => (a.avgScore7d ?? 100) - (b.avgScore7d ?? 100))
     out.inativo.sort((a, b) => (a.lastLoggedAt ?? "").localeCompare(b.lastLoggedAt ?? ""))
     return out
-  }, [patients])
+  }, [patients, query])
+
+  const matchCount =
+    grouped.engajado.length + grouped.atencao.length + grouped.inativo.length
 
   const sendInvite = async () => {
     if (!email.trim()) return
@@ -389,6 +403,25 @@ export function PacientesClient({
             </p>
           </div>
         </Card>
+      )}
+
+      {/* Search across the board */}
+      {patients.length > 0 && (
+        <div className="space-y-1.5">
+          <SearchField
+            value={query}
+            onValueChange={setQuery}
+            placeholder="Buscar paciente por nome ou e-mail…"
+            tone="inset"
+          />
+          {query.trim() && (
+            <p className="px-1 text-xs text-[#1a3a2a]/50">
+              {matchCount === 0
+                ? "Nenhum paciente encontrado."
+                : `${matchCount} ${matchCount === 1 ? "paciente" : "pacientes"} ${matchCount === 1 ? "encontrado" : "encontrados"}.`}
+            </p>
+          )}
+        </div>
       )}
 
       {/* Kanban */}

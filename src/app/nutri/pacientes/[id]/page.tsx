@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   ShieldCheck,
   Beaker,
-} from "lucide-react"
+} from "@/components/icons"
 import { RecommendationsEditor } from "./recommendations-editor"
 import { MealsEditor } from "./meals-editor"
 import { AttachmentsUploader } from "./attachments-uploader"

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
-import { Sparkles, FileText, Download } from "lucide-react"
+import { Sparkles, FileText, Download } from "@/components/icons"
 
 interface RecRow {
   body: string

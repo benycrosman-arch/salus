@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Sparkles, Lock } from 'lucide-react'
+import { Sparkles, Lock } from '@/components/icons'
 import { useProStatus } from '@/lib/use-pro-status'
 import { PaywallModal } from '@/components/paywall-modal'
 

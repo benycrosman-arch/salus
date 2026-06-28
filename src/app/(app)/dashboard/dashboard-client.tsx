@@ -1,7 +1,7 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, Sparkles } from "lucide-react"
+import { TrendingUp, Sparkles } from "@/components/icons"
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts"
 
 interface WeeklyScore {

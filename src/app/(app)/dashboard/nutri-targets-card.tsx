@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
-import { Target } from "lucide-react"
+import { Target } from "@/components/icons"
 
 type Goals = {
   calories_target: number | null

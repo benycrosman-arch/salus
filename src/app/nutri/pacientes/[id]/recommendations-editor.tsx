@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Loader2, Save, History, Sparkles } from "lucide-react"
+import { Loader2, Save, History, Sparkles } from "@/components/icons"
 import { toast } from "sonner"
 
 interface Recommendation {

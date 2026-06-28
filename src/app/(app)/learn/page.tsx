@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { BookOpen, ArrowRight } from "lucide-react"
+import { BookOpen, ArrowRight } from "@/components/icons"
 
 export default function LearnPage() {
   return (

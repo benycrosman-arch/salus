@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Stethoscope, Mail, Loader2, Unlink } from "lucide-react"
+import { Stethoscope, Mail, Loader2, Unlink } from "@/components/icons"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 

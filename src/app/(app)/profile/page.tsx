@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import {
   Mail, Calendar, Target, Activity, UtensilsCrossed,
   CreditCard, FlaskConical, AlertCircle, CheckCircle, User, Phone, ArrowRight,
-} from "lucide-react"
+} from "@/components/icons"
 import { SignOutButton } from "./sign-out-button"
 import { PLANS_ACTIVE } from "@/lib/pro"
 

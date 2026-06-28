@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card"
 import {
   ArrowLeft, TrendingUp, TrendingDown, RefreshCw,
   CheckCircle2, ArrowRight, Loader2, Flag, Camera, Trash2,
-} from "lucide-react"
+} from "@/components/icons"
 import { toast } from "sonner"
 import { track } from "@/lib/posthog"
 import { createClient } from "@/lib/supabase/client"

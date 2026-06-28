@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
-import { TrendingUp, Flame, Camera, Star, Target } from "lucide-react"
+import { TrendingUp, Flame, Camera, Star, Target } from "@/components/icons"
 import { BodyTracker } from "@/components/progress/body-tracker"
 
 const weeklyData = [

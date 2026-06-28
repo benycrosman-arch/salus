@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
-import { Trash2, Loader2, AlertTriangle } from "lucide-react"
+import { Trash2, Loader2, AlertTriangle } from "@/components/icons"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { resetIdentity, track } from "@/lib/posthog"

@@ -5,7 +5,7 @@ import { createServerClient } from "@supabase/ssr"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { TrendingUp, Lightbulb, Activity, Sparkles, Camera, ArrowRight } from "lucide-react"
+import { TrendingUp, Lightbulb, Activity, Sparkles, Camera, ArrowRight } from "@/components/icons"
 import { InsightsCharts } from "./insights-client"
 
 async function getInsightsData() {

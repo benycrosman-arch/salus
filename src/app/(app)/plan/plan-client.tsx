@@ -13,7 +13,7 @@ import {
   Undo2,
   Wand2,
   ChevronDown,
-} from "lucide-react"
+} from "@/components/icons"
 import { toast } from "sonner"
 
 const MEAL_TYPES = ["breakfast", "snack1", "lunch", "snack2", "dinner"] as const

@@ -15,7 +15,7 @@ import {
   TrendingDown,
   Upload,
   Utensils,
-} from 'lucide-react'
+} from '@/components/icons'
 import { Card } from '@/components/ui/card'
 import { interpretLabs, type RawMarker } from '@/lib/labs/interpret'
 import type { Sex } from '@/lib/labs/reference-ranges'

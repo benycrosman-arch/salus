@@ -11,7 +11,7 @@ import {
   Sparkles,
   Settings,
   Bot,
-} from "lucide-react"
+} from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { PLANS_ACTIVE } from "@/lib/pro"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -83,13 +83,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                    "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-[#1a3a2a] text-white"
+                      ? "bg-[#1a3a2a] text-white shadow-[0_8px_20px_-12px_rgba(26,58,42,0.6)]"
                       : "text-[#1a3a2a]/50 hover:text-[#1a3a2a] hover:bg-[#1a3a2a]/5"
                   )}
                 >
-                  <Icon className="h-[17px] w-[17px]" />
+                  <Icon
+                    className={cn(
+                      "h-[17px] w-[17px] transition-transform duration-200",
+                      isActive ? "scale-110" : "group-hover:scale-110"
+                    )}
+                  />
                   <span>{item.label}</span>
                 </Link>
               )
@@ -146,9 +151,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </div>
                 ) : (
                   <>
-                    <Icon className="h-5 w-5" />
+                    <Icon
+                      className={cn(
+                        "h-5 w-5 transition-transform duration-200",
+                        isActive && "scale-110"
+                      )}
+                    />
                     <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
-                    {isActive && <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-[#1a3a2a]" />}
+                    {isActive && <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-[#c4614a]" />}
                   </>
                 )}
               </Link>
