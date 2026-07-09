@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import type { CalorieBias, ParsedFoodItem, TextLogResult } from "@/lib/types"
 import { AIClientError, callEdgeFunction } from "@/lib/ai-client"
+import { compressImageToDataUrl } from "@/lib/image-compress"
 import {
   Dialog,
   DialogContent,
@@ -225,8 +226,9 @@ export function RestaurantMenuTab() {
   const [error, setError] = useState<string | null>(null)
   const [selectedParsed, setSelectedParsed] = useState<ParsedFoodItem | null>(null)
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0]
+    e.target.value = ""
     if (!selected) return
     setError(null)
     setParseResult(null)
@@ -234,9 +236,11 @@ export function RestaurantMenuTab() {
     setMenuLines([])
     setScanMeta(null)
     setSelectedLineIds(new Set())
-    const reader = new FileReader()
-    reader.onloadend = () => setMenuImage(reader.result as string)
-    reader.readAsDataURL(selected)
+    try {
+      setMenuImage(await compressImageToDataUrl(selected))
+    } catch {
+      setError("Não consegui processar essa imagem. Tente outra foto.")
+    }
   }
 
   const runScan = async () => {
@@ -380,7 +384,6 @@ export function RestaurantMenuTab() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={handleFileSelect}
           />

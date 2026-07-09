@@ -21,6 +21,7 @@ import Image from "next/image"
 import { toast } from "sonner"
 import { RestaurantMenuTab } from "@/components/log/restaurant-menu-tab"
 import { callEdgeFunction } from "@/lib/ai-client"
+import { compressImageToDataUrl } from "@/lib/image-compress"
 import { useProStatus } from "@/lib/use-pro-status"
 import { PaywallModal } from "@/components/paywall-modal"
 import { FeatureBlockerModal } from "@/components/feature-blocker-modal"
@@ -634,14 +635,18 @@ function PhotoLogTab() {
   const tq = useTranslations("quota")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0]
+    // Clear the input so re-picking the same file fires onChange again.
+    e.target.value = ""
     if (!selected) return
     setResult(null)
     setQuiz(null)
-    const reader = new FileReader()
-    reader.onloadend = () => setImage(reader.result as string)
-    reader.readAsDataURL(selected)
+    try {
+      setImage(await compressImageToDataUrl(selected))
+    } catch {
+      toast.error("Não consegui processar essa imagem. Tente outra foto.")
+    }
   }
 
   // First pass (no corrections) may surface a disambiguation quiz. A second
@@ -784,7 +789,6 @@ function PhotoLogTab() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={handleFileSelect}
           />
