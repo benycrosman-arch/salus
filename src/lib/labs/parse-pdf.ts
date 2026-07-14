@@ -1,5 +1,5 @@
 // Lab-report parser. Sends a Brazilian lab report (PDF, native text or scanned
-// images) to Claude Opus 4.7 and asks for a JSON extraction. The prompt is
+// images) to Claude Opus 4.8 and asks for a JSON extraction. The prompt is
 // tuned for the layouts of the big Brazilian labs (Fleury, Sabin, DASA, Hermes
 // Pardini, Delboni, Lavoisier, Alvaro, Bronstein) — multi-column tables,
 // "Resultado | Anterior | Valores de Referência" grids, comma-decimals, units
@@ -21,7 +21,7 @@
 
 import Anthropic from '@anthropic-ai/sdk'
 
-export const LAB_PDF_MODEL = 'claude-opus-4-7'
+export const LAB_PDF_MODEL = 'claude-opus-4-8'
 
 let _client: Anthropic | null = null
 function client(): Anthropic {
