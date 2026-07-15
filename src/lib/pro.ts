@@ -3,8 +3,8 @@
  *
  * Tiers:
  *   - free       → 3 lifetime photo analyses then hard-blocked (the @itsdavixavier wall)
- *   - essencial  → R$29/mo, all features with monthly windowed limits
- *   - pro        → R$59/mo, unlimited
+ *   - essencial  → R$49/mo, all features with monthly windowed limits
+ *   - pro        → R$69/mo, unlimited
  *   - nutri      → R$249/mo for licensed nutricionistas, unlimited + dashboard
  *
  * Trial: every account gets 7 days of full Pro access starting from

@@ -12,7 +12,7 @@ interface TierQuota {
 
 /**
  * Per-feature, per-tier quotas. Free is the @itsdavixavier hard wall.
- * Essencial (R$29) gets generous monthly windows. Pro and Nutri are unlimited.
+ * Essencial (R$49) gets generous monthly windows. Pro and Nutri are unlimited.
  */
 export const FEATURE_QUOTAS: Record<FeatureKey, Record<Tier, TierQuota>> = {
   meal_photo_analysis: {

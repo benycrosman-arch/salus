@@ -54,12 +54,12 @@ export default function TermsPage() {
           <section>
             <h2 className="font-semibold text-lg text-[#1a3a2a]">5. Assinatura e pagamentos</h2>
             <p className="mt-2">
-              A Salus oferece um plano gratuito com funcionalidades básicas e um plano <b>Pro</b> por
-              assinatura paga.
+              A Salus oferece um plano gratuito com funcionalidades básicas e planos pagos por
+              assinatura (<b>Essencial</b> e <b>Pro</b>).
             </p>
             <ul className="mt-2 list-disc pl-5 space-y-1">
-              <li><b>Mensal:</b> R$ 59/mês.</li>
-              <li><b>Anual:</b> R$ 590/ano (≈ R$ 49,17/mês — economia de 17%).</li>
+              <li><b>Essencial:</b> R$ 49/mês ou R$ 399/ano (≈ R$ 33,25/mês — economia de 32%).</li>
+              <li><b>Pro:</b> R$ 69/mês ou R$ 499/ano (≈ R$ 41,58/mês — economia de 40%).</li>
             </ul>
             <p className="mt-2">
               Assinaturas no app iOS são processadas pela <b>Apple</b> e cobradas no seu Apple ID.
