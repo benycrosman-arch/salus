@@ -5,12 +5,13 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { SalusMark } from "@/components/brand/logo"
-import { ChevronDown, ArrowRight, Sparkles, MessageCircle, Eye, TrendingUp } from "@/components/icons"
+import { Check, ChevronDown, ArrowRight, Sparkles, MessageCircle, Eye, TrendingUp } from "@/components/icons"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   FadeUp,
   StaggerContainer,
   StaggerItem,
+  ScaleIn,
   TextReveal,
   BlurIn,
   GradientOrb,
@@ -83,6 +84,51 @@ const FEATURES = [
     text: "text-[#1a3a2a]",
   },
 ]
+
+// Consumer plans (paciente). Mirrors src/messages/pt.json → pricing / landing.plans.
+const PLANS = {
+  free: {
+    name: "Grátis",
+    price: "R$ 0",
+    period: "para sempre",
+    note: "Para conhecer o app",
+    features: [
+      "3 análises de foto (sempre)",
+      "Score nutricional básico",
+      "IA de detecção de alimentos",
+    ],
+    cta: "Criar conta grátis",
+  },
+  essencial: {
+    name: "Essencial",
+    price: "R$ 29",
+    period: "/mês",
+    note: "Todas as funcionalidades, com limites mensais",
+    features: [
+      "30 análises de foto por mês",
+      "Score nutricional completo",
+      "Planos personalizados",
+      "Lista de compras automática",
+      "Insights e tendências",
+    ],
+    cta: "Começar com Essencial",
+  },
+  pro: {
+    name: "Pro",
+    price: "R$ 59",
+    period: "/mês",
+    note: "Tudo ilimitado",
+    features: [
+      "Análises ilimitadas",
+      "Score nutricional completo",
+      "Planos personalizados",
+      "Lista de compras automática",
+      "Insights e tendências",
+      "Suporte prioritário",
+    ],
+    cta: "Assinar Pro",
+  },
+} as const
 
 const COMPARISON = [
   { row: "Saber o que o paciente comeu", before: "\"Lembra mais ou menos?\"", after: "Feed em tempo real" },
@@ -170,6 +216,7 @@ export default function NutriLandingPage() {
                 { href: "#promessa", label: "Promessa" },
                 { href: "#como-funciona", label: "Como funciona" },
                 { href: "#comparacao", label: "Salus vs hoje" },
+                { href: "#planos", label: "Planos" },
                 { href: "/paciente", label: "Para pacientes" },
               ].map(({ href, label }, i) => (
                 <motion.a
@@ -519,37 +566,112 @@ export default function NutriLandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING TEASER ──────────────────────────────── */}
-      <section className="relative py-24 sm:py-32 bg-[#f0ebe3]">
-        <div className="mx-auto max-w-3xl px-5 sm:px-8 text-center">
-          <FadeUp>
-            <p className="text-xs font-semibold tracking-widest uppercase text-[#c4614a] mb-4">Pricing</p>
+      {/* ── PRICING ─────────────────────────────────────── */}
+      <section id="planos" className="relative py-24 sm:py-32 bg-[#f0ebe3]">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <FadeUp className="text-center mb-4">
+            <p className="text-xs font-semibold tracking-widest uppercase text-[#c4614a] mb-4">Planos para o paciente</p>
             <h2 className="font-serif text-4xl sm:text-5xl italic leading-tight text-[#1a3a2a]">
-              No beta, é de graça.
+              Comece grátis.<br />Pague quando o app provar valor.
             </h2>
-            <p className="mt-6 text-[#1a3a2a]/65 max-w-xl mx-auto leading-relaxed text-lg">
-              Estamos definindo o modelo com os nutris que entram agora.
-              A ideia é que faça sentido tanto pra quem atende 10 quanto
-              pra quem atende 100 pacientes por mês.
+            <p className="mt-4 text-[#1a3a2a]/50 text-sm">
+              Para nutris, o beta é gratuito — <a href={BETA_MAILTO} className="underline hover:text-[#c4614a]">peça seu convite</a>.
             </p>
           </FadeUp>
-          <FadeUp delay={0.2}>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-10">
-              <a href={BETA_MAILTO}>
-                <MagneticHover>
-                  <Button className="h-13 rounded-full bg-[#1a3a2a] px-8 font-semibold text-white hover:bg-[#1a3a2a]/90">
-                    Pedir convite Beta
+
+          {/* Three consumer tiers */}
+          <div className="mt-14 mx-auto grid max-w-6xl gap-5 lg:grid-cols-3">
+            {/* FREE */}
+            <ScaleIn delay={0.1}>
+              <div className="rounded-3xl bg-white p-8 ring-1 ring-black/[0.05] h-full flex flex-col">
+                <p className="text-xs font-semibold tracking-widest uppercase text-[#1a3a2a]/60 mb-1">{PLANS.free.name}</p>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="font-serif text-3xl italic text-[#1a3a2a]">{PLANS.free.price}</span>
+                  <span className="text-[#1a3a2a]/50 text-sm">{PLANS.free.period}</span>
+                </div>
+                <p className="text-sm text-[#1a3a2a]/50 mt-1">{PLANS.free.note}</p>
+                <div className="my-6 h-px bg-[#e4ddd4]" />
+                <ul className="space-y-3 mb-8 flex-1">
+                  {PLANS.free.features.map((text, j) => (
+                    <li key={j} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#1a3a2a]">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-sm text-[#1a3a2a]">{text}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/signup">
+                  <Button variant="outline" className="w-full h-12 rounded-full border-2 border-[#1a3a2a]/20 font-semibold text-[#1a3a2a] hover:bg-[#1a3a2a]/5">
+                    {PLANS.free.cta}
+                  </Button>
+                </Link>
+              </div>
+            </ScaleIn>
+
+            {/* ESSENCIAL */}
+            <ScaleIn delay={0.18}>
+              <div className="relative rounded-3xl bg-white p-8 ring-1 ring-[#c4614a]/30 shadow-md h-full flex flex-col">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#c4614a] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                  Mais popular
+                </span>
+                <p className="text-xs font-semibold tracking-widest uppercase text-[#c4614a] mb-1">{PLANS.essencial.name}</p>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="font-serif text-3xl italic text-[#1a3a2a]">{PLANS.essencial.price}</span>
+                  <span className="text-[#1a3a2a]/50 text-sm">{PLANS.essencial.period}</span>
+                </div>
+                <p className="text-sm text-[#1a3a2a]/60 mt-1">{PLANS.essencial.note}</p>
+                <div className="my-6 h-px bg-[#e4ddd4]" />
+                <ul className="space-y-3 mb-8 flex-1">
+                  {PLANS.essencial.features.map((text, j) => (
+                    <li key={j} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-[#c4614a]">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-sm text-[#1a3a2a]">{text}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/signup">
+                  <MagneticHover>
+                    <Button className="w-full h-12 rounded-full bg-[#c4614a] font-semibold text-white hover:bg-[#c4614a]/90">
+                      {PLANS.essencial.cta}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </MagneticHover>
+                </Link>
+              </div>
+            </ScaleIn>
+
+            {/* PRO */}
+            <ScaleIn delay={0.26}>
+              <div className="relative rounded-3xl bg-[#1a3a2a] p-8 h-full flex flex-col">
+                <p className="text-xs font-semibold tracking-widest uppercase text-white/60 mb-1">{PLANS.pro.name}</p>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="font-serif text-3xl italic text-white">{PLANS.pro.price}</span>
+                  <span className="text-white/50 text-sm">{PLANS.pro.period}</span>
+                </div>
+                <p className="text-sm text-white/50 mt-1">{PLANS.pro.note}</p>
+                <div className="my-6 h-px bg-white/10" />
+                <ul className="space-y-3 mb-8 flex-1">
+                  {PLANS.pro.features.map((text, j) => (
+                    <li key={j} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-sm text-white/80">{text}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/signup">
+                  <Button variant="outline" className="w-full h-12 rounded-full border-2 border-white/20 bg-transparent font-semibold text-white hover:bg-white/10">
+                    {PLANS.pro.cta}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-                </MagneticHover>
-              </a>
-              <a href={BETA_MAILTO}>
-                <Button variant="outline" className="h-13 rounded-full border-[#1a3a2a]/20 px-8 font-semibold text-[#1a3a2a] hover:bg-[#1a3a2a]/5">
-                  Falar com o fundador
-                </Button>
-              </a>
-            </div>
-          </FadeUp>
+                </Link>
+              </div>
+            </ScaleIn>
+          </div>
         </div>
       </section>
 
