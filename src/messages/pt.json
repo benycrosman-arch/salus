@@ -16,6 +16,7 @@
     "label": "Idioma",
     "pt": "Português",
     "en": "English",
+    "de": "Deutsch",
     "switchTo": "Mudar idioma"
   },
   "auth": {
@@ -1002,6 +1003,13 @@
     "monthlyTitle": "Mensal",
     "monthlyPrice": "R$ 59/mês",
     "appNote": "A assinatura está no app iOS e Android",
+    "couponLabel": "Tem um cupom de desconto?",
+    "couponPlaceholder": "Digite seu cupom",
+    "couponApply": "Aplicar",
+    "couponApplied": "Cupom {code} aplicado",
+    "couponRemove": "Remover cupom",
+    "couponInvalid": "Cupom inválido ou expirado",
+    "couponError": "Não foi possível validar o cupom. Tente de novo.",
     "ios": "iOS",
     "android": "Android",
     "terms": "Termos",
@@ -1017,15 +1025,17 @@
     },
     "essencial": {
       "name": "Essencial",
-      "price": "R$ 29",
+      "price": "R$ 49",
       "period": "/mês",
+      "annualLabel": "ou R$ 399/ano · economize 32%",
       "note": "Todas as funcionalidades, com limites mensais",
       "tagline": "30 análises por mês · planos · lista de compras · insights"
     },
     "pro": {
       "name": "Pro",
-      "price": "R$ 59",
+      "price": "R$ 69",
       "period": "/mês",
+      "annualLabel": "ou R$ 499/ano · economize 40%",
       "note": "Tudo ilimitado",
       "tagline": "Análises e planos sem limite · suporte prioritário"
     },

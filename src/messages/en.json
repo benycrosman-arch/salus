@@ -16,6 +16,7 @@
     "label": "Language",
     "pt": "Português",
     "en": "English",
+    "de": "Deutsch",
     "switchTo": "Change language"
   },
   "auth": {
@@ -647,6 +648,13 @@
     "monthlyTitle": "Monthly",
     "monthlyPrice": "R$ 59/month",
     "appNote": "Subscriptions are managed in the iOS and Android apps",
+    "couponLabel": "Have a discount coupon?",
+    "couponPlaceholder": "Enter your coupon",
+    "couponApply": "Apply",
+    "couponApplied": "Coupon {code} applied",
+    "couponRemove": "Remove coupon",
+    "couponInvalid": "Invalid or expired coupon",
+    "couponError": "Couldn't validate the coupon. Please try again.",
     "ios": "iOS",
     "android": "Android",
     "terms": "Terms",
@@ -662,15 +670,17 @@
     },
     "essencial": {
       "name": "Essential",
-      "price": "R$ 29",
+      "price": "R$ 49",
       "period": "/month",
+      "annualLabel": "or R$ 399/year · save 32%",
       "note": "Every feature, with monthly limits",
       "tagline": "30 analyses/month · plans · grocery list · insights"
     },
     "pro": {
       "name": "Pro",
-      "price": "R$ 59",
+      "price": "R$ 69",
       "period": "/month",
+      "annualLabel": "or R$ 499/year · save 40%",
       "note": "Everything, unlimited",
       "tagline": "Unlimited analyses and plans · priority support"
     },
@@ -721,4 +731,3 @@
     "lastOne": "Last analysis"
   }
 }
-

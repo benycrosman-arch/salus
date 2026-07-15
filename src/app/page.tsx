@@ -101,8 +101,9 @@ const PLANS = {
   },
   essencial: {
     name: "Essencial",
-    price: "R$ 29",
+    price: "R$ 49",
     period: "/mês",
+    annualLabel: "ou R$ 399/ano · economize 32%",
     note: "Todas as funcionalidades, com limites mensais",
     features: [
       "30 análises de foto por mês",
@@ -115,8 +116,9 @@ const PLANS = {
   },
   pro: {
     name: "Pro",
-    price: "R$ 59",
+    price: "R$ 69",
     period: "/mês",
+    annualLabel: "ou R$ 499/ano · economize 40%",
     note: "Tudo ilimitado",
     features: [
       "Análises ilimitadas",
@@ -621,6 +623,7 @@ export default function NutriLandingPage() {
                   <span className="text-[#1a3a2a]/50 text-sm">{PLANS.essencial.period}</span>
                 </div>
                 <p className="text-sm text-[#1a3a2a]/60 mt-1">{PLANS.essencial.note}</p>
+                <p className="text-xs font-semibold text-[#c4614a] mt-2">{PLANS.essencial.annualLabel}</p>
                 <div className="my-6 h-px bg-[#e4ddd4]" />
                 <ul className="space-y-3 mb-8 flex-1">
                   {PLANS.essencial.features.map((text, j) => (
@@ -652,6 +655,7 @@ export default function NutriLandingPage() {
                   <span className="text-white/50 text-sm">{PLANS.pro.period}</span>
                 </div>
                 <p className="text-sm text-white/50 mt-1">{PLANS.pro.note}</p>
+                <p className="text-xs font-semibold text-[#e0917c] mt-2">{PLANS.pro.annualLabel}</p>
                 <div className="my-6 h-px bg-white/10" />
                 <ul className="space-y-3 mb-8 flex-1">
                   {PLANS.pro.features.map((text, j) => (

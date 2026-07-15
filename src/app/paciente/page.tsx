@@ -669,6 +669,9 @@ export default function LandingPage() {
                   <span className="text-[#1a3a2a]/50 text-sm">{tp('essencial.period')}</span>
                 </div>
                 <p className="text-sm text-[#1a3a2a]/60 mt-1">{tp('essencial.note')}</p>
+                {tp('essencial.annualLabel') && (
+                  <p className="text-xs font-semibold text-[#c4614a] mt-2">{tp('essencial.annualLabel')}</p>
+                )}
                 <div className="my-6 h-px bg-[#e4ddd4]" />
                 <ul className="space-y-3 mb-8 flex-1">
                   {tPricing.raw('essencial.features').map((text: string, j: number) => (
@@ -700,6 +703,9 @@ export default function LandingPage() {
                   <span className="text-white/50 text-sm">{tp('pro.period')}</span>
                 </div>
                 <p className="text-sm text-white/50 mt-1">{tp('pro.note')}</p>
+                {tp('pro.annualLabel') && (
+                  <p className="text-xs font-semibold text-[#e0917c] mt-2">{tp('pro.annualLabel')}</p>
+                )}
                 <div className="my-6 h-px bg-white/10" />
                 <ul className="space-y-3 mb-8 flex-1">
                   {tPricing.raw('pro.features').map((text: string, j: number) => (
