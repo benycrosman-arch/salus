@@ -57,6 +57,8 @@ export type SalusEvent =
   | "ai_report_submitted"
   | "paywall_viewed"
   | "paywall_cta_clicked"
+  | "paywall_coupon_applied"
+  | "paywall_coupon_rejected"
   | "feature_blocker_shown"
   | "feature_blocker_cta_clicked"
   | "data_exported"
