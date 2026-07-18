@@ -104,7 +104,7 @@ serve(async (req) => {
 
     const userContext = await buildNutritionContext(supabase, user.id)
 
-    // ─── STAGE 1: identify + portion (Opus 4.7 — vision) ──────
+    // ─── STAGE 1: identify + portion (Opus 4.8 — vision) ──────
     // Opus is markedly stronger at portion estimation, food disambiguation
     // (mashed potatoes vs eggs, etc.), and Brazilian dish recognition.
     const stage1Resp = await callAnthropic({

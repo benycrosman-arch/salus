@@ -2,7 +2,7 @@
 // Reads ANTHROPIC_API_KEY from Deno env — never accepts it as a parameter.
 
 export const MODEL_ID = "claude-sonnet-4-6"
-export const MODEL_OPUS = "claude-opus-4-7"   // Used for vision-heavy meal analysis
+export const MODEL_OPUS = "claude-opus-4-8"   // Used for vision-heavy meal analysis
 export const ANTHROPIC_VERSION = "2023-06-01"
 
 type CacheControl = { type: "ephemeral" }
@@ -27,11 +27,11 @@ export type CallOptions = {
   system: SystemBlock[]
   messages: Array<{ role: "user" | "assistant"; content: string | ContentBlock[] }>
   maxTokens: number
-  /** Override the default Sonnet — used for ai-analyze (Opus 4.7). */
+  /** Override the default Sonnet — used for ai-analyze (Opus 4.8). */
   model?: string
   /**
    * If the primary model returns `anthropic_model_not_found`, transparently
-   * retry once with this fallback (e.g. Sonnet 4.6 when Opus 4.7 isn't
+   * retry once with this fallback (e.g. Sonnet 4.6 when Opus 4.8 isn't
    * entitled). Use only for vision-critical calls where partial degradation
    * is preferable to a hard failure.
    */

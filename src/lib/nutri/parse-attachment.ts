@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 
-export const NUTRI_ATTACHMENT_MODEL = 'claude-opus-4-7'
+export const NUTRI_ATTACHMENT_MODEL = 'claude-opus-4-8'
 export const MAX_EXTRACTED_CHARS = 8000
 
 let _client: Anthropic | null = null
